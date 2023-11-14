@@ -1,0 +1,265 @@
+scalar File
+
+type GlobalTournamentSettings {
+  leaders: [Int!]!
+  default: Int!
+}
+
+type DateType {
+  day: Int! # Sunday - Saturday : 0 - 6
+  hour: Int! # 24h format
+  min: Int!
+}
+
+type Lan {
+  name: String!
+  motd: String!
+  defaultTournamentSettings: GlobalTournamentSettings!
+  weightTeamsResults: Boolean!
+  partialResults: Boolean!
+  startDate: DateType!
+  endDate: DateType!
+}
+
+type LoggedInUser {
+  username: String!
+  isAdmin: Boolean!
+  avatar: String
+  team: String
+  ip: String
+}
+
+type Game {
+  id: Int!
+  name: String!
+  platforms: [Int]!
+  cover: String!
+  picture: String!
+  release: Int
+}
+
+type Player {
+  username: String!
+  avatar: String
+  team: String
+  isAdmin: Boolean
+  ips: [String!]
+}
+
+type PlayerStats {
+  player: Player!
+  points: Int!
+  tournaments: Int!
+  wins: Int!
+  losses: Int!
+  LBwins: Int!
+  secondPlaces: Int!
+}
+
+type Achievement {
+  name: String!
+  description: String!
+  player: Player!
+}
+
+type PlayerResult {
+  username: String!
+  position: Int!
+}
+
+type TournamentTeam {
+  name: String!
+  players: [String!]!
+}
+
+type BracketOptions {
+  last: Int
+  short: Boolean
+  lowerScoreIsBetter: Boolean
+  sizes: [Int!]
+  advancers: [Int!]
+  limit: Int
+}
+
+type MatchId {
+  s: Int!
+  r: Int!
+  m: Int!
+}
+
+type Match {
+  id: MatchId!
+  p: [Int!]!
+  m: [Int]
+}
+
+type BracketSeed {
+  nb: Int!
+  opponent: String!
+}
+
+type BracketProperties {
+  type: String!
+  options: BracketOptions!
+  seeding: [BracketSeed!]
+}
+
+enum TournamentStatus {
+  OPEN,
+  BALANCING,
+  RUNNING,
+  PAUSED,
+  VALIDATING,
+  DONE
+}
+
+type TournamentLight {
+  id: String!
+  name: String!
+  game: Int!
+  status: TournamentStatus!
+  startTime: DateType!
+  players: [String!]!
+}
+
+type Tournament {
+  id: String!
+  name: String!
+  game: Int!
+  bracketProperties: BracketProperties!
+  matches: [Match!]
+  status: TournamentStatus!
+  players: [Player!]!
+  forfeitOpponents: [String!]
+  useTeams: Boolean!
+  usersCanCreateTeams: Boolean
+  teamsMaxSize: Int
+  teams: [TournamentTeam!]
+  startTime: DateType!
+  globalTournamentSettings: GlobalTournamentSettings!
+  comments: String!
+  results: [PlayerResult!]
+}
+
+type IgdbGame {
+  id: Int!
+  name: String!
+  platforms: [Int!]!
+  cover: String!
+  pictures: [String!]!
+  release: Int
+}
+
+input BracketOptionsInput {
+  last: Int
+  short: Boolean
+  lowerScoreIsBetter: Boolean
+  sizes: [Int!]
+  advancers: [Int!]
+  limit: Int
+}
+
+input BracketSeedInput {
+  nb: Int!
+  opponent: String!
+}
+
+input BracketPropertiesInput {
+  type: String!
+  options: BracketOptionsInput!
+  seeding: [BracketSeedInput!]
+}
+
+input TeamsInput {
+  name: String!
+  players: [String!]!
+}
+
+input TeamsTournamentInput {
+  teams: [TeamsInput]!
+  tournamentId: String!
+}
+
+input GlobalTournamentSettingsInput {
+  leaders: [Int!]!
+  default: Int!
+}
+
+input EditTournamentInput {
+  id: String!
+  name: String
+  game: Int
+  bracketProperties: BracketPropertiesInput
+  status: TournamentStatus # state -> 0 : Not started, 1 : running, 2 : finished
+  useTeams: Boolean
+  usersCanCreateTeams: Boolean
+  teamsMaxSize: Int
+  startTime: DateInput
+  globalTournamentSettings: GlobalTournamentSettingsInput
+  comments: String
+}
+
+input DateInput {
+  day: Int! # Sunday - Saturday : 0 - 6
+  hour: Int! # 24h format
+  min: Int!
+}
+
+input UpdateLanInput {
+  name: String
+  motd: String
+  defaultTournamentSettings: GlobalTournamentSettingsInput
+  weightTeamsResults: Boolean
+  partialResults: Boolean
+  startDate: DateInput
+  endDate: DateInput
+}
+
+input IdInput {
+  s: Int!
+  r: Int!
+  m: Int!
+}
+
+type Query {
+  lan: Lan!
+  me: LoggedInUser
+  players: [Player!]!
+  tournaments: [TournamentLight!]!
+  tournament(id: String!): Tournament
+  leaderboard: [PlayerStats!]!
+  achievements: [Achievement!]!
+  games: [Game!]!
+  igdbGames(searchCriteria: String!, idToSearch: Int): [IgdbGame!]!
+}
+
+type Mutation {
+  # player
+  login(username: String!): LoggedInUser
+  updateProfile(avatarFile: File, team: String, removeAvatar: Boolean): LoggedInUser!
+  # admin
+  adminElevation(password: String!): LoggedInUser
+  updateLan(lan: UpdateLanInput!): Lan!
+  # games
+  setGame(id: Int!, name: String!, platforms: [Int!]!, cover: String!, picture: String!, release: Int): String
+  removeGame(id: Int!): String
+  # tournament
+  editTournament(input: EditTournamentInput!): String
+  balanceTournament(id: String!): String
+  startTournament(id: String!): String
+  stopTournament(id: String!): String
+  validateTournament(id: String!): String
+  removeTournament(id: String!): String
+  addPlayerToTournament(tournamentId: String!, player: String!): String
+  removePlayerFromTournament(tournamentId: String!, player: String!): String
+  movePlayer(tournamentId:String!, player: String!, newIndex:Int!): String
+  moveTeam(tournamentId:String!, team: String!, newIndex:Int!): String
+  forfeitOpponentFromTournament(tournamentId: String!, opponent: String!): String
+  newTournamentTeam(tournamentId: String!, teamName: String!): String
+  renameTournamentTeam(tournamentId: String!, oldTeamName: String!, newTeamName: String!): String
+  removeTournamentTeam(tournamentId: String!, teamName: String!): String
+  addPlayersToTeam(tournamentId: String!, teamName: String!, players: [String!]!): String
+  removePlayersFromTeam(tournamentId: String!, players: [String!]!): String
+  # bracket
+  setScore(tournamentId: String!, matchId: IdInput!, player:Int!, score: Int!): String
+}

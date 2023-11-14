@@ -1,0 +1,15 @@
+
+schema: ./lib/gql/schema.graphql
+documents: ['lib/gql/operations/*.{ts,tsx}']
+generates:
+  "__generated__/gql/types.ts":
+    config:
+      contextType: ../../lib/gql/context#GraphQLContext
+      inputMaybeValue: T | undefined
+      scalars:
+        File: File
+    plugins:
+      - "@graphql-codegen/typescript"
+      - "@graphql-codegen/typescript-resolvers"
+      - "@graphql-codegen/typescript-operations"
+
