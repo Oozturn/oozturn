@@ -11,7 +11,7 @@ import {
 import appStylesHref from "./styles/globals.css"
 import Navbar from "./lib/components/layout/navbar";
 import { LanContext } from "./lib/components/contexts/LanContext";
-import { getLan } from "./lib/components/persistence/lan.server";
+import { getLan } from "./lib/persistence/lan.server";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: appStylesHref },

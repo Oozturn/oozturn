@@ -3,7 +3,7 @@ import { MetaFunction, useFetcher } from "@remix-run/react";
 import { useContext, useState } from "react";
 import { LanContext } from "~/lib/components/contexts/LanContext";
 import { UserAvatar } from "~/lib/components/elements/user-avatar";
-import { getLan, updateLan } from "~/lib/components/persistence/lan.server";
+import { getLan, updateLan } from "~/lib/persistence/lan.server";
 import { autoSubmit } from "~/lib/utils/autosubmit";
 
 export const meta: MetaFunction = () => {
