@@ -1,9 +1,10 @@
-import { ActionFunctionArgs } from "@remix-run/node";
+import { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { MetaFunction, useFetcher } from "@remix-run/react";
 import { useContext, useState } from "react";
 import { LanContext } from "~/lib/components/contexts/LanContext";
 import { UserAvatar } from "~/lib/components/elements/user-avatar";
-import { getLan, updateLan } from "~/lib/persistence/lan.server";
+import { updateLan } from "~/lib/persistence/lan.server";
+import { requireUserAdmin, requireUserLoggedIn } from "~/lib/session.server";
 import { autoSubmit } from "~/lib/utils/autosubmit";
 
 export const meta: MetaFunction = () => {
@@ -12,15 +13,23 @@ export const meta: MetaFunction = () => {
     ];
 };
 
+export async function loader({ request }: LoaderFunctionArgs) {
+    await requireUserLoggedIn(request)
+    await requireUserAdmin(request)
+    return null
+}
+
 export async function action({ request }: ActionFunctionArgs) {
+    requireUserLoggedIn(request)
+
     const body = await request.formData()
 
     updateLan({
-        name:String(body.get("name")),
-        motd:String(body.get("motd"))
+        name: String(body.get("name")),
+        motd: String(body.get("motd"))
     })
 
-    return ""
+    return null
 }
 
 export default function Admin() {
@@ -73,9 +82,9 @@ export default function Admin() {
                                         <input id="field"
                                             name="name"
                                             className="input" type="text"
-                                            defaultValue={lan.name} 
+                                            defaultValue={lan.name}
                                             {...autoSubmit(fetcher)}
-                                            />
+                                        />
                                     </p>
                                     <div className='lanDate is-flex'>
                                         {/* <CustomSelect
@@ -109,8 +118,8 @@ export default function Admin() {
                                     </div>
                                     <p className="control lanMotd">
                                         <textarea id="field"
-                                            name="motd" 
-                                            className="textarea" 
+                                            name="motd"
+                                            className="textarea"
                                             defaultValue={lan.motd}
                                             {...autoSubmit(fetcher)} />
                                     </p>

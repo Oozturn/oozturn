@@ -1,5 +1,5 @@
-import { redirect, type LoaderFunction, type MetaFunction, LoaderFunctionArgs } from "@remix-run/node";
-import { isUserLoggedIn } from "~/lib/session.server";
+import { LoaderFunctionArgs, type MetaFunction } from "@remix-run/node";
+import { requireUserLoggedIn } from "~/lib/session.server";
 
 export const meta: MetaFunction = () => {
   return [
@@ -9,9 +9,7 @@ export const meta: MetaFunction = () => {
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  if (!await isUserLoggedIn(request)) {
-    return redirect("/login");
-  }
+  await requireUserLoggedIn(request)
   return null
 }
 

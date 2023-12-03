@@ -1,18 +1,17 @@
-import { Link } from "@remix-run/react"
-import { DropDownArrowSVG, EditGearSVG, LogoFolded, LogoSideSVG } from "../data/svg-container"
-import { useState } from "react";
-import { UserAvatar } from "../elements/user-avatar";
+import { Link, useSubmit } from "@remix-run/react";
+import { useContext, useState } from "react";
+import { LanContext } from "../contexts/LanContext";
+import { DropDownArrowSVG, EditGearSVG, LogoFolded, LogoSideSVG } from "../data/svg-container";
 import EditProfileModal from "../user/edit-profile-modal";
+import { UserContext } from "../contexts/UserContext";
 
 
 export default function Navbar() {
 
-    const lanName = "Some lan name"
+    const lan = useContext(LanContext);
+    const user = useContext(UserContext);
     const [showMobileNav, setShowMobileNav] = useState(false)
     const [animateLogo, setAnimateLogo] = useState(false)
-    const user = {
-        isAdmin : true
-    }
     const current_page : string = "/admin"
     const loading = false
     
@@ -32,7 +31,7 @@ export default function Navbar() {
                             <LogoFolded animate={animateLogo} />
                         </div>
                         <LogoSideSVG />
-                        {lanName}
+                        {lan?.name}
                     </Link>
                 </div>
                 <div className={`navbar-menu ${showMobileNav && "is-active"}`}>
@@ -56,10 +55,8 @@ export default function Navbar() {
 
 export function PlayerProfile() {
 
-    const me = {
-        username : "some username",
-        team: "team"
-    }
+    const submit = useSubmit()
+    const me = useContext(UserContext);
     const leaderboard : any[] = []
     const [showEdit, setShowEdit] = useState(false)
 
@@ -67,7 +64,12 @@ export function PlayerProfile() {
         return null
     }
 
-    function handleLogout() {}
+    function handleLogout(event:React.MouseEvent<HTMLElement>) {
+        submit(null,{
+            action:"/logout",
+            method:"POST"
+        })
+    }
 
     return (
         <>

@@ -1,4 +1,4 @@
-import type { LinksFunction } from "@remix-run/node";
+import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
 import {
   Links,
   LiveReload,
@@ -12,17 +12,25 @@ import appStylesHref from "./styles/globals.css"
 import Navbar from "./lib/components/layout/navbar";
 import { LanContext } from "./lib/components/contexts/LanContext";
 import { getLan } from "./lib/persistence/lan.server";
+import { User, UserContext } from "./lib/components/contexts/UserContext";
+import { getUsername, isUserAdmin } from "./lib/session.server";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: appStylesHref },
 ];
 
-export async function loader() {
-  return getLan()
+export async function loader({ request }: LoaderFunctionArgs) {
+  return {
+    lan: getLan(),
+    user: {
+      username: await getUsername(request),
+      isAdmin: await isUserAdmin(request)
+    }
+  }
 }
 
 export default function App() {
-  const lan = useLoaderData<typeof loader>()
+  const { lan, user } = useLoaderData<typeof loader>()
 
   return (
     <html lang="fr">
@@ -33,9 +41,11 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <LanContext.Provider value={lan}>
-          <Outlet />
-        </LanContext.Provider>
+        <UserContext.Provider value={user}>
+          <LanContext.Provider value={lan}>
+            <Outlet />
+          </LanContext.Provider>
+        </UserContext.Provider>
         <ScrollRestoration />
         <Scripts />
         <LiveReload />

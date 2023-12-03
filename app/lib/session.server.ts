@@ -1,4 +1,5 @@
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
+import { logger } from "./logging/logging";
 
 const sessionSecret = process.env.SESSION_SECRET;
 if (!sessionSecret) {
@@ -13,7 +14,7 @@ const secureStorage =
             cookie: {
                 name: "oozturn_session",
                 httpOnly: true,
-                maxAge: 60,
+                maxAge: 60 * 60 * 24 * 7,
                 path: "/",
                 sameSite: "lax",
                 secrets: [sessionSecret],
@@ -22,6 +23,11 @@ const secureStorage =
         }
     );
 
+async function getSession(request: Request) {
+    return await secureStorage.getSession(
+        request.headers.get("Cookie")
+    );
+}
 
 export async function createSessionWithUsername(username: string) {
     const session = await secureStorage.getSession();
@@ -29,10 +35,43 @@ export async function createSessionWithUsername(username: string) {
     return await secureStorage.commitSession(session)
 }
 
-export async function isUserLoggedIn(request: Request) {
-    const session = await secureStorage.getSession(
-        request.headers.get("Cookie")
-    );
+export async function destroySession(request: Request) {
+    const session = await getSession(request);
+    return await secureStorage.destroySession(session)
+}
 
+export async function updateSessionWithAdminElevation(request: Request) {
+    const session = await getSession(request)
+    session.set("admin", true);
+    return await secureStorage.commitSession(session)
+}
+
+export async function isUserLoggedIn(request: Request) {
+    const session = await getSession(request)
+    console.log("isUserLoggedIn",session.get("username"))
     return session.has("username")
+}
+
+export async function isUserAdmin(request: Request): Promise<boolean> {
+    const session = await getSession(request)
+    return !!session.get("admin")
+}
+
+export async function getUsername(request: Request): Promise<string | undefined> {
+    const session = await getSession(request)
+    return session.get("username")
+}
+
+export async function requireUserLoggedIn(request: Request) {
+    const userLoggedIn = await isUserLoggedIn(request)
+    if (!userLoggedIn) {
+        throw redirect('/login');
+    }
+}
+
+export async function requireUserAdmin(request: Request) {
+    const userIdAdmin = await isUserAdmin(request)
+    if (!userIdAdmin) {
+        throw redirect('/admin/login');
+    }
 }
