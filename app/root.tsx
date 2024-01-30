@@ -8,16 +8,12 @@ import {
   ScrollRestoration,
   useLoaderData,
 } from "@remix-run/react";
-import appStylesHref from "./styles/globals.css"
+import "./styles/globals.scss"
 import Navbar from "./lib/components/layout/navbar";
 import { LanContext } from "./lib/components/contexts/LanContext";
 import { getLan } from "./lib/persistence/lan.server";
 import { User, UserContext } from "./lib/components/contexts/UserContext";
 import { getUsername, isUserAdmin } from "./lib/session.server";
-
-export const links: LinksFunction = () => [
-  { rel: "stylesheet", href: appStylesHref },
-];
 
 export async function loader({ request }: LoaderFunctionArgs) {
   return {
