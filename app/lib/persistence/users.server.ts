@@ -2,17 +2,10 @@ import { logger } from "~/lib/logging/logging"
 import { dbFolderPath, subscribeObjectManager } from "./db.server"
 import * as fs from 'fs'
 import * as path from 'path'
+import { User } from "../types/user"
 
 declare global {
     var users: User[]
-}
-
-export interface User {
-    username: string,
-    avatar: string,
-    team: string,
-    isAdmin: boolean,
-    ips: string[]
 }
 
 const usersFilePath = path.join(dbFolderPath, 'users.json')

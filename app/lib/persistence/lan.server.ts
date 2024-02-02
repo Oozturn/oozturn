@@ -2,14 +2,10 @@ import { logger } from "~/lib/logging/logging"
 import { dbFolderPath, subscribeObjectManager } from "./db.server"
 import * as fs from 'fs'
 import * as path from 'path'
+import { Lan } from "../types/lan"
 
 declare global {
     var lan: Lan
-}
-
-export interface Lan {
-    name: string,
-    motd: string
 }
 
 const lanFilePath = path.join(dbFolderPath, 'lan.json')

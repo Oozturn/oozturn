@@ -52,7 +52,10 @@ export default function App() {
         <UserContext.Provider value={user}>
           <LanContext.Provider value={lan}>
             <GetUserTheme />
-            <Outlet />
+            <Navbar />
+            <main className="main is-clipped">
+                <Outlet />
+            </main>
           </LanContext.Provider>
         </UserContext.Provider>
         <ScrollRestoration />
