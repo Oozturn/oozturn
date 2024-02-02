@@ -1,4 +1,4 @@
-import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
+import type { ActionFunctionArgs, LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
 import {
   Links,
   LiveReload,
@@ -12,16 +12,27 @@ import "./styles/globals.scss"
 import Navbar from "./lib/components/layout/navbar";
 import { LanContext } from "./lib/components/contexts/LanContext";
 import { getLan } from "./lib/persistence/lan.server";
-import { User, UserContext } from "./lib/components/contexts/UserContext";
+import { UserContext } from "./lib/components/contexts/UserContext";
 import { getUsername, isUserAdmin } from "./lib/session.server";
+import { getUser, updateUser } from "./lib/persistence/users.server";
+
+
+export async function action({ request }: ActionFunctionArgs) {
+
+  const body = await request.formData()
+
+  updateUser(String(await getUsername(request)),
+  {
+    team: String(body.get("team"))
+  })
+
+  return null
+}
 
 export async function loader({ request }: LoaderFunctionArgs) {
   return {
     lan: getLan(),
-    user: {
-      username: await getUsername(request),
-      isAdmin: await isUserAdmin(request)
-    }
+    user: getUser(String(await getUsername(request)))
   }
 }
 

@@ -48,7 +48,7 @@ export async function updateSessionWithAdminElevation(request: Request) {
 
 export async function isUserLoggedIn(request: Request) {
     const session = await getSession(request)
-    console.log("isUserLoggedIn",session.get("username"))
+    console.log("isUserLoggedIn", session.get("username"))
     return session.has("username")
 }
 

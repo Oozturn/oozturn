@@ -11,20 +11,21 @@ interface UserAvatarProps {
 }
 
 async function isImgUrl(url: string) {
-	return await fetch(url, {method: 'HEAD'})
-		.then(res => {return res.headers.get('Content-Type')?.startsWith('image') == true})
-		.catch(() => {return false})
+	return await fetch(url, { method: 'HEAD' })
+		.then(res => { return res.headers.get('Content-Type')?.startsWith('image') == true })
+		.catch(() => { return false })
 }
-  
 
-export function UserAvatar({username, avatar}: UserAvatarProps) {
-    const [accentLocalStorage, setAccentLocalStorage] = useLocalStorageState("accent", {defaultValue: "Switch"})
-	const [ isImage, setIsImage ] = useState(false)
-	isImgUrl(`/api/static/avatar/${avatar}`).then(res => setIsImage(res))
 
+export function UserAvatar({ username, avatar }: UserAvatarProps) {
+	const [accentLocalStorage, setAccentLocalStorage] = useLocalStorageState("accent", { defaultValue: "Switch" })
+	const [isImage, setIsImage] = useState(false)
+	if (avatar) {
+		isImgUrl(`avatar/${avatar}`).then(res => setIsImage(res))
+	}
 	return <>
 		{avatar && isImage ?
-			<img className="is-rounded" src={`/api/static/avatar/${avatar}`} alt=""/>
+			<img className="is-rounded" src={`/avatar/${avatar}`} alt="" />
 			:
 			<BaseAvatar username={username} color={accentsList.find(accent => accent.name == accentLocalStorage)?.primary as string} size={128} />
 		}

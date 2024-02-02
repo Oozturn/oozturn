@@ -1,6 +1,7 @@
 import { json, redirect } from "@remix-run/node"
 import { logger } from "../logging/logging"
 import { createSessionWithUsername } from "../session.server"
+import { getUser, registerNewUser } from "../persistence/users.server"
 
 
 
@@ -15,11 +16,17 @@ export async function doLogin(rawUsername: string) {
         return json({ error: "Nom d'utilisateur trop long (15 caratères max.)" })
     }
 
-    // do things
+    // If user exists, recover it from global. Else, register it
+    let user = getUser(rawUsername.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, ''))
+    if (user) {
+        logger.info({ username: username }, `${username} logged in`)
+    }
+    else {
+        logger.info({ username: username }, `New user ${username} logged in`)
+        user = registerNewUser(rawUsername)
+    }
 
-    logger.info({ username: username }, `${username} logged in`)
-
-    const cookie = await createSessionWithUsername(username)
+    const cookie = await createSessionWithUsername(user.username)
     return redirect("/", {
         headers: {
             "Set-Cookie": cookie

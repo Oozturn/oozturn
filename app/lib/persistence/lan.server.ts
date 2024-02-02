@@ -1,6 +1,7 @@
 import { logger } from "~/lib/logging/logging"
-import { subscribeObjectManager } from "./db.server"
-import * as fs from 'fs';
+import { dbFolderPath, subscribeObjectManager } from "./db.server"
+import * as fs from 'fs'
+import * as path from 'path'
 
 declare global {
     var lan: Lan
@@ -11,7 +12,7 @@ export interface Lan {
     motd: string
 }
 
-const lanFilePath = 'db/lan.json'
+const lanFilePath = path.join(dbFolderPath, 'lan.json')
 
 subscribeObjectManager("lan", {
     onRestore: () => {
@@ -30,7 +31,7 @@ subscribeObjectManager("lan", {
         }
     },
     onStore: () => {
-        fs.writeFileSync(lanFilePath, JSON.stringify(global.lan, null, 2), 'utf-8' )
+        fs.writeFileSync(lanFilePath, JSON.stringify(global.lan, null, 2), 'utf-8')
     }
 })
 
@@ -38,6 +39,6 @@ export function getLan() {
     return global.lan
 }
 
-export function updateLan(partialLan : Partial<Lan>) {
-    global.lan = {...lan, ...partialLan}
+export function updateLan(partialLan: Partial<Lan>) {
+    global.lan = { ...lan, ...partialLan }
 }

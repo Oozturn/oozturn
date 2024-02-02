@@ -2,8 +2,9 @@ import { Link, useSubmit } from "@remix-run/react";
 import { useContext, useState } from "react";
 import { LanContext } from "../contexts/LanContext";
 import { DropDownArrowSVG, EditGearSVG, LogoFolded, LogoSideSVG } from "../data/svg-container";
-import EditProfileModal from "../user/edit-profile-modal";
 import { UserContext } from "../contexts/UserContext";
+import { UserAvatar } from "../elements/user-avatar";
+import EditProfileModal from "../user/edit-profile-modal";
 
 
 export default function Navbar() {
@@ -12,9 +13,9 @@ export default function Navbar() {
     const user = useContext(UserContext);
     const [showMobileNav, setShowMobileNav] = useState(false)
     const [animateLogo, setAnimateLogo] = useState(false)
-    const current_page : string = "/admin"
+    const current_page: string = "/admin"
     const loading = false
-    
+
     const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
     async function animateLogoFunc() {
         setAnimateLogo(true)
@@ -27,7 +28,7 @@ export default function Navbar() {
             <nav className="navbar has-background-secondary-level">
                 <div className="navbar-brand is-title big">
                     <Link className="navbar-item pl-0" to="/">
-                        <div style={{height:"25px", width:"180px"}} className="p-0 navbarLogo is-flex" onMouseEnter={animateLogoFunc}>
+                        <div style={{ height: "25px", width: "180px" }} className="p-0 navbarLogo is-flex" onMouseEnter={animateLogoFunc}>
                             <LogoFolded animate={animateLogo} />
                         </div>
                         <LogoSideSVG />
@@ -57,17 +58,17 @@ export function PlayerProfile() {
 
     const submit = useSubmit()
     const me = useContext(UserContext);
-    const leaderboard : any[] = []
+    const leaderboard: any[] = []
     const [showEdit, setShowEdit] = useState(false)
 
     if (!me) {
         return null
     }
 
-    function handleLogout(event:React.MouseEvent<HTMLElement>) {
-        submit(null,{
-            action:"/logout",
-            method:"POST"
+    function handleLogout(event: React.MouseEvent<HTMLElement>) {
+        submit(null, {
+            action: "/logout",
+            method: "POST"
         })
     }
 
@@ -79,17 +80,17 @@ export function PlayerProfile() {
                     <div className="arrow mr-4">
                         <DropDownArrowSVG />
                     </div>
-                    {/* <div className="avatar">
+                    <div className="avatar">
                         <UserAvatar username={me.username} avatar={me.avatar} />
-                    </div> */}
+                    </div>
                 </div>
                 <div className="flat-box navbarPlayerInfoTopBox has-background-secondary-level is-flex is-flex-direction-column is-align-items-center p-0">
                     <div className="settings is-clickable fade-on-mouse-out" onClick={() => setShowEdit(true)}>
                         <EditGearSVG />
                     </div>
-                    {/* <div className="avatar mt-6">
+                    <div className="avatar mt-6">
                         <UserAvatar username={me.username} avatar={me.avatar} />
-                    </div> */}
+                    </div>
                     <div>{me.username}</div>
                     {me.team && <div className="userteam fade-text">{'[' + me.team + ']'}</div>}
                     {leaderboard &&
@@ -103,7 +104,7 @@ export function PlayerProfile() {
                         </div>
                     }
                     <div className="m-1"></div>
-                    
+
                 </div>
             </div>
             <EditProfileModal show={showEdit} onHide={() => setShowEdit(false)} />

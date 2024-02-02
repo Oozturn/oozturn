@@ -1,10 +1,5 @@
 import { createContext } from "react";
+import { User } from "~/lib/persistence/users.server";
 
 
-export interface User {
-    username?: string,
-    isAdmin: boolean,
-    team?: string
-}
-
-export const UserContext = createContext<User | null>(null);
+export const UserContext = createContext<User | undefined>(undefined);
