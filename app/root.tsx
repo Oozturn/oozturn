@@ -15,6 +15,7 @@ import { getLan } from "./lib/persistence/lan.server";
 import { UserContext } from "./lib/components/contexts/UserContext";
 import { getUsername, isUserAdmin } from "./lib/session.server";
 import { getUser, updateUser } from "./lib/persistence/users.server";
+import { GetUserTheme } from "./lib/components/tools/user-theme";
 
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -50,6 +51,7 @@ export default function App() {
       <body>
         <UserContext.Provider value={user}>
           <LanContext.Provider value={lan}>
+            <GetUserTheme />
             <Outlet />
           </LanContext.Provider>
         </UserContext.Provider>

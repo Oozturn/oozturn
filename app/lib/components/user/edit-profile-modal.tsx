@@ -1,11 +1,12 @@
 import { ChangeEvent, useContext, useState } from "react";
 import useLocalStorageState from "use-local-storage-state";
 import { CloseCrossSVG } from "../data/svg-container";
-import { accentsList } from "../data/themes";
+import { accentsList, modesList } from "../data/themes";
 import { CustomButton } from "../elements/custom-button";
 import { autoSubmit } from "~/lib/utils/autosubmit";
 import { UserContext } from "../contexts/UserContext";
 import { useFetcher } from "@remix-run/react";
+import { CustomRadio } from "../elements/custom-radio";
 
 interface EditProfileModalProps {
   show: boolean;
@@ -55,7 +56,7 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
                       className="input" type="text"
                       defaultValue={me.team}
                       {...autoSubmit(fetcher)}
-                    />{/* <SyncedInput type='input' query={GET_ME_QUERY} valueSelector={(query: MeQuery) => (query.me?.team || "")} mutationQuery={UPDATE_PROFILE_MUTATION} mutationVariableName="team" baseMutationVariable={{ username: me.username }} /> */}
+                    />
                     <div className="is-size-7 mt-1">Utilisé pour calculer le score de ton équipe à cette LAN. Te foire pas sur l&apos;orthographe.</div>
                   </div>
                 </div>
@@ -65,7 +66,7 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
                 <div className="is-title big">PERSONNALISATION</div>
                 <div className="is-flex is-align-items-center mb-2">
                   <div className="mr-2">Thème :</div>
-                  {/* <CustomRadio setter={setModeLocalStorage} variable={modeLocalStorage} items={modesList.map(mode => { return { label: mode.name, value: mode.name } })} /> */}
+                  <CustomRadio setter={setModeLocalStorage} variable={modeLocalStorage} items={modesList.map(mode => { return { label: mode.name, value: mode.name } })} />
                 </div>
                 <div className="is-flex is-align-items-center mb-2">
                   <div className="mr-2">Couleurs d&apos;accent :</div>
