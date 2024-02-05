@@ -22,7 +22,14 @@ subscribeObjectManager("lan", {
             logger.info("Initialise lan with default")
             global.lan = {
                 name: "Nouvelle LAN",
-                motd: "A modifier"
+                motd: "A modifier",
+                startDate: { day: 5, hour: 18, min: 0 },
+                endDate: { day: 0, hour: 14, min: 0 },
+                options: {
+                    globalTournamentDefaultSettings: { leaders: [10, 6, 4, 2], default: 1 },
+                    weightTeamsResults: false,
+                    partialResults: false
+                }
             }
         }
     },
