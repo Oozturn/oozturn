@@ -17,19 +17,6 @@ import { getUsername, isUserAdmin } from "./lib/session.server";
 import { getUser, updateUser } from "./lib/persistence/users.server";
 import { GetUserTheme } from "./lib/components/tools/user-theme";
 
-
-export async function action({ request }: ActionFunctionArgs) {
-
-  const body = await request.formData()
-
-  updateUser(String(await getUsername(request)),
-  {
-    team: String(body.get("team"))
-  })
-
-  return null
-}
-
 export async function loader({ request }: LoaderFunctionArgs) {
   return {
     lan: getLan(),

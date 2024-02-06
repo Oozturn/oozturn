@@ -1,12 +1,13 @@
+import { useFetcher } from "@remix-run/react";
 import { ChangeEvent, useContext, useState } from "react";
 import useLocalStorageState from "use-local-storage-state";
+import { autoSubmit } from "~/lib/utils/autosubmit";
+import { UserContext } from "../contexts/UserContext";
 import { CloseCrossSVG } from "../data/svg-container";
 import { accentsList, modesList } from "../data/themes";
 import { CustomButton } from "../elements/custom-button";
-import { autoSubmit } from "~/lib/utils/autosubmit";
-import { UserContext } from "../contexts/UserContext";
-import { useFetcher } from "@remix-run/react";
 import { CustomRadio } from "../elements/custom-radio";
+import { Intents } from "~/routes/api";
 
 interface EditProfileModalProps {
   show: boolean;
@@ -31,7 +32,6 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
     <div className="modal is-active">
       <div className="modal-background" onClick={onHide}></div>
       <div className="modal-content">
-        <fetcher.Form method="POST">
           <div className="flat-box navbarPlayerCustomisationModal customModal is-flex is-align-items-stretch has-background-secondary-level pt-6 pl-6 pb-5">
             <div className="close is-clickable fade-on-mouse-out" onClick={onHide}>
               <CloseCrossSVG />
@@ -48,6 +48,8 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
                   <div className="mr-2">Adresse IP :</div>
                   <div className="has-text-weight-semibold">{me.ips.at(-1) || "127.0.0.1"}</div>
                 </div>
+              <fetcher.Form method="POST" action="/api">
+                <input type="hidden" name="intent" value={Intents.UPDATE_TEAM} />
                 <div className="is-flex is-flex is-align-items-start" style={{ maxWidth: "402px" }}>
                   <div className="mr-2">Équipe :</div>
                   <div className="is-flex is-flex-direction-column is-flex-basis-0 is-flex-grow-1">
@@ -60,6 +62,7 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
                     <div className="is-size-7 mt-1">Utilisé pour calculer le score de ton équipe à cette LAN. Te foire pas sur l&apos;orthographe.</div>
                   </div>
                 </div>
+              </fetcher.Form>
               </div>
               <div className="m-5"></div>
               <div className="playerOptions">
@@ -92,7 +95,6 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
               </div>
             </div>
           </div>
-        </fetcher.Form>
       </div>
     </div>
   );
