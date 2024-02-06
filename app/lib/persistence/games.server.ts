@@ -17,10 +17,11 @@ subscribeObjectManager("games", {
         }
 
         if (fs.existsSync(gamesFilePath)) {
+            logger.info("Loading games from persistence")
             global.games = JSON.parse(fs.readFileSync(gamesFilePath, 'utf-8'))
             global.games.push({ id: -1, name: "", cover: "", picture: "" })
         } else {
-            logger.info("Initialise games")
+            logger.info("Initialize games")
             global.games = []
         }
     },

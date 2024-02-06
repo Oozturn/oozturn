@@ -10,6 +10,18 @@ declare global {
 
 const lanFilePath = path.join(dbFolderPath, 'lan.json')
 
+const defaultLan: Lan = {
+    name: "New LAN",
+    motd: "Let's play!",
+    startDate: { day: 5, hour: 18, min: 0 },
+    endDate: { day: 0, hour: 14, min: 0 },
+    options: {
+        globalTournamentDefaultSettings: { leaders: [10, 6, 4, 2], default: 1 },
+        weightTeamsResults: false,
+        partialResults: false
+    }
+}
+
 subscribeObjectManager("lan", {
     onRestore: () => {
         if (global.lan) {
@@ -17,20 +29,11 @@ subscribeObjectManager("lan", {
         }
 
         if (fs.existsSync(lanFilePath)) {
-            global.lan = JSON.parse(fs.readFileSync(lanFilePath, 'utf-8'))
+            logger.info("Loading lan from persistence")
+            global.lan = {...defaultLan,  ...JSON.parse(fs.readFileSync(lanFilePath, 'utf-8'))}
         } else {
-            logger.info("Initialise lan with default")
-            global.lan = {
-                name: "Nouvelle LAN",
-                motd: "A modifier",
-                startDate: { day: 5, hour: 18, min: 0 },
-                endDate: { day: 0, hour: 14, min: 0 },
-                options: {
-                    globalTournamentDefaultSettings: { leaders: [10, 6, 4, 2], default: 1 },
-                    weightTeamsResults: false,
-                    partialResults: false
-                }
-            }
+            logger.info("Initialize lan with default")
+            global.lan = defaultLan
         }
     },
     onStore: () => {

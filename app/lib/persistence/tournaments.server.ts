@@ -17,9 +17,10 @@ subscribeObjectManager("tournaments", {
         }
 
         if (fs.existsSync(tournamentsFilePath)) {
+            logger.info("Loading tournaments from persistence")
             global.tournaments = JSON.parse(fs.readFileSync(tournamentsFilePath, 'utf-8'))
         } else {
-            logger.info("Initialise tournaments")
+            logger.info("Initialize tournaments")
             global.tournaments = []
         }
     },
