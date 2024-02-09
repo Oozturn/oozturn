@@ -15,11 +15,12 @@ const defaultLan: Lan = {
     motd: "Let's play!",
     startDate: { day: 5, hour: 18, min: 0 },
     endDate: { day: 0, hour: 14, min: 0 },
-    options: {
-        globalTournamentDefaultSettings: { leaders: [10, 6, 4, 2], default: 1 },
-        weightTeamsResults: false,
-        partialResults: false
-    }
+    newUsersByAdminOnly: false,
+    authenticationNeeded: false,
+    globalTournamentDefaultSettings: { leaders: [10, 6, 4, 2], default: 1 },
+    showPartialResults: false,
+    weightTeamsResults: false,
+    showTeamsResults: false,
 }
 
 subscribeObjectManager("lan", {
