@@ -211,8 +211,19 @@ $flex-gaps: (
     @extend .is-flex-direction-row;
 }
 
-.is-flex > .grow {
-    flex-grow: 1 !important;
+.is-flex {
+    .grow {
+        flex-grow: 1 !important;
+    }
+    .growmax {
+        flex-grow: 100 !important;
+    }
+    .no-basis {
+        flex-basis: 0;
+    }
+    &.wrap {
+        flex-wrap: wrap;
+    }
 }
 
 input, textarea, select, .input, .textarea, .select select {
@@ -842,11 +853,7 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
 *******************************/
 
 .globalTournamentOptions {
-    .topRanksPoints {
-        gap: .5rem;
-    }
     .rankPoints {
-        gap: .5rem;
         .rank {
             flex: 1;
             text-align: center;

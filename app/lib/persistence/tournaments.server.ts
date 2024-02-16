@@ -2,7 +2,7 @@ import { logger } from "~/lib/logging/logging"
 import { dbFolderPath, subscribeObjectManager } from "./db.server"
 import * as fs from 'fs'
 import * as path from 'path'
-import { Tournament } from "../types/tournaments"
+import { Tournament, TournamentInfo } from "../types/tournaments"
 
 declare global {
     var tournaments: Tournament[]
@@ -29,11 +29,20 @@ subscribeObjectManager("tournaments", {
     }
 })
 
-export function getTournaments() {
-    return global.tournaments
+export function getTournaments(): TournamentInfo[] {
+    return global.tournaments.map(tournament => {
+        return {
+            id: tournament.id,
+            name: tournament.name,
+            game: tournament.game,
+            status: tournament.status,
+            players: tournament.players,
+            comments: tournament.comments
+        }
+    })
 }
 
-export function getTournament(id: string) {
+export function getTournament(id: string): Tournament | undefined {
     return global.tournaments.find(tournament => tournament.id == id)
 }
 

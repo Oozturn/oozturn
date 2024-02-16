@@ -55,3 +55,12 @@ export interface Tournament {
     bracket: TournamentBracket
     comments: string
 }
+
+export interface TournamentInfo {
+    id: string,
+    name: string,
+    game: number,
+    status: TournamentStatus
+    players: Player[]
+    comments: string
+}

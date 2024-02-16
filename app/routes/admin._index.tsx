@@ -2,6 +2,7 @@ import { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { MetaFunction, redirect, useFetcher } from "@remix-run/react";
 import { useContext, useState } from "react";
 import useLocalStorageState from "use-local-storage-state";
+import { GamesContext } from "~/lib/components/contexts/GamesContext";
 import { LanContext } from "~/lib/components/contexts/LanContext";
 import { TournamentsContext } from "~/lib/components/contexts/TournamentsContext";
 import { UsersContext } from "~/lib/components/contexts/UsersContext";
@@ -83,6 +84,7 @@ export default function Admin() {
     const lan = useContext(LanContext)
     const users = useContext(UsersContext)
     const tournaments = useContext(TournamentsContext)
+    const games = useContext(GamesContext)
     const fetcher = useFetcher();
 
     const [activePlayer, setActivePlayer] = useState("")
@@ -111,14 +113,14 @@ export default function Admin() {
 
     return (
         <>
-            <div className="is-full-height is-flex-row gap-3 m-0 p-3">
-                <div className="is-two-thirds is-flex-col gap-3 p-0">
+            <div className="is-full-height is-flex gap-3 m-0 p-3">
+                <div className="is-two-thirds is-flex-col gap-3 p-0 is-full-height">
 
-                    <div className={`is-clipped has-background-secondary-level px-4 ${activeSection == "lanSettings" ? "grow" : ""}`}>
-                        <div className="is-title medium is-uppercase py-2 px-1" onClick={() => setActiveSection("lanSettings")}>
+                    <div className={`is-clipped has-background-secondary-level px-4 is-flex-col ${activeSection == "lanSettings" ? "grow no-basis" : ""}`}>
+                        <div className="is-title medium is-uppercase py-2 px-1 " onClick={() => setActiveSection("lanSettings")}>
                             Paramètres de la LAN
                         </div>
-                        <div className="is-flex-col gap-4 grow" style={{ maxHeight: activeSection == "lanSettings" ? undefined : 0 }}>
+                        <div className="is-flex-col gap-4" style={{ maxHeight: activeSection == "lanSettings" ? undefined : 0 }}>
                             {/* LAN Name */}
                             <fetcher.Form className="is-flex gap-3" method="POST">
                                 <div className='has-text-right is-one-fifth'>Nom de la LAN :</div>
@@ -205,70 +207,81 @@ export default function Admin() {
                         </div>
                     </div>
 
-                    <div className={`is-clipped has-background-secondary-level px-4 ${activeSection == "tournamentsSettings" ? "grow" : ""}`}>
-                        <div className="is-title medium is-uppercase py-2 px-1" onClick={() => setActiveSection("tournamentsSettings")}>
+                    <div className={`is-clipped has-background-secondary-level px-4 is-flex-col ${activeSection == "tournamentsSettings" ? "grow no-basis" : ""}`}>
+                        <div className="is-title medium is-uppercase py-2 px-1" onClick={() => setActiveSection("tournamentsSettings")} style={{ flex: "none" }}>
                             Jeux et tournois
                         </div>
-                        <div className="is-flex-col gap-4 grow" style={{ maxHeight: activeSection == "tournamentsSettings" ? undefined : 0 }}>
+                        <div className="is-flex-col gap-4 is-scrollable" style={activeSection == "tournamentsSettings" ? { marginBottom: "1rem" } : { maxHeight: 0 }}>
                             {/* LAN games */}
-                            <div className="is-flex gap-3 is-align-items-center">
-                                <div className="has-text-right is-one-fifth">Jeux de la LAN :</div>
-                                {/* Ajouter ici une liste des jeux du tournoi.
-                                    Si on clique droit ça ouvre un menu contextuel qui propose de mettre à jour ou supprimer le jeu.
-                                    Tout au début de la liste se trouve le bouton d'ajout de nouveau jeu.
-                                */}
-                                <CustomButton
-                                    colorClass='has-background-primary-level'
-                                    contentItems={["Gérer les jeux"]}
-                                    callback={() => redirect("/managegames")}
-                                    tooltip='Ajouter des jeux à la LAN via IGDB. Ou les supprimer.'
-                                />
+                            {/* Si on clique gauche dessus ça ouvre l'édition du jeu.
+                                Si on clique droit ça ouvre un menu contextuel qui propose de mettre à jour ou supprimer le jeu.
+                                Tout au début de la liste se trouve le bouton d'ajout de nouveau jeu.
+                            */}
+                            <div className="is-flex gap-3 ">
+                                <div className="has-text-right is-one-fifth mt-4">Jeux de la LAN :</div>
+                                <div id="tournamentsList" className="is-flex wrap grow gap-1 p-2 has-background-primary-level is-scrollable">
+                                    <div className="is-flex">
+                                        <CustomButton customClasses="grow" contentItems={["New Game"]} colorClass="has-background-secondary-level" callback={() => { }}></CustomButton>
+                                    </div>
+                                    {games.map(game =>
+                                        <div className="has-background-secondary-level p-2 grow has-text-centered" style={{ minWidth: "190px" }} key={game.id}>{game.name}</div>
+                                    )}
+                                    <div className="growmax" style={{ width: 0, margin: "-.5rem" }}></div>
+                                </div>
                             </div>
-                            <div></div>  {/* Spacer */}
-                            {/* Ajouter ici une liste des tournois.
-                                si on clique gauche dessus ça envoie au tournoi.
+                            {/* LAN tournaments */}
+                            {/* Si on clique gauche dessus ça envoie au tournoi.
                                 Si on clique droit ça ouvre un menu contextuel qui propose de mettre à jour ou supprimer le tournoi.
                                 Tout au début de la liste se trouve le bouton d'ajout de nouveau tournoi.
                             */}
+                            <div className="is-flex gap-3 ">
+                                <div className="has-text-right is-one-fifth mt-4">Tournois de la LAN :</div>
+                                <div id="tournamentsList" className="is-flex wrap grow gap-1 p-2 has-background-primary-level is-scrollable">
+                                    <div className="is-flex">
+                                        <CustomButton customClasses="grow" contentItems={["New tournament"]} colorClass="has-background-secondary-level" callback={() => { }}></CustomButton>
+                                    </div>
+                                    {tournaments.map(tournament =>
+                                        <div className="has-background-secondary-level p-2 grow has-text-centered" style={{ minWidth: "190px" }} key={tournament.id}>{tournament.name}</div>
+                                    )}
+                                    <div className="growmax" style={{ width: 0, margin: "-.5rem" }}></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div className={`is-clipped has-background-secondary-level px-4 ${activeSection == "globalTournamentSettings" ? "grow" : ""}`}>
-                        <div className="is-title medium is-uppercase py-2 px-1" onClick={() => setActiveSection("globalTournamentSettings")}>
+                    <div className={`is-clipped has-background-secondary-level px-4 is-flex-col ${activeSection == "globalTournamentSettings" ? "grow no-basis" : ""}`}>
+                        <div className="is-title medium is-uppercase py-2 px-1" onClick={() => setActiveSection("globalTournamentSettings")} style={{ flex: "none" }}>
                             Tournoi global et résultats
                         </div>
-                        <div className="is-flex-col gap-4 grow" style={{ maxHeight: activeSection == "globalTournamentSettings" ? undefined : 0 }}>
+                        <div className="is-flex-col gap-4" style={{ maxHeight: activeSection == "globalTournamentSettings" ? undefined : 0 }}>
                             <div className="is-flex gap-3 is-align-items-start">
                                 <div className="has-text-right is-one-fifth">Points par défaut :</div>
-                                <div is-flex-col>
-                                    <div className="globalTournamentOptions">
-                                        {/* <div className='mb-3'>Points gagnés par tournoi par défaut :</div> */}
-                                        <div className='is-flex is-flex-wrap-wrap topRanksPoints'>
-                                            <div className='rankPoints is-flex-col mr-4'>
-                                                <div className='rank has-text-right has-text-weight-normal'>Place :</div>
-                                                <div className='points has-text-right'>Points :</div>
+                                <div className="is-flex-col">
+                                    <div className='globalTournamentOptions is-flex is-flex-wrap-wrap gap-2'>
+                                        <div className='rankPoints is-flex-col mr-4 gap-2'>
+                                            <div className='rank has-text-right has-text-weight-normal'>Place :</div>
+                                            <div className='points has-text-right'>Points :</div>
+                                        </div>
+                                        {lan.globalTournamentDefaultSettings.leaders.map((points, index) =>
+                                            <div key={index} className="rankPoints is-flex-col">
+                                                <div className="rank is-flex is-justify-content-center is-align-items-center">{index + 1}</div>
+                                                <input className="points" type="text" placeholder={String(points)} value={String(points)} onChange={(e) => updateTopRanks(e.target.value, index)}></input>
                                             </div>
-                                            {lan.globalTournamentDefaultSettings.leaders.map((points, index) =>
-                                                <div key={index} className="rankPoints is-flex-col">
-                                                    <div className="rank is-flex is-justify-content-center is-align-items-center">{index + 1}</div>
-                                                    <input className="points" type="text" placeholder={String(points)} value={String(points)} onChange={(e) => updateTopRanks(e.target.value, index)}></input>
-                                                </div>
-                                            )}
-                                            <div className="rankPoints is-flex-col">
-                                                <div className="rank is-flex is-justify-content-center is-align-items-center">5 et +</div>
-                                                <input className="points" type="text" placeholder={String(lan.globalTournamentDefaultSettings.default)} value={String(lan.globalTournamentDefaultSettings.default)} onChange={(e) => updateDefault(e.target.value)}></input>
-                                            </div>
+                                        )}
+                                        <div className="rankPoints is-flex-col">
+                                            <div className="rank is-flex is-justify-content-center is-align-items-center">5 et +</div>
+                                            <input className="points" type="text" placeholder={String(lan.globalTournamentDefaultSettings.default)} value={String(lan.globalTournamentDefaultSettings.default)} onChange={(e) => updateDefault(e.target.value)}></input>
                                         </div>
                                     </div>
-                                    <div className='is-size-7 mt-2'>Dans ce tableau, indique le nombre de points que les joueurs recevront à chaque tournoi en fonction de leur classement.</div>
                                 </div>
+                                <div className='is-size-7 mt-2'>Dans ce tableau, indique le nombre de points que les joueurs recevront à chaque tournoi en fonction de leur classement.</div>
                             </div>
                             <div></div>  {/* Spacer */}
                             <div className='is-flex gap-3 is-align-items-start'>
                                 <CustomCheckbox variable={lan.showPartialResults} customClass='mt-2 is-justify-content-flex-end is-one-fifth' setter={(value: boolean) => updateLan("lan_showPartialResults", JSON.stringify(value))} />
                                 <div className='is-flex-col'>
                                     <div>Résultats provisoires</div>
-                                    <div className='is-size-7 is-flex-basis-0 grow'>En choisissant <i>oui</i>, les résultats des tournois seront calculés et mis à jour à chaque match.<br />Chaque participant aura le minimum de points possible en fonction de ses matchs terminés.</div>
+                                    <div className='is-size-7 no-basis grow'>En choisissant <i>oui</i>, les résultats des tournois seront calculés et mis à jour à chaque match.<br />Chaque participant aura le minimum de points possible en fonction de ses matchs terminés.</div>
                                 </div>
                             </div>
                             <div className='is-flex gap-3 is-align-items-start'>
@@ -285,22 +298,22 @@ export default function Admin() {
                                     <div className='is-size-7'>Sélectionne <i>oui</i> pour pondérer les scores d&apos;équipe en fonction du nombre de joueurs qui la composent. Dans le cas contraire, bien sûr, sélectionne <i>non</i>.</div>
                                 </div>
                             </div>
-                            <div className='is-flex gap-3 is-align-items-start'>
-                                <CustomCheckbox variable={lan.showTeamsResults} customClass='mt-2 is-justify-content-flex-end is-one-fifth' setter={(value: boolean) => updateLan("lan_showTeamsResults", JSON.stringify(value))} />
-                                <div className='is-flex-col'>
-                                    <div>Afficher les achievements - TO FIX</div>
+                            <div className='is-flex gap-3 is-align-items-center'>
+                                <CustomCheckbox variable={lan.showTeamsResults} customClass='is-justify-content-flex-end is-one-fifth' setter={(value: boolean) => updateLan("lan_showTeamsResults", JSON.stringify(value))} />
+                                <div>Afficher les achievements</div>
+                                {/* <div className='is-flex-col'>
                                     <div className='is-size-7'>Sélectionne <i>oui</i> pour pondérer les scores d&apos;équipe en fonction du nombre de joueurs qui la composent. Dans le cas contraire, bien sûr, sélectionne <i>non</i>.</div>
-                                </div>
+                                </div> */}
+                                <CustomButton callback={() => { }} contentItems={["Edit achievements"]} colorClass="has-background-primary-level" />
                             </div>
-                            AJOUTER Editer les achievements
                         </div>
                     </div>
 
-                    <div className={`is-clipped has-background-secondary-level px-4 ${activeSection == "communicationSettings" ? "grow" : ""}`}>
-                        <div className="is-title medium is-uppercase py-2 px-1" onClick={() => setActiveSection("communicationSettings")}>
+                    <div className={`is-clipped has-background-secondary-level px-4 is-flex-col ${activeSection == "communicationSettings" ? "grow no-basis" : ""}`}>
+                        <div className="is-title medium is-uppercase py-2 px-1" onClick={() => setActiveSection("communicationSettings")} style={{ flex: "none" }}>
                             Communication et add-ons
                         </div>
-                        <div className="is-flex-col gap-4 grow" style={{ maxHeight: activeSection == "communicationSettings" ? undefined : 0 }}>
+                        <div className="is-flex-col gap-4" style={{ maxHeight: activeSection == "communicationSettings" ? undefined : 0 }}>
                             {/* Torrent tracker */}
                             <fetcher.Form className="is-flex gap-3" method="POST">
                                 <div className='has-text-right is-one-fifth'>Tracker torrent :</div>
@@ -315,6 +328,22 @@ export default function Admin() {
                                     />
                                 </div>
                             </fetcher.Form>
+                            {/* TS server */}
+                            <fetcher.Form className="is-flex gap-3" method="POST">
+                                <div className='has-text-right is-one-fifth'>TS server URL :</div>
+                                <div className="grow">
+                                    <input type="hidden" name="intent" value={AdminIntents.UPDATE_LAN} />
+                                    <input id="field"
+                                        name="teamspeak_server"
+                                        className="input" type="text"
+                                        defaultValue=""
+                                        title="URL du serveur TS à utiliser durant la LAN. Laisser vide si aucun serveur TS n'est disponible."
+                                    // {...autoSubmit(fetcher)}
+                                    />
+                                </div>
+                            </fetcher.Form>
+                            {/* Notifications */}
+                            Notifications options...
                         </div>
                     </div>
 
@@ -326,7 +355,7 @@ export default function Admin() {
                         {users && users.sort((a, b) => a.username.toLowerCase().localeCompare(b.username.toLowerCase())).map(user =>
                             user ?
                                 <div key={user.username} className={`playerTile is-flex-col ${activePlayer == user.username ? 'is-active' : ''}`}>
-                                    <div className='is-flex is-align-items-center is-unselectable is-clickable' onClick={() => setActivePlayer(activePlayer == user.username ? '' : user.username)}>
+                                    <div className='is-flex is-align-items-center is-unselectable is-clickable' onClick={() => setActivePlayer(activePlayer == user.username ? '' : user.username)} style={{ flex: "none" }}>
                                         <div className='avatar mr-3'>
                                             <UserAvatar username={user.username} avatar={user.avatar} />
                                         </div>
