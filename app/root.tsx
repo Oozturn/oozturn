@@ -20,19 +20,6 @@ import { UsersContext } from "./lib/components/contexts/UsersContext";
 import { TournamentsContext } from "./lib/components/contexts/TournamentsContext";
 import { getTournaments } from "./lib/persistence/tournaments.server";
 
-
-export async function action({ request }: ActionFunctionArgs) {
-
-  const body = await request.formData()
-
-  updateUser(String(await getUsername(request)),
-    {
-      team: String(body.get("team"))
-    })
-
-  return null
-}
-
 export async function loader({ request }: LoaderFunctionArgs) {
   return {
     lan: getLan(),
