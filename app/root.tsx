@@ -14,18 +14,23 @@ import { LanContext } from "./lib/components/contexts/LanContext";
 import { getLan } from "./lib/persistence/lan.server";
 import { UserContext } from "./lib/components/contexts/UserContext";
 import { getUsername, isUserAdmin } from "./lib/session.server";
-import { getUser, updateUser } from "./lib/persistence/users.server";
+import { getUser, getUsers, updateUser } from "./lib/persistence/users.server";
 import { GetUserTheme } from "./lib/components/tools/user-theme";
+import { UsersContext } from "./lib/components/contexts/UsersContext";
+import { TournamentsContext } from "./lib/components/contexts/TournamentsContext";
+import { getTournaments } from "./lib/persistence/tournaments.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   return {
     lan: getLan(),
-    user: getUser(String(await getUsername(request)))
+    user: getUser(String(await getUsername(request))),
+    users: getUsers(),
+    tournaments: getTournaments()
   }
 }
 
 export default function App() {
-  const { lan, user } = useLoaderData<typeof loader>()
+  const { lan, user, users, tournaments } = useLoaderData<typeof loader>()
 
   return (
     <html lang="fr">
@@ -36,15 +41,19 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <UserContext.Provider value={user}>
-          <LanContext.Provider value={lan}>
-            <GetUserTheme />
-            <Navbar />
-            <main className="main is-clipped">
-                <Outlet />
-            </main>
-          </LanContext.Provider>
-        </UserContext.Provider>
+        <UsersContext.Provider value={users}>
+          <UserContext.Provider value={user}>
+            <LanContext.Provider value={lan}>
+              <TournamentsContext.Provider value={tournaments}>
+                <GetUserTheme />
+                <Navbar />
+                <main className="main is-clipped">
+                  <Outlet />
+                </main>
+              </TournamentsContext.Provider>
+            </LanContext.Provider>
+          </UserContext.Provider>
+        </UsersContext.Provider>
         <ScrollRestoration />
         <Scripts />
       </body>

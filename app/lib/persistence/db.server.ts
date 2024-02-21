@@ -21,16 +21,18 @@ function initialiseDiskPersistence() {
     if (global.diskPersistenceInterval) {
         return
     }
+    logger.info(`Persistence initialization`)
     if (!global.objectManagers) {
+        logger.info(`Persistence initialization - Loading objects managers`)
         global.objectManagers = new Map<string, DbObjectManager>();
     }
     if (!fs.existsSync(dbFolderPath)) {
-        logger.info(`Creating DB folder ${dbFolderPath}`)
+        logger.info(`Persistence initialization - Creating DB folder ${dbFolderPath}`)
         fs.mkdir(dbFolderPath, { recursive: true }, (err) => {
             if (err) throw err;
         });
     }
-    logger.info("Initialisation persistence interval")
+    logger.info(`Persistence initialization - interval set to ${intervalPersistenceSeconds} seconds.`)
     global.diskPersistenceInterval = setInterval(fireStore, intervalPersistenceSeconds * 1000)
 }
 

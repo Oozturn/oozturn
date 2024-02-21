@@ -145,12 +145,12 @@ a, a:hover {
     font-style: italic;
     font-weight: 800;
     text-transform: uppercase;
-}
-.is-title.big {
-    font-size: 32px;
-}
-.is-title.medium {
-    font-size: 24px;
+    &.big {
+        font-size: 32px;
+    }
+    &.medium {
+        font-size: 24px;
+    }
 }
 
 .is-full-height {
@@ -163,6 +163,67 @@ a, a:hover {
 
 .is-borderless {
     border: none;
+}
+
+
+$flex-propertions: (
+    one-fifth: 20%,
+    one-quarter: 25%,
+    one-third: 33.33%,
+    two-fifths: 40%,
+    half: 50%,
+    three-fifths: 60%,
+    two-thirds: 66.67%,
+    three-quarters: 75%,
+    four-fifths: 80%,
+    full: 100%,
+);
+@each $width, $percent in $flex-propertions {
+	:not(.is-flex-direction-column) > .is-#{$width} {
+		width: $percent !important;
+	}
+	.is-flex-direction-column > .is-#{$width} {
+		height: $percent !important;
+	}
+}
+
+$flex-gaps: (
+    0: 0,
+    1: .25rem,
+    2: .5rem,
+    3: .75rem,
+    4: 1rem,
+    5: 1.5rem,
+    6: 2rem,
+);
+@each $gap, $value in $flex-gaps {
+    .is-flex.gap-#{$gap} {
+        gap: $value !important;
+    }
+}
+
+.is-flex-col {
+    @extend .is-flex;
+    @extend .is-flex-direction-column;
+}
+.is-flex-row {
+    @extend .is-flex;
+    @extend .is-flex-direction-row;
+}
+
+.is-flex {
+    .grow {
+        flex-grow: 1 !important;
+    }
+    .growmax {
+        flex-grow: 100 !important;
+    }
+    .no-basis {
+        flex-basis: 0;
+    }
+    &.wrap {
+        flex-wrap: wrap;
+    }
 }
 
 input, textarea, select, .input, .textarea, .select select {
@@ -224,6 +285,17 @@ input.threeDigitsWidth {
         width: 14px;
         height: 14px;
         background-color: transparent;
+    }
+}
+
+.customCheckbox {
+    border: 2px solid var(--text-color);;
+    // border-radius: 25%;
+    width: 15px;
+    height: 15px;
+    background-color: transparent;
+    &.is-active {
+        background-color: var(--accent-primary-color);
     }
 }
 
@@ -782,37 +854,8 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
 ************* ADMIN ************
 *******************************/
 
-.adminLanSettings {
-    flex: 5;
-    .lanSettingsOpts {
-        gap: .75rem;
-        line-height: 2rem;
-        textarea {
-            line-height: 2rem;
-            padding-top: .25rem;
-        }
-    }
-}
 .globalTournamentOptions {
-    .customCheckbox {
-        border: 2px solid var(--text-color);
-        color: transparent;
-        border-radius: 50%;
-        width: 16px;
-        height: 16px;
-        font-size: 12px;
-        line-height: 100%;
-        text-align: center;
-        &.is-active {
-            background-color: var(--accent-primary-color);
-            color: var(--text-color-70)
-        }
-    }
-    .topRanksPoints {
-        gap: .5rem;
-    }
     .rankPoints {
-        gap: .5rem;
         .rank {
             flex: 1;
             text-align: center;

@@ -17,9 +17,10 @@ subscribeObjectManager("users", {
         }
 
         if (fs.existsSync(usersFilePath)) {
+            logger.info("Loading users from persistence")
             global.users = JSON.parse(fs.readFileSync(usersFilePath, 'utf-8'))
         } else {
-            logger.info("Initialise users")
+            logger.info("Initialize users")
             global.users = []
         }
     },
