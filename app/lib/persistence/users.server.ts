@@ -36,6 +36,14 @@ export function getUser(username: string) {
     return global.users.find(user => user.username == username)
 }
 
+export function getUserOrThrow(username: string) {
+    const user = getUser(username)
+    if(!user) {
+        throw Error("User not found")
+    }
+    return user
+}
+
 export function registerNewUser(username: string) {
     const user: User = { username: username, avatar: "", team: "", isAdmin: false, ips: [] }
     global.users.push(user)

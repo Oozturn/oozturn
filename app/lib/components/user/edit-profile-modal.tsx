@@ -1,5 +1,5 @@
 import { useFetcher } from "@remix-run/react";
-import { ChangeEvent, useContext, useState } from "react";
+import { ChangeEvent, useContext, useRef, useState } from "react";
 import useLocalStorageState from "use-local-storage-state";
 import { autoSubmit } from "~/lib/utils/autosubmit";
 import { UserContext } from "../contexts/UserContext";
@@ -7,7 +7,7 @@ import { CloseCrossSVG } from "../data/svg-container";
 import { accentsList, modesList } from "../data/themes";
 import { CustomButton } from "../elements/custom-button";
 import { CustomRadio } from "../elements/custom-radio";
-import { Intents } from "~/routes/api";
+import { Intents } from "~/routes/api/route";
 
 interface EditProfileModalProps {
   show: boolean;
@@ -19,6 +19,10 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
   const [modeLocalStorage, setModeLocalStorage] = useLocalStorageState("mode", { defaultValue: "Dark" })
   const [accentLocalStorage, setAccentLocalStorage] = useLocalStorageState("accent", { defaultValue: "Switch" })
   const me = useContext(UserContext);
+  const fetcherUpdateTeam = useFetcher();
+  const fetcherRemoveAvatar = useFetcher();
+  const fetcherUpdateAvatar = useFetcher();
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const fetcher = useFetcher();
 
   if (!show || !me) {
@@ -26,7 +30,17 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
   }
 
   async function removeAvatar() { }
-  async function handleFileChange(e: ChangeEvent<HTMLInputElement>) { }
+  async function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
+    function validateFile(file: File): string {
+      if (file.size > 3 * 1024 * 1024) {
+        return "La taille est limité à 3Mo"
+      }
+      return "";
+    }
+    if (e.target.files) {
+      fetcherUpdateAvatar.submit(e.currentTarget.form)
+    }
+   }
 
   return (
     <div className="modal is-active">
@@ -48,7 +62,7 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
                   <div className="mr-2">Adresse IP :</div>
                   <div className="has-text-weight-semibold">{me.ips.at(-1) || "127.0.0.1"}</div>
                 </div>
-              <fetcher.Form method="POST" action="/api">
+              <fetcherUpdateTeam.Form method="POST" action="/api">
                 <input type="hidden" name="intent" value={Intents.UPDATE_TEAM} />
                 <div className="is-flex is-flex is-align-items-start" style={{ maxWidth: "402px" }}>
                   <div className="mr-2">Équipe :</div>
@@ -57,12 +71,12 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
                       name="team"
                       className="input" type="text"
                       defaultValue={me.team}
-                      {...autoSubmit(fetcher)}
+                      {...autoSubmit(fetcherUpdateTeam)}
                     />
                     <div className="is-size-7 mt-1">Utilisé pour calculer le score de ton équipe à cette LAN. Te foire pas sur l&apos;orthographe.</div>
                   </div>
                 </div>
-              </fetcher.Form>
+              </fetcherUpdateTeam.Form>
               </div>
               <div className="m-5"></div>
               <div className="playerOptions">
@@ -82,13 +96,27 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
                   <div className="is-flex is-align-items-end">
                     <div className="avatar mt-2 mr-4">
                       {me.avatar &&
-                        <img className="is-rounded" src={`/avatar/${me.avatar}`} alt="Avatar not found" />
+                        <img className="is-rounded" src={`avatar/${me.avatar}`} alt="Avatar not found" />
                       }
                     </div>
                     <div className="is-flex is-flex-direction-column buttons-list">
-                      <CustomButton callback={removeAvatar} contentItems={["Reset avatar"]} colorClass="has-background-primary-accent" />
-                      <input hidden type="file" id="selectAvatarInput" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleFileChange} />
-                      <CustomButton callback={() => document?.getElementById("selectAvatarInput")?.click()} contentItems={["Nouvel avatar"]} colorClass="has-background-secondary-accent" />
+                    <fetcherRemoveAvatar.Form method="POST" action="/api">
+                      <input type="hidden" name="intent" value={Intents.REMOVE_AVATAR} />
+                      <button type="submit"
+                        className="customButton fade-on-mouse-out is-unselectable has-background-primary-accent is-clickable">
+                        Reset avatar
+                      </button>
+                    </fetcherRemoveAvatar.Form>
+                    <fetcherUpdateAvatar.Form method="post" action="/api" encType="multipart/form-data">
+                      <input name="intent" type="hidden" hidden  value={Intents.UPLOAD_AVATAR} />
+                      <input name="avatar" type="file" hidden ref={fileInputRef} id="selectAvatarInput" accept="image/jpeg,image/png,image/webp,image/gif" 
+                        onChange={handleFileChange} />                      
+                      <button 
+                        onClick={event => {event.preventDefault(); fileInputRef.current?.click()}}
+                        className="customButton fade-on-mouse-out is-unselectable has-background-secondary-accent is-clickable">
+                        Nouvel avatar
+                      </button>
+                    </fetcherUpdateAvatar.Form>
                     </div>
                   </div>
                 </div>

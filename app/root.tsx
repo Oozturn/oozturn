@@ -47,7 +47,6 @@ export default function App() {
         </UserContext.Provider>
         <ScrollRestoration />
         <Scripts />
-        <LiveReload />
       </body>
     </html>
   );
