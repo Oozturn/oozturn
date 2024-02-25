@@ -1,8 +1,8 @@
 import { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { Form, MetaFunction } from "@remix-run/react";
 import { updateLan } from "~/lib/persistence/lan.server";
-import { adminLogin } from "~/lib/process/admin-process.server";
 import { requireUserLoggedIn } from "~/lib/session.server";
+import { adminLogin } from "./queries.server";
 
 export const meta: MetaFunction = () => {
     return [
@@ -19,7 +19,7 @@ export async function action({ request }: ActionFunctionArgs) {
     await requireUserLoggedIn(request)
 
     const body = await request.formData()
-    return adminLogin(String(body.get("password")), request)
+    return await adminLogin(String(body.get("password")), request)
 }
 
 export default function AdminLogin() {

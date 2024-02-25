@@ -1,9 +1,7 @@
 import { json, redirect } from "@remix-run/node"
-import { logger } from "../logging/logging"
-import { createSessionWithUsername } from "../session.server"
-import { getUser, registerNewUser } from "../persistence/users.server"
-
-
+import { logger } from "~/lib/logging/logging"
+import { getUser, registerNewUser } from "~/lib/persistence/users.server"
+import { createSessionWithUsername } from "~/lib/session.server"
 
 export async function doLogin(rawUsername: string) {
     const username = rawUsername.trim()

@@ -1,7 +1,7 @@
 import { ActionFunctionArgs } from "@remix-run/node"
 import { updateUser } from "~/lib/persistence/users.server"
 import { getUsername, requireUserLoggedIn } from "~/lib/session.server"
-import { removeAvatar, setAvatar } from "./queries"
+import { removeAvatar, setAvatar } from "./queries.server"
 
 export enum Intents {
     UPDATE_TEAM = 'update-team',

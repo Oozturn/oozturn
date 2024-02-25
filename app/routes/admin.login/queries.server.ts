@@ -1,7 +1,7 @@
 import { json, redirect } from "@remix-run/node"
-import { logger } from "../logging/logging"
-import { getUsername, updateSessionWithAdminElevation } from "../session.server"
-import { updateUser } from "../persistence/users.server"
+import { logger } from "~/lib/logging/logging"
+import { updateUser } from "~/lib/persistence/users.server"
+import { getUsername, updateSessionWithAdminElevation } from "~/lib/session.server"
 
 
 const adminPassword = process.env.ADMIN_PASSWORD

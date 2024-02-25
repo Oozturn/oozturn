@@ -1,13 +1,11 @@
 import { ActionFunctionArgs } from "@remix-run/node"
 import { Form } from "@remix-run/react"
 import { LogoUnfolded } from "~/lib/components/data/svg-container"
-import { doLogin } from "~/lib/process/login-process.server"
-
-
+import { doLogin } from "./queries.server"
 
 export async function action({ request, }: ActionFunctionArgs) {
   const body = await request.formData()
-  return doLogin(String(body.get("username")))
+  return await doLogin(String(body.get("username")))
 }
 
 export default function Login() {
