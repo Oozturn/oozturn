@@ -7,3 +7,4 @@ node_modules
 .vscode
 vite.config.ts.timestamp*
 public/avatar
+public/igdb

@@ -1,9 +1,9 @@
 import { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import { MetaFunction, redirect, useFetcher } from "@remix-run/react";
+import { Link, MetaFunction, Outlet, redirect, useFetcher } from "@remix-run/react";
 import { useContext, useState } from "react";
 import useLocalStorageState from "use-local-storage-state";
-import { GamesContext } from "~/lib/components/contexts/GamesContext";
-import { LanContext } from "~/lib/components/contexts/LanContext";
+import { GamesContext, useGames } from "~/lib/components/contexts/GamesContext";
+import { LanContext, useLan } from "~/lib/components/contexts/LanContext";
 import { TournamentsContext } from "~/lib/components/contexts/TournamentsContext";
 import { UsersContext } from "~/lib/components/contexts/UsersContext";
 import { CustomButton } from "~/lib/components/elements/custom-button";
@@ -81,10 +81,10 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function Admin() {
 
-    const lan = useContext(LanContext)
+    const lan = useLan()
     const users = useContext(UsersContext)
     const tournaments = useContext(TournamentsContext)
-    const games = useContext(GamesContext)
+    const games = useGames()
     const fetcher = useFetcher();
 
     const [activePlayer, setActivePlayer] = useState("")
@@ -115,7 +115,6 @@ export default function Admin() {
         <>
             <div className="is-full-height is-flex gap-3 m-0 p-3">
                 <div className="is-two-thirds is-flex-col gap-3 p-0 is-full-height">
-
                     <div className={`is-clipped has-background-secondary-level px-4 is-flex-col ${activeSection == "lanSettings" ? "grow no-basis" : ""}`}>
                         <div className="is-title medium is-uppercase py-2 px-1 " onClick={() => setActiveSection("lanSettings")}>
                             Paramètres de la LAN
@@ -221,7 +220,8 @@ export default function Admin() {
                                 <div className="has-text-right is-one-fifth mt-4">Jeux de la LAN :</div>
                                 <div id="tournamentsList" className="is-flex wrap grow gap-1 p-2 has-background-primary-level is-scrollable">
                                     <div className="is-flex">
-                                        <CustomButton customClasses="grow" contentItems={["New Game"]} colorClass="has-background-secondary-level" callback={() => { }}></CustomButton>
+                                        <Link to="/admin/add-games" className="customButton fade-on-mouse-out is-unselectable grow has-background-secondary-level is-clickable">New Game
+                                        </Link>
                                     </div>
                                     {games.map(game =>
                                         <div className="has-background-secondary-level p-2 grow has-text-centered" style={{ minWidth: "190px" }} key={game.id}>{game.name}</div>

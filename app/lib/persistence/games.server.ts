@@ -19,7 +19,6 @@ subscribeObjectManager("games", {
         if (fs.existsSync(gamesFilePath)) {
             logger.info("Loading games from persistence")
             global.games = JSON.parse(fs.readFileSync(gamesFilePath, 'utf-8'))
-            global.games.push({ id: -1, name: "", cover: "", picture: "" })
         } else {
             logger.info("Initialize games")
             global.games = []
@@ -42,5 +41,7 @@ export function updateGame(id: number, partialGame: Partial<Game>) {
     let gameIndex = global.games.findIndex(game => game.id == id)
     if (gameIndex != -1) {
         global.games[gameIndex] = { ...global.games[gameIndex], ...partialGame }
+    } else {
+        global.games.push(partialGame as Game)
     }
 }

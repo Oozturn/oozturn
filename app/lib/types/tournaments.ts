@@ -1,3 +1,5 @@
+import { DateType } from "./lan"
+
 export enum TournamentStatus {
     Open,
     Balancing,
@@ -19,7 +21,7 @@ export interface globalTournamentSettings {
 
 export interface TournamentSettings {
     type: TournamentType
-    startTime: string
+    startTime: DateType
     useTeams: boolean
     playersCanCreateTeams?: boolean
     teamsMaxSize?: number
@@ -33,7 +35,17 @@ export interface TournamentTeam {
 }
 
 export interface TournamentBracket {
+    type:string,
+    options:BracketOptions
+}
 
+export interface BracketOptions {
+    last?: number
+    short?: boolean
+    lowerScoreIsBetter?: boolean
+    sizes: number[]
+    advancers: number[]
+    limit: number
 }
 
 export interface Player {

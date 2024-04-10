@@ -19,44 +19,49 @@ import { GetUserTheme } from "./lib/components/tools/user-theme";
 import { UsersContext } from "./lib/components/contexts/UsersContext";
 import { TournamentsContext } from "./lib/components/contexts/TournamentsContext";
 import { getTournaments } from "./lib/persistence/tournaments.server";
+import { getGames } from "./lib/persistence/games.server";
+import { GamesContext } from "./lib/components/contexts/GamesContext";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   return {
     lan: getLan(),
     user: getUser(String(await getUsername(request))),
     users: getUsers(),
-    tournaments: getTournaments()
+    tournaments: getTournaments(),
+    games: getGames()
   }
 }
 
 export default function App() {
-  const { lan, user, users, tournaments } = useLoaderData<typeof loader>()
-
-  return (
-    <html lang="fr">
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <Meta />
-        <Links />
-      </head>
-      <body>
-        <UsersContext.Provider value={users}>
-          <UserContext.Provider value={user}>
-            <LanContext.Provider value={lan}>
-              <TournamentsContext.Provider value={tournaments}>
-                <GetUserTheme />
-                <Navbar />
-                <main className="main is-clipped">
-                  <Outlet />
-                </main>
-              </TournamentsContext.Provider>
-            </LanContext.Provider>
-          </UserContext.Provider>
-        </UsersContext.Provider>
-        <ScrollRestoration />
-        <Scripts />
-      </body>
-    </html>
-  );
+  const { lan, user, users, tournaments, games } = useLoaderData<typeof loader>()
+  
+    return (
+      <html lang="fr">
+        <head>
+          <meta charSet="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <Meta />
+          <Links />
+        </head>
+        <body>
+          <GamesContext.Provider value={games}>
+            <UsersContext.Provider value={users}>
+              <UserContext.Provider value={user}>
+                <LanContext.Provider value={lan}>
+                  <TournamentsContext.Provider value={tournaments}>
+                    <GetUserTheme />
+                    <Navbar />
+                    <main className="main is-clipped">
+                      <Outlet />
+                    </main>
+                  </TournamentsContext.Provider>
+                </LanContext.Provider>
+              </UserContext.Provider>
+            </UsersContext.Provider>
+          </GamesContext.Provider>
+          <ScrollRestoration />
+          <Scripts />
+        </body>
+      </html>
+    );
 }

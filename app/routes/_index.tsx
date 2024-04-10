@@ -48,7 +48,7 @@ export default function Index() {
         <div className="flat-box has-background-secondary-level is-scrollable is-flex-grow-1 px-5 pt-0">
           <div className='homeTournamentsGrid'>
             {me?.isAdmin &&
-              <Link to="/edit/new" className="flat-box homeTournamentBoxNew has-background-primary-accent is-flex is-justify-content-center is-align-items-center is-flex-direction-column is-clickable fade-on-mouse-out" data-id="editTournament">
+              <Link to="/tournaments/new" className="flat-box homeTournamentBoxNew has-background-primary-accent is-flex is-justify-content-center is-align-items-center is-flex-direction-column is-clickable fade-on-mouse-out" data-id="editTournament">
                 <AddTournamentCrossSVG />
                 <div className='has-text-weight-semibold'>Créer un tournoi</div>
               </Link>
