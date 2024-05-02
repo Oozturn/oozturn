@@ -1,15 +1,15 @@
 import { Link, useSubmit } from "@remix-run/react";
 import { useContext, useState } from "react";
-import { LanContext } from "../contexts/LanContext";
-import { DropDownArrowSVG, EditGearSVG, LogoFolded, LogoSideSVG } from "../data/svg-container";
+import { useLan } from "../contexts/LanContext";
 import { UserContext } from "../contexts/UserContext";
+import { DropDownArrowSVG, EditGearSVG, LogoFolded, LogoSideSVG } from "../data/svg-container";
 import { UserAvatar } from "../elements/user-avatar";
 import EditProfileModal from "../user/edit-profile-modal";
 
 
 export default function Navbar() {
 
-    const lan = useContext(LanContext);
+    const lan = useLan();
     const user = useContext(UserContext);
     const [showMobileNav, setShowMobileNav] = useState(false)
     const [animateLogo, setAnimateLogo] = useState(false)

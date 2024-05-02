@@ -1,11 +1,10 @@
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
-import { logger } from "./logging/logging";
+import { getLan } from "./persistence/lan.server";
 
 const sessionSecret = process.env.SESSION_SECRET;
 if (!sessionSecret) {
     throw new Error("SESSION_SECRET must be set");
 }
-
 
 const secureStorage =
     createCookieSessionStorage(
@@ -32,6 +31,7 @@ async function getSession(request: Request) {
 export async function createSessionWithUsername(username: string) {
     const session = await secureStorage.getSession();
     session.set("username", username);
+    session.set("auth", "username");
     return await secureStorage.commitSession(session)
 }
 
@@ -46,8 +46,18 @@ export async function updateSessionWithAdminElevation(request: Request) {
     return await secureStorage.commitSession(session)
 }
 
+export async function updateSessionWithPasswordAuth(request: Request) {
+    const session = await getSession(request)
+    session.set("auth", "password");
+    return await secureStorage.commitSession(session)
+}
+
 export async function isUserLoggedIn(request: Request) {
     const session = await getSession(request)
+    if (getLan().authenticationNeeded) {
+        return session.has("username")
+            && session.get("auth") === "password"
+    }
     return session.has("username")
 }
 

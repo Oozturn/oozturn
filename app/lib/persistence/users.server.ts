@@ -33,8 +33,9 @@ export function getUsers() {
     return global.users
 }
 
-export function getUser(username: string) {
-    return global.users.find(user => user.username == username)
+export function getUser(username: string): User | undefined {
+    const id = getId(username)
+    return global.users.find(user => user.id === id)
 }
 
 export function getUserOrThrow(username: string) {
@@ -46,7 +47,7 @@ export function getUserOrThrow(username: string) {
 }
 
 export function registerNewUser(username: string) {
-    const user: User = { username: username, avatar: "", team: "", isAdmin: false, ips: [] }
+    const user: User = { id: getId(username), username: username, avatar: "", team: "", isAdmin: false, ips: [] }
     global.users.push(user)
     return user
 }
@@ -56,4 +57,8 @@ export function updateUser(username: string, partialUser: Partial<User>) {
     if (userIndex != -1) {
         global.users[userIndex] = { ...global.users[userIndex], ...partialUser }
     }
+}
+
+function getId(username:string) {
+    return username.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '')
 }

@@ -1,34 +1,51 @@
-import type { ActionFunctionArgs, LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
+import type { LoaderFunctionArgs } from "@remix-run/node";
 import {
   Links,
-  LiveReload,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
-  useLoaderData,
+  useLoaderData
 } from "@remix-run/react";
-import "./styles/globals.scss"
-import Navbar from "./lib/components/layout/navbar";
-import { LanContext } from "./lib/components/contexts/LanContext";
-import { getLan } from "./lib/persistence/lan.server";
-import { UserContext } from "./lib/components/contexts/UserContext";
-import { getUsername, isUserAdmin } from "./lib/session.server";
-import { getUser, getUsers, updateUser } from "./lib/persistence/users.server";
-import { GetUserTheme } from "./lib/components/tools/user-theme";
-import { UsersContext } from "./lib/components/contexts/UsersContext";
-import { TournamentsContext } from "./lib/components/contexts/TournamentsContext";
-import { getTournaments } from "./lib/persistence/tournaments.server";
-import { getGames } from "./lib/persistence/games.server";
 import { GamesContext } from "./lib/components/contexts/GamesContext";
+import { LanContext } from "./lib/components/contexts/LanContext";
+import { TournamentsContext } from "./lib/components/contexts/TournamentsContext";
+import { UserContext } from "./lib/components/contexts/UserContext";
+import { UsersContext } from "./lib/components/contexts/UsersContext";
+import Navbar from "./lib/components/layout/navbar";
+import { GetUserTheme } from "./lib/components/tools/user-theme";
+import { getGames } from "./lib/persistence/games.server";
+import { getLan } from "./lib/persistence/lan.server";
+import { getTournaments } from "./lib/persistence/tournaments.server";
+import { getUser, getUsers } from "./lib/persistence/users.server";
+import { getUsername, isUserLoggedIn } from "./lib/session.server";
+import { Game } from "./lib/types/games";
+import { Lan } from "./lib/types/lan";
+import { TournamentInfo } from "./lib/types/tournaments";
+import { User } from "./lib/types/user";
+import "./styles/globals.scss";
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  return {
-    lan: getLan(),
-    user: getUser(String(await getUsername(request))),
-    users: getUsers(),
-    tournaments: getTournaments(),
-    games: getGames()
+export async function loader({ request }: LoaderFunctionArgs): Promise<{
+  lan: Lan;
+  user?: User;
+  users: User[];
+  tournaments: TournamentInfo[];
+  games?: Game[];
+}> {
+  if(await isUserLoggedIn(request)){
+    return {
+      lan: getLan(),
+      user: getUser(String(await getUsername(request))),
+      users: getUsers(),
+      tournaments: getTournaments(),
+      games: getGames()
+    }
+  } else {
+    return {
+      lan: getLan(),
+      tournaments: [],
+      users : []
+    }
   }
 }
 
