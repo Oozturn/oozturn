@@ -8,6 +8,7 @@ import { accentsList, modesList } from "../data/themes";
 import { CustomButton } from "../elements/custom-button";
 import { CustomRadio } from "../elements/custom-radio";
 import { Intents } from "~/routes/api/route";
+import { useLan } from "../contexts/LanContext";
 
 interface EditProfileModalProps {
   show: boolean;
@@ -25,6 +26,7 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
   const fileInputRef = useRef<HTMLInputElement>(null)
   const fetcher = useFetcher();
   const navigate = useNavigate();
+  const lan = useLan()
 
   if (!show || !me) {
     return null
@@ -83,11 +85,13 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
                   </div>
                 </div>
               </fetcherUpdateTeam.Form>
-              <button
-              onClick={handleChangeMdp}
-                className="customButton fade-on-mouse-out is-unselectable has-background-primary-level is-clickable">
-                Changer mdp
-              </button>
+              {lan.authenticationNeeded &&
+                <button
+                  onClick={handleChangeMdp}
+                  className="customButton fade-on-mouse-out is-unselectable has-background-primary-level is-clickable">
+                  Changer mdp
+                </button>
+              }
               </div>
               <div className="m-5"></div>
               <div className="playerOptions">
