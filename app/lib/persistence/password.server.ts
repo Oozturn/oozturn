@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs'
 import * as fs from 'fs'
 import * as path from 'path'
 import { logger } from "~/lib/logging/logging"
-import { dbFolderPath, subscribeObjectManager } from "./db.server"
+import { dbFolderPath, subscribeObjectManager, writeSafe } from "./db.server"
 const { hashSync, compareSync } = bcrypt
 
 declare global {
@@ -25,7 +25,7 @@ subscribeObjectManager("passwords", {
         }
     },
     onStore: () => {
-        fs.writeFileSync(passwordsFilePath, JSON.stringify(global.passwords, null, 2), 'utf-8')
+        writeSafe(passwordsFilePath, JSON.stringify(global.passwords, null, 2))
     }
 })
 
@@ -33,7 +33,6 @@ export function checkPassword(username: string, password: string) {
     const hash = global.passwords[username]
     console.log("Comparing", password, hash)
     return compareSync(password, hash)
-    // return hash === password
 }
 
 export function hasPassword(username: string) {
