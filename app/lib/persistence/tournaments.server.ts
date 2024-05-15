@@ -50,5 +50,7 @@ export function updateTournament(id: string, partialTournament: Partial<Tourname
     let tournamentIndex = global.tournaments.findIndex(tournament => tournament.id == id)
     if (tournamentIndex != -1) {
         global.tournaments[tournamentIndex] = { ...global.tournaments[tournamentIndex], ...partialTournament }
+    } else {
+        global.tournaments.push(partialTournament as Tournament)
     }
 }

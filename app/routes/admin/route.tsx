@@ -1,10 +1,10 @@
 import { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import { Link, MetaFunction, Outlet, redirect, useFetcher } from "@remix-run/react";
+import { Link, MetaFunction, useFetcher, useNavigate } from "@remix-run/react";
 import { useContext, useState } from "react";
 import useLocalStorageState from "use-local-storage-state";
-import { GamesContext, useGames } from "~/lib/components/contexts/GamesContext";
-import { LanContext, useLan } from "~/lib/components/contexts/LanContext";
-import { TournamentsContext } from "~/lib/components/contexts/TournamentsContext";
+import { useGames } from "~/lib/components/contexts/GamesContext";
+import { useLan } from "~/lib/components/contexts/LanContext";
+import { useTournaments } from "~/lib/components/contexts/TournamentsContext";
 import { UsersContext } from "~/lib/components/contexts/UsersContext";
 import { CustomButton } from "~/lib/components/elements/custom-button";
 import { CustomCheckbox } from "~/lib/components/elements/custom-checkbox";
@@ -63,7 +63,7 @@ export async function action({ request }: ActionFunctionArgs) {
                 endDate: formData.get("lan_end_date") ? JSON.parse(String(formData.get("lan_end_date"))) : undefined,
                 newUsersByAdminOnly: formData.get("lan_newUsersByAdminOnly") ? JSON.parse(String(formData.get("lan_newUsersByAdminOnly"))) : undefined,
                 authenticationNeeded: formData.get("lan_authenticationNeeded") ? JSON.parse(String(formData.get("lan_authenticationNeeded"))) : undefined,
-                globalTournamentDefaultSettings: undefined,
+                globalTournamentDefaultPoints: undefined,
                 showPartialResults: formData.get("lan_showPartialResults") ? JSON.parse(String(formData.get("lan_showPartialResults"))) : undefined,
                 weightTeamsResults: formData.get("lan_weightTeamsResults") ? JSON.parse(String(formData.get("lan_weightTeamsResults"))) : undefined,
                 showTeamsResults: formData.get("lan_showTeamsResults") ? JSON.parse(String(formData.get("lan_showTeamsResults"))) : undefined,
@@ -83,16 +83,13 @@ export default function Admin() {
 
     const lan = useLan()
     const users = useContext(UsersContext)
-    const tournaments = useContext(TournamentsContext)
+    const tournaments = useTournaments()
     const games = useGames()
-    const fetcher = useFetcher();
+    const fetcher = useFetcher()
+    const navigate = useNavigate()
 
     const [activePlayer, setActivePlayer] = useState("")
     const [activeSection, setActiveSection] = useLocalStorageState("admin_activeSection", { defaultValue: "lanSettings" })
-
-    if (!lan) {
-        return null
-    }
 
     function updateLan(key: string, value: string) {
         let fd = new FormData()
@@ -116,7 +113,7 @@ export default function Admin() {
             <div className="is-full-height is-flex gap-3 m-0 p-3">
                 <div className="is-two-thirds is-flex-col gap-3 p-0 is-full-height">
                     <div className={`is-clipped has-background-secondary-level px-4 is-flex-col ${activeSection == "lanSettings" ? "grow no-basis" : ""}`}>
-                        <div className="is-title medium is-uppercase py-2 px-1 " onClick={() => setActiveSection("lanSettings")}>
+                        <div className="is-title medium is-uppercase py-2 px-1 is-clickable" onClick={() => setActiveSection("lanSettings")}>
                             Paramètres de la LAN
                         </div>
                         <div className="is-flex-col gap-4" style={{ maxHeight: activeSection == "lanSettings" ? undefined : 0 }}>
@@ -207,7 +204,7 @@ export default function Admin() {
                     </div>
 
                     <div className={`is-clipped has-background-secondary-level px-4 is-flex-col ${activeSection == "tournamentsSettings" ? "grow no-basis" : ""}`}>
-                        <div className="is-title medium is-uppercase py-2 px-1" onClick={() => setActiveSection("tournamentsSettings")} style={{ flex: "none" }}>
+                        <div className="is-title medium is-uppercase py-2 px-1 is-clickable" onClick={() => setActiveSection("tournamentsSettings")} style={{ flex: "none" }}>
                             Jeux et tournois
                         </div>
                         <div className="is-flex-col gap-4 is-scrollable" style={activeSection == "tournamentsSettings" ? { marginBottom: "1rem" } : { maxHeight: 0 }}>
@@ -238,10 +235,11 @@ export default function Admin() {
                                 <div className="has-text-right is-one-fifth mt-4">Tournois de la LAN :</div>
                                 <div id="tournamentsList" className="is-flex wrap grow gap-1 p-2 has-background-primary-level is-scrollable">
                                     <div className="is-flex">
-                                        <CustomButton customClasses="grow" contentItems={["New tournament"]} colorClass="has-background-secondary-level" callback={() => { }}></CustomButton>
+                                        <CustomButton customClasses="grow" contentItems={["New tournament"]} colorClass="has-background-secondary-level" callback={() => { navigate("/tournaments/new")}}></CustomButton>
                                     </div>
                                     {tournaments.map(tournament =>
-                                        <div className="has-background-secondary-level p-2 grow has-text-centered" style={{ minWidth: "190px" }} key={tournament.id}>{tournament.name}</div>
+                                        <CustomButton customClasses="grow" contentItems={[tournament.name]} colorClass="has-background-secondary-level" callback={() => { navigate("/tournaments/" + tournament.id)}}></CustomButton>
+                                        // <div className="has-background-secondary-level p-2 grow has-text-centered" style={{ minWidth: "190px" }} key={tournament.id}>{tournament.name}</div>
                                     )}
                                     <div className="growmax" style={{ width: 0, margin: "-.5rem" }}></div>
                                 </div>
@@ -250,7 +248,7 @@ export default function Admin() {
                     </div>
 
                     <div className={`is-clipped has-background-secondary-level px-4 is-flex-col ${activeSection == "globalTournamentSettings" ? "grow no-basis" : ""}`}>
-                        <div className="is-title medium is-uppercase py-2 px-1" onClick={() => setActiveSection("globalTournamentSettings")} style={{ flex: "none" }}>
+                        <div className="is-title medium is-uppercase py-2 px-1 is-clickable" onClick={() => setActiveSection("globalTournamentSettings")} style={{ flex: "none" }}>
                             Tournoi global et résultats
                         </div>
                         <div className="is-flex-col gap-4" style={{ maxHeight: activeSection == "globalTournamentSettings" ? undefined : 0 }}>
@@ -262,7 +260,7 @@ export default function Admin() {
                                             <div className='rank has-text-right has-text-weight-normal'>Place :</div>
                                             <div className='points has-text-right'>Points :</div>
                                         </div>
-                                        {lan.globalTournamentDefaultSettings.leaders.map((points, index) =>
+                                        {lan.globalTournamentDefaultPoints.leaders.map((points, index) =>
                                             <div key={index} className="rankPoints is-flex-col">
                                                 <div className="rank is-flex is-justify-content-center is-align-items-center">{index + 1}</div>
                                                 <input className="points" type="text" placeholder={String(points)} value={String(points)} onChange={(e) => updateTopRanks(e.target.value, index)}></input>
@@ -270,7 +268,7 @@ export default function Admin() {
                                         )}
                                         <div className="rankPoints is-flex-col">
                                             <div className="rank is-flex is-justify-content-center is-align-items-center">5 et +</div>
-                                            <input className="points" type="text" placeholder={String(lan.globalTournamentDefaultSettings.default)} value={String(lan.globalTournamentDefaultSettings.default)} onChange={(e) => updateDefault(e.target.value)}></input>
+                                            <input className="points" type="text" placeholder={String(lan.globalTournamentDefaultPoints.default)} value={String(lan.globalTournamentDefaultPoints.default)} onChange={(e) => updateDefault(e.target.value)}></input>
                                         </div>
                                     </div>
                                 </div>
@@ -310,7 +308,7 @@ export default function Admin() {
                     </div>
 
                     <div className={`is-clipped has-background-secondary-level px-4 is-flex-col ${activeSection == "communicationSettings" ? "grow no-basis" : ""}`}>
-                        <div className="is-title medium is-uppercase py-2 px-1" onClick={() => setActiveSection("communicationSettings")} style={{ flex: "none" }}>
+                        <div className="is-title medium is-uppercase py-2 px-1 is-clickable" onClick={() => setActiveSection("communicationSettings")} style={{ flex: "none" }}>
                             Communication et add-ons
                         </div>
                         <div className="is-flex-col gap-4" style={{ maxHeight: activeSection == "communicationSettings" ? undefined : 0 }}>

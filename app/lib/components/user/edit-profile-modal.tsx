@@ -8,6 +8,7 @@ import { accentsList, modesList } from "../data/themes";
 import { CustomButton } from "../elements/custom-button";
 import { CustomRadio } from "../elements/custom-radio";
 import { Intents } from "~/routes/api/route";
+import { UserAvatar } from "../elements/user-avatar";
 
 interface EditProfileModalProps {
   show: boolean;
@@ -95,9 +96,10 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
                   <div className="mr-2">Avatar :</div>
                   <div className="is-flex is-align-items-end">
                     <div className="avatar mt-2 mr-4">
-                      {me.avatar &&
+                      <UserAvatar username={me.username} avatar={me.avatar} size={196} />
+                      {/* {me.avatar &&
                         <img className="is-rounded" src={`avatar/${me.avatar}`} alt="Avatar not found" />
-                      }
+                      } */}
                     </div>
                     <div className="is-flex is-flex-direction-column buttons-list">
                     <fetcherRemoveAvatar.Form method="POST" action="/api">

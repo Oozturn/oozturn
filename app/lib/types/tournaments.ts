@@ -14,7 +14,7 @@ export enum TournamentType {
     FFA = "FFA"
 }
 
-export interface globalTournamentSettings {
+export interface globalTournamentPoints {
     leaders: number[]
     default: number
 }
@@ -26,7 +26,7 @@ export interface TournamentSettings {
     playersCanCreateTeams?: boolean
     teamsMaxSize?: number
     invertedScore: boolean
-    globalTournamentSettings: globalTournamentSettings
+    globalTournamentPoints: globalTournamentPoints
 }
 
 export interface TournamentTeam {
@@ -35,12 +35,12 @@ export interface TournamentTeam {
 }
 
 export interface TournamentBracket {
-    type:string,
-    options:BracketOptions
+    type: string,
+    options: BracketOptions
 }
 
 export interface BracketOptions {
-    last?: number
+    last?: boolean
     short?: boolean
     lowerScoreIsBetter?: boolean
     sizes: number[]
@@ -59,7 +59,7 @@ export interface Player {
 export interface Tournament {
     id: string,
     name: string,
-    game: number,
+    game?: number,
     status: TournamentStatus
     players: Player[]
     teams?: TournamentTeam[]
@@ -71,7 +71,7 @@ export interface Tournament {
 export interface TournamentInfo {
     id: string,
     name: string,
-    game: number,
+    game?: number,
     status: TournamentStatus
     players: Player[]
     comments: string

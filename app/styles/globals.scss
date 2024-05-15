@@ -263,6 +263,11 @@ input.threeDigitsWidth {
     border: none;
 }
 
+.customButtonMore {
+    @extend .customButton;
+    width: $custom-button-height;
+}
+
 .modal {
     cursor: auto;
 }
@@ -474,7 +479,7 @@ input.threeDigitsWidth {
 a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-link:focus, .navbar-link:focus-within, .navbar-link:hover {
     color: unset;
 }
-.navbar-item.is-tab.is-active {
+.navbar-item.is-tab.active {
     border-bottom-color: var(--accent-primary-color);
     color: var(--accent-primary-color);
 }

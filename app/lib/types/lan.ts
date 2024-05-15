@@ -1,4 +1,4 @@
-import { globalTournamentSettings } from "./tournaments"
+import { globalTournamentPoints } from "./tournaments"
 
 export interface Lan {
     name: string
@@ -7,7 +7,7 @@ export interface Lan {
     endDate: DateType
     newUsersByAdminOnly: boolean
     authenticationNeeded: boolean
-    globalTournamentDefaultSettings: globalTournamentSettings
+    globalTournamentDefaultPoints: globalTournamentPoints
     showPartialResults: boolean
     weightTeamsResults: boolean
     showTeamsResults: boolean

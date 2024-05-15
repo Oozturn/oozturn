@@ -1,15 +1,14 @@
 import { LoaderFunctionArgs, type MetaFunction } from "@remix-run/node";
 import { Link } from "@remix-run/react";
-import { useContext } from "react";
-import { GamesContext } from "~/lib/components/contexts/GamesContext";
-import { LanContext } from "~/lib/components/contexts/LanContext";
-import { TournamentsContext } from "~/lib/components/contexts/TournamentsContext";
-import { UserContext } from "~/lib/components/contexts/UserContext";
+import { useGames } from "~/lib/components/contexts/GamesContext";
+import { useLan } from "~/lib/components/contexts/LanContext";
+import { useTournaments } from "~/lib/components/contexts/TournamentsContext";
+import { useUser } from "~/lib/components/contexts/UserContext";
 import { AddTournamentCrossSVG, SubsribedSVG } from "~/lib/components/data/svg-container";
 import { FormattedTextWithUrls } from "~/lib/components/elements/formatted-text-url";
 import { requireUserLoggedIn } from "~/lib/session.server";
 import { Game } from "~/lib/types/games";
-import { Tournament, TournamentStatus } from "~/lib/types/tournaments";
+import { Tournament, TournamentInfo, TournamentStatus } from "~/lib/types/tournaments";
 
 export const meta: MetaFunction = () => {
   return [
@@ -24,14 +23,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export default function Index() {
-  const me = useContext(UserContext)
-  const lan = useContext(LanContext)
-  const tournaments = useContext(TournamentsContext)
-  const games = useContext(GamesContext)
-
-  if (!me) {
-    return null
-  }
+  const me = useUser()
+  const lan = useLan()
+  const tournaments = useTournaments()
+  const games = useGames()
 
   return (
     <>
@@ -63,10 +58,10 @@ export default function Index() {
   );
 }
 
-function IndexTournamentTile({ tournament, username, game }: { tournament: Tournament, username: string, game: Game | undefined }) {
-  const backgroundImage = game?.id == -1 ? '' : 'url(/api/static/igdb/' + game?.picture + '.jpg)'
+function IndexTournamentTile({ tournament, username, game }: { tournament: TournamentInfo, username: string, game: Game | undefined }) {
+  const backgroundImage = game?.id == undefined ? '' : 'url(/api/static/igdb/' + game?.picture + '.jpg)'
   return (
-    <Link to={`/tournaments/${tournament.id}`} key={tournament.id} className={`flat-box homeTournamentBox is-clickable p-0 ${game?.id == -1 ? 'has-generic-game-background-image' : ''}`} style={{ backgroundImage: backgroundImage }}>
+    <Link to={`/tournaments/${tournament.id}`} key={tournament.id} className={`flat-box homeTournamentBox is-clickable p-0 ${game?.id == undefined ? 'has-generic-game-background-image' : ''}`} style={{ backgroundImage: backgroundImage }}>
       <div className={`tournamentName ${tournament.status == TournamentStatus.Done && 'over'}`}>{tournament.name}</div>
       {tournament.players.find(player => player.playername == username) &&
         <div className='subsribed is-flex is-align-items-center has-background-primary-accent'>
