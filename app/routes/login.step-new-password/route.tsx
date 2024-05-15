@@ -11,7 +11,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   const username = await getUsername(request)
-  if (!username || hasPassword(username)) {
+  if (!username || (username && !hasPassword(username))) {
     throw redirect('/login');
   }
   return { username: username }

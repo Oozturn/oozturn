@@ -1,4 +1,4 @@
-import { useFetcher } from "@remix-run/react";
+import { Link, useFetcher, useNavigate } from "@remix-run/react";
 import { ChangeEvent, useContext, useRef, useState } from "react";
 import useLocalStorageState from "use-local-storage-state";
 import { autoSubmit } from "~/lib/utils/autosubmit";
@@ -9,6 +9,7 @@ import { CustomButton } from "../elements/custom-button";
 import { CustomRadio } from "../elements/custom-radio";
 import { Intents } from "~/routes/api/route";
 import { UserAvatar } from "../elements/user-avatar";
+import { useLan } from "../contexts/LanContext";
 
 interface EditProfileModalProps {
   show: boolean;
@@ -25,6 +26,8 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
   const fetcherUpdateAvatar = useFetcher();
   const fileInputRef = useRef<HTMLInputElement>(null)
   const fetcher = useFetcher();
+  const navigate = useNavigate();
+  const lan = useLan()
 
   if (!show || !me) {
     return null
@@ -41,7 +44,12 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
     if (e.target.files) {
       fetcherUpdateAvatar.submit(e.currentTarget.form)
     }
-   }
+  }
+
+  async function handleChangeMdp() {
+    onHide()
+    navigate("/login/step-new-password")
+  }
 
   return (
     <div className="modal is-active">
@@ -78,6 +86,13 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
                   </div>
                 </div>
               </fetcherUpdateTeam.Form>
+              {lan.authenticationNeeded &&
+                <button
+                  onClick={handleChangeMdp}
+                  className="customButton fade-on-mouse-out is-unselectable has-background-primary-level is-clickable">
+                  Changer mdp
+                </button>
+              }
               </div>
               <div className="m-5"></div>
               <div className="playerOptions">

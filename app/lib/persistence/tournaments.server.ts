@@ -1,5 +1,5 @@
 import { logger } from "~/lib/logging/logging"
-import { dbFolderPath, subscribeObjectManager } from "./db.server"
+import { dbFolderPath, subscribeObjectManager, writeSafe } from "./db.server"
 import * as fs from 'fs'
 import * as path from 'path'
 import { Tournament, TournamentInfo } from "../types/tournaments"
@@ -25,7 +25,7 @@ subscribeObjectManager("tournaments", {
         }
     },
     onStore: () => {
-        fs.writeFileSync(tournamentsFilePath, JSON.stringify(global.tournaments, null, 2), 'utf-8')
+        writeSafe(tournamentsFilePath, JSON.stringify(global.tournaments, null, 2))
     }
 })
 

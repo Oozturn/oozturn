@@ -1,5 +1,5 @@
-import { logger } from "~/lib/logging/logging"
 import * as fs from 'fs';
+import { logger } from "~/lib/logging/logging";
 
 interface DbObjectManager {
     onStore: () => void,
@@ -52,4 +52,10 @@ function fireStore() {
 export function subscribeObjectManager(id: string, objectManager: DbObjectManager) {
     objectManagers.set(id, objectManager)
     objectManager.onRestore()
+}
+
+export function writeSafe(filepath: string, content: string) {
+    const tmpPath = filepath+'.tmp'
+    fs.writeFileSync(tmpPath,  content, 'utf-8')
+    fs.renameSync(tmpPath, filepath)
 }
