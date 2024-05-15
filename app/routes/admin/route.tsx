@@ -6,9 +6,10 @@ import { useGames } from "~/lib/components/contexts/GamesContext";
 import { useLan } from "~/lib/components/contexts/LanContext";
 import { useTournaments } from "~/lib/components/contexts/TournamentsContext";
 import { UsersContext } from "~/lib/components/contexts/UsersContext";
-import { CustomButton } from "~/lib/components/elements/custom-button";
+import { ButtonMore, CustomButton } from "~/lib/components/elements/custom-button";
 import { CustomCheckbox } from "~/lib/components/elements/custom-checkbox";
 import { CustomSelect } from "~/lib/components/elements/custom-select";
+import { UserTileRectangle } from "~/lib/components/elements/player-tile";
 import { UserAvatar } from "~/lib/components/elements/user-avatar";
 import { updateLan } from "~/lib/persistence/lan.server";
 import { requireUserAdmin, requireUserLoggedIn } from "~/lib/session.server";
@@ -89,6 +90,7 @@ export default function Admin() {
     const navigate = useNavigate()
 
     const [activePlayer, setActivePlayer] = useState("")
+    const [hooveredPlayer, setHooveredPlayer] = useState("")
     const [activeSection, setActiveSection] = useLocalStorageState("admin_activeSection", { defaultValue: "lanSettings" })
 
     function updateLan(key: string, value: string) {
@@ -352,15 +354,14 @@ export default function Admin() {
                     <div className="playerTilesContainer is-flex-col p-0 m-0 is-scrollable pr-2">
                         {users && users.sort((a, b) => a.username.toLowerCase().localeCompare(b.username.toLowerCase())).map(user =>
                             user ?
-                                <div key={user.username} className={`playerTile is-flex-col ${activePlayer == user.username ? 'is-active' : ''}`}>
-                                    <div className='is-flex is-align-items-center is-unselectable is-clickable' onClick={() => setActivePlayer(activePlayer == user.username ? '' : user.username)} style={{ flex: "none" }}>
-                                        <div className='avatar mr-3'>
-                                            <UserAvatar username={user.username} avatar={user.avatar} />
+                                <div key={user.username} className={`playerTile is-flex-col is-clickable ${activePlayer == user.username ? 'is-active' : ''}`} onMouseEnter={() => setHooveredPlayer(user.username)} onMouseLeave={() => setHooveredPlayer("")}>
+                                    <div className="is-flex is-justify-content-space-between is-align-items-center">
+                                        <div className="is-flex is-clickable grow" onClick={() => setActivePlayer(activePlayer == user.username ? '' : user.username)}>
+                                            <UserTileRectangle username={user.username} height={40}/>
                                         </div>
-                                        {user.team && <div className='team fade-text mr-3'>[{user.team}]</div>}
-                                        <div className='username'>{user.username}</div>
+                                        <ButtonMore show={hooveredPlayer == user.username} callback={()=>{}} height={40}/>
                                     </div>
-                                    <div className='playerTooltip is-flex pl-3'>
+                                    <div className='playerTooltip is-flex pl-3' onClick={() => setActivePlayer(activePlayer == user.username ? '' : user.username)}>
                                         <div className='is-flex-col'>
                                             <div>IP: {user.ips ? user.ips[0] : 'unknown'}</div>
                                             <div>Tournois: {tournaments?.filter(tournament => tournament.players.find(player => player.playername == user.username)).length || 0}</div>

@@ -31,7 +31,6 @@ subscribeObjectManager("passwords", {
 
 export function checkPassword(username: string, password: string) {
     const hash = global.passwords[username]
-    console.log("Comparing", password, hash)
     return compareSync(password, hash)
 }
 

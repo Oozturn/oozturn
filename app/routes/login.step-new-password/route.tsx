@@ -1,7 +1,7 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, json, redirect } from "@remix-run/node";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getLan } from "~/lib/persistence/lan.server";
-import { hasPassword, storePassword } from "~/lib/persistence/password.server";
+import { storePassword } from "~/lib/persistence/password.server";
 import { getUsername, updateSessionWithPasswordAuth } from "~/lib/session.server";
 import { validate } from "./validate";
 
@@ -11,7 +11,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   const username = await getUsername(request)
-  if (!username || (username && !hasPassword(username))) {
+  if (!username) {
     throw redirect('/login');
   }
   return { username: username }

@@ -109,6 +109,10 @@ a, a:hover {
     }
 }
 
+.is-transparent {
+    background-color: transparent !important;
+    @include textAndFillColor(transparent, transparent)
+}
 
 .has-background-primary-level {
     background-color: var(--background-primary-level) !important;
@@ -266,6 +270,11 @@ input.threeDigitsWidth {
 .customButtonMore {
     @extend .customButton;
     width: $custom-button-height;
+    &:not(.is-shown) {
+        path.fillAsText {
+            fill: transparent !important;
+        }
+    }
 }
 
 .modal {
