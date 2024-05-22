@@ -96,14 +96,17 @@ a, a:hover {
         }
     }
     &.fade-on-mouse-out, .fade-on-mouse-out {
+        transition: color .2s;
         color: $color70;
         path.fillAsText {
             fill: $color70;
+            transition: fill .2s;
         }
         &:hover {
             color: $color;
             path.fillAsText {
                 fill: $color;
+                transition: fill .2s;
             }
         }
     }

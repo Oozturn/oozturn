@@ -1,6 +1,6 @@
 import { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { useFetcher, useLoaderData } from "@remix-run/react";
-import TournamentsList from "../tournaments._index/tournaments-list";
+import TournamentsList from "./tournaments-list";
 import { TournamentContext } from "~/lib/components/contexts/TournamentsContext";
 import { Tournament } from "~/lib/types/tournaments";
 import { getTournament } from "~/lib/persistence/tournaments.server";
@@ -11,8 +11,9 @@ import { CustomButton } from "~/lib/components/elements/custom-button";
 import { CustomModalBinary } from "~/lib/components/elements/custom-modal";
 import { useState } from "react";
 import { BinSVG, LeaveSVG, ParticipateSVG, StartSVG, SubsribedSVG } from "~/lib/components/data/svg-container";
-import { UserTileRectangle } from "~/lib/components/elements/player-tile";
+import { UserTileRectangle } from "~/lib/components/elements/user-tile";
 import { addPlayerToTournament, removePlayerFromTournament } from "./queries.server";
+import { useUsers } from "~/lib/components/contexts/UsersContext";
 
 export async function loader({
     params,
@@ -28,10 +29,10 @@ export async function action({ request }: ActionFunctionArgs) {
 
     switch (intent) {
         case PlayersManagementIntents.ADD_PLAYER:
-            addPlayerToTournament(jsonData.tournamentId as string, jsonData.playername as string)
+            addPlayerToTournament(jsonData.tournamentId as string, jsonData.userId as string)
             break;
         case PlayersManagementIntents.REMOVE_PLAYER:
-            removePlayerFromTournament(jsonData.tournamentId as string, jsonData.playername as string)
+            removePlayerFromTournament(jsonData.tournamentId as string, jsonData.userId as string)
             break;
     }
 
@@ -47,15 +48,23 @@ export default function TournamentPage() {
     const { tournament } = useLoaderData<typeof loader>();
     const user = useUser()
     const fetcher = useFetcher()
+    const users = useUsers()
 
     const [showConfirmStart, setShowConfirmStart] = useState(false)
     const [showConfirmCancel, setShowConfirmCancel] = useState(false)
+
+    if (!tournament) {
+        return <div className="is-flex-row grow gap-3 p-0 is-full-height">
+            <TournamentsList />
+            <TournamentNotFound />
+        </div>
+    }
 
     const joinTournament = () => {
         fetcher.submit(
             {
                 intent: PlayersManagementIntents.ADD_PLAYER,
-                playername: user.id,
+                userId: user.id,
                 tournamentId: tournament?.id || "",
             },
             { method: "POST", encType: "application/json" }
@@ -65,25 +74,33 @@ export default function TournamentPage() {
         fetcher.submit(
             {
                 intent: PlayersManagementIntents.REMOVE_PLAYER,
-                playername: user.id,
+                userId: user.id,
                 tournamentId: tournament?.id || "",
             },
             { method: "POST", encType: "application/json" }
         )
     }
+    {/**  DEV ONLY  */ }
+    const addFakePlayer = () => {
+        const notInTournament = users.filter(u => !tournament.players.map(p => p.userId).includes(u.id))
+        const player = notInTournament.sort(() => Math.floor(Math.random() * notInTournament.length))[0]
+        console.log(player)
+        fetcher.submit(
+            {
+                intent: PlayersManagementIntents.ADD_PLAYER,
+                userId: player.id,
+                tournamentId: tournament?.id || "",
+            },
+            { method: "POST", encType: "application/json" }
+        )
+    }
+    {/**  DEV ONLY  */ }
 
     const startTournament = () => { }
 
     const editTournament = () => { }
 
     const cancelTournament = () => { }
-
-    if (!tournament) {
-        return <div className="is-flex-row grow gap-3 p-0 is-full-height">
-            <TournamentsList />
-            <TournamentNotFound />
-        </div>
-    }
 
     return <div className="is-flex-row grow gap-3 p-0 is-full-height">
         <TournamentContext.Provider value={tournament}>
@@ -93,7 +110,7 @@ export default function TournamentPage() {
                     Tournoi {tournament.name}
                 </div>
                 <div className="has-background-secondary-level is-flex-row grow p-3 gap-6">
-                    <div className="is-flex-col is-half">
+                    <div className="is-flex-col">
                         <TournamentInfoSettings />
                         <div className='grow'></div>
                         {user.isAdmin &&
@@ -111,17 +128,26 @@ export default function TournamentPage() {
                         <div className="has-background-primary-level grow">
                             <div className="is-flex wrap has-background-primary-level grow gap-3 p-3">
                                 {tournament.players.map(player =>
-                                    <UserTileRectangle username={player.playername} colorClass="has-background-secondary-level" />
+                                    <UserTileRectangle userId={player.userId} colorClass="has-background-secondary-level" height={40} maxLength={400} />
                                 )}
                             </div>
                         </div>
                         <div className="mb-3"></div>
-                        <div>
-                        {tournament.players.find(player => player.playername == user.id) ?
-                            <CustomButton callback={leaveTournament} contentItems={[LeaveSVG(), "Quitter"]} colorClass='has-background-secondary-accent' />
-                            :
-                            <CustomButton callback={joinTournament} contentItems={[ParticipateSVG(), "Participer"]} colorClass='has-background-primary-accent' />
-                        }
+                        <div className="is-flex-row gap-3">
+                            {user.isAdmin ?
+                                <>
+                                    {/**  DEV ONLY  */}
+                                    {process.env.NODE_ENV === "development" && <CustomButton callback={addFakePlayer} contentItems={["Add player"]} colorClass='has-background-primary' />}
+                                    {/**  DEV ONLY  */}
+                                </>
+                                :
+                                <></>
+                            }
+                            {tournament.players.find(player => player.userId == user.id) ?
+                                <CustomButton callback={leaveTournament} contentItems={[LeaveSVG(), "Quitter"]} colorClass='has-background-secondary-accent' />
+                                :
+                                <CustomButton callback={joinTournament} contentItems={[ParticipateSVG(), "Participer"]} colorClass='has-background-primary-accent' />
+                            }
                         </div>
                     </div>
                 </div>

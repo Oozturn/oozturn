@@ -1,5 +1,5 @@
 import { NavLink } from "@remix-run/react";
-import { useTournament, useTournaments } from "~/lib/components/contexts/TournamentsContext";
+import { useTournaments } from "~/lib/components/contexts/TournamentsContext";
 import { useUser } from "~/lib/components/contexts/UserContext";
 import { Game } from "~/lib/types/games";
 import { TournamentStatus } from "~/lib/types/tournaments";
@@ -28,7 +28,7 @@ export default function TournamentsList() {
                     ${tournament.game == undefined ? 'has-generic-game-background-image' : ''}`}
                     style={{ backgroundImage: tournament.game == undefined ? "" : 'url(/api/static/igdb/' + gamesList.find(game => game.id == tournament.game)?.picture + '.jpg)' }}>
                     <div className='tournamentName'>{tournament.name}</div>
-                    {tournament.players.find(p => p.playername = user.username) && <div className='subscribedIndicator' title='inscrit'></div>}
+                    {tournament.players.find(p => p.userId == user.id) && <div className='subscribedIndicator' title='inscrit'></div>}
                     {tournament.status == TournamentStatus.Balancing && <div className='tournamentState'>En préparation</div>}
                     {tournament.status == TournamentStatus.Paused && <div className='tournamentState'>En pause</div>}
                     {tournament.status == TournamentStatus.Running && <div className='tournamentState'>En cours</div>}

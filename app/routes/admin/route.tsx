@@ -9,7 +9,7 @@ import { UsersContext } from "~/lib/components/contexts/UsersContext";
 import { ButtonMore, CustomButton } from "~/lib/components/elements/custom-button";
 import { CustomCheckbox } from "~/lib/components/elements/custom-checkbox";
 import { CustomSelect } from "~/lib/components/elements/custom-select";
-import { UserTileRectangle } from "~/lib/components/elements/player-tile";
+import { UserTileRectangle } from "~/lib/components/elements/user-tile";
 import { UserAvatar } from "~/lib/components/elements/user-avatar";
 import { updateLan } from "~/lib/persistence/lan.server";
 import { requireUserAdmin, requireUserLoggedIn } from "~/lib/session.server";
@@ -357,14 +357,14 @@ export default function Admin() {
                                 <div key={user.username} className={`playerTile is-flex-col is-clickable ${activePlayer == user.username ? 'is-active' : ''}`} onMouseEnter={() => setHooveredPlayer(user.username)} onMouseLeave={() => setHooveredPlayer("")}>
                                     <div className="is-flex is-justify-content-space-between is-align-items-center">
                                         <div className="is-flex is-clickable grow" onClick={() => setActivePlayer(activePlayer == user.username ? '' : user.username)}>
-                                            <UserTileRectangle username={user.username} height={40}/>
+                                            <UserTileRectangle userId={user.username} height={40}/>
                                         </div>
                                         <ButtonMore show={hooveredPlayer == user.username} callback={()=>{}} height={40}/>
                                     </div>
                                     <div className='playerTooltip is-flex pl-3' onClick={() => setActivePlayer(activePlayer == user.username ? '' : user.username)}>
                                         <div className='is-flex-col'>
                                             <div>IP: {user.ips ? user.ips[0] : 'unknown'}</div>
-                                            <div>Tournois: {tournaments?.filter(tournament => tournament.players.find(player => player.playername == user.username)).length || 0}</div>
+                                            <div>Tournois: {tournaments?.filter(tournament => tournament.players.find(player => player.userId == user.username)).length || 0}</div>
                                             <div>Points: {leaderboard?.find(pscore => pscore.player.username == user.username)?.points || 0}</div>
                                         </div>
                                     </div>

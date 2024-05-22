@@ -63,7 +63,7 @@ function IndexTournamentTile({ tournament, username, game }: { tournament: Tourn
   return (
     <Link to={`/tournaments/${tournament.id}`} key={tournament.id} className={`flat-box homeTournamentBox is-clickable p-0 ${game?.id == undefined ? 'has-generic-game-background-image' : ''}`} style={{ backgroundImage: backgroundImage }}>
       <div className={`tournamentName ${tournament.status == TournamentStatus.Done && 'over'}`}>{tournament.name}</div>
-      {tournament.players.find(player => player.playername == username) &&
+      {tournament.players.find(player => player.userId == username) &&
         <div className='subsribed is-flex is-align-items-center has-background-primary-accent'>
           <SubsribedSVG />
           <div className='ml-2'>Inscrit</div>

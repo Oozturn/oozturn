@@ -50,7 +50,7 @@ export interface BracketOptions {
 
 export interface Player {
     seed: number
-    playername: string
+    userId: string
     isForfeit: boolean
     result?: number
     points?: number
