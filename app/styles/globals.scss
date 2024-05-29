@@ -14,7 +14,7 @@
 // CSS custom properties for theme and customization
 :root {
     // Base colors
-    --grey: #C0C0C0;
+    --grey: #8b8b8b;
     // User theme
     --accent-primary-color: #FF6666;
     --accent-secondary-color: #7171FF;
@@ -233,6 +233,41 @@ $flex-gaps: (
     }
 }
 
+$flex-justifications: (
+    flex-start,
+    flex-end,
+    center,
+    space-between,
+    space-around,
+    space-evenly,
+    start,
+    end,
+    left,
+    right,
+);
+@each $fj in $flex-justifications {
+    .is-flex.justify-#{$fj} {
+        justify-content: $fj !important;
+    }
+}
+
+$flex-align: (
+    stretch,
+    flex-start,
+    flex-end,
+    center,
+    baseline,
+    start,
+    end,
+    self-start,
+    self-end,
+);
+@each $fa in $flex-align {
+    .is-flex.align-#{$fa} {
+        align-items: $fa !important;
+    }
+}
+
 input, textarea, select, .input, .textarea, .select select {
     background-color: var(--background-primary-level);
     color: var(--text-color);
@@ -286,7 +321,7 @@ input.threeDigitsWidth {
 
 .modal-background {
     background-color: transparent;
-    backdrop-filter: blur(1px);
+    backdrop-filter: blur(1px) brightness(80%);
 }
 
 .customRadio {
@@ -1186,125 +1221,6 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
     
 }
 
-.tournamentInfoTitle {
-    position: relative;
-    display: flex;
-    align-items: center;
-    min-height: 60px;
-    max-height: 60px;
-    .tournamentValidationButtonContainer {
-        position: absolute;
-        right: .75rem;
-        top: 0;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        font-size: 20px;
-        text-transform: none;
-    }
-}
-
-.tournamentInfo {
-    font-size: 20px;
-    flex: 5;
-    gap: .75rem;
-    display: flex;
-    width: calc(100vw - $tournament-side-list-width - 2.25rem);
-    .tournamentInfoSettings {
-        flex: 1;
-        gap: .75rem;
-        color: var(--text-color);
-        background-color: var(--background-secondary-level);
-        max-height: calc(100vh - 2.25rem - 60px - ($navbar-height + $footer-height));
-        li {
-            list-style-type: square;
-        }
-    }
-    .tournamentInfoTeams {
-        max-height: calc(100vh - 2.25rem - 60px - ($navbar-height + $footer-height));
-        flex: 1;
-        gap: .75rem;
-        color: var(--text-color);
-        background-color: var(--background-secondary-level);
-        .teamsListContainer {
-            flex: 3.5;
-            position: relative;
-            overflow: auto;
-        }
-        .playersListContainer {
-            flex: 1;
-            position: relative;
-            overflow: auto;
-        }
-        .teamsList {
-            position: relative;
-            display: flex;
-            flex-wrap: wrap;
-            gap: .5rem;
-            overflow: auto;
-            .teamTileContainer {
-                width: calc((100% - 1rem)/3);
-                min-height: 96px;
-                div[role=button] { // Sortable component
-                    display: flex;
-                    flex-direction: column;
-                    height: 100%;
-                }
-            }
-        }
-    }
-    .teamTile {
-        background-color: var(--background-secondary-level);
-        padding: .5rem;
-        height: 100%;
-        min-height: 96px;
-        .topInfo {
-            justify-content: space-between;
-            align-items: center;
-            .teamName {
-                flex-shrink: 1;
-                text-overflow: clip;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-            .adminOptions {
-                display: flex;
-                align-items: center;
-                gap: .4rem;
-            }
-        }
-        .membersList {
-            display: flex;
-            flex-direction: column;
-            gap: .25rem;
-            transition: opacity .1s;
-            &.isFullCantDrop {
-                opacity: 50%;
-                transition: opacity .1s;
-            }
-        }
-    }
-    .tournamentInfoPlayers {
-        max-height: calc(100vh - 2.25rem - 60px - ($navbar-height + $footer-height));
-        flex: 1;
-        gap: .75rem;
-        color: var(--text-color);
-        background-color: var(--background-secondary-level);
-    }
-    .playersList {
-        display: flex;
-        flex-wrap: wrap;
-        gap: .5rem;
-        align-items: flex-start;
-        overflow: auto;
-        .playerTileContainer {
-            width: calc(calc(100% - 1.5rem)/4);
-        }
-    }
-    .bottomButtons {
-        gap: .5rem;
-    }
-}
 
 .is-draggable {
     cursor: grab;

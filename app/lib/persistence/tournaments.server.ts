@@ -2,7 +2,7 @@ import { logger } from "~/lib/logging/logging"
 import { dbFolderPath, subscribeObjectManager, writeSafe } from "./db.server"
 import * as fs from 'fs'
 import * as path from 'path'
-import { Tournament, TournamentInfo } from "../types/tournaments"
+import { Tournament, TournamentInfo, TournamentTeam } from "../types/tournaments"
 
 declare global {
     var tournaments: Tournament[]
@@ -42,8 +42,30 @@ export function getTournaments(): TournamentInfo[] {
     })
 }
 
-export function getTournament(id: string): Tournament | undefined {
-    return global.tournaments.find(tournament => tournament.id == id)
+export function getTournament(id: string): Tournament {
+    const tournament = global.tournaments.find(tournament => tournament.id == id)
+    if (!tournament) throw new Error(`Tournament ${id} not found`)
+    return tournament
+}
+
+export function getPlayerIndex(tournament: Tournament, userId: string): number {
+    const index = tournament.players.findIndex(p => p.userId == userId)
+    if (index == -1) throw new Error(`Player ${userId} not found in tournament ${tournament.id}`)
+    return index
+}
+
+export function getTeamIndex(tournament: Tournament, teamName: string): number {
+    if (!tournament.teams) throw new Error(`No teams in tournament ${tournament.id}`)
+    const index = tournament.teams?.findIndex(t => t.name == teamName)
+    if (index == -1) throw new Error(`Team ${teamName} not found in tournament ${tournament.id}`)
+    return index
+}
+
+export function getTeam(tournament: Tournament, teamName: string): TournamentTeam {
+    if (!tournament.teams) throw new Error(`No teams in tournament ${tournament.id}`)
+    const team = tournament.teams?.find(p => p.name == teamName)
+    if (!team) throw new Error(`Team ${teamName} not found in tournament ${tournament.id}`)
+    return team
 }
 
 export function updateTournament(id: string, partialTournament: Partial<Tournament>) {

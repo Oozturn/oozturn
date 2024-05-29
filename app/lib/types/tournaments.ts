@@ -23,13 +23,14 @@ export interface TournamentSettings {
     type: TournamentType
     startTime: DateType
     useTeams: boolean
-    playersCanCreateTeams?: boolean
+    usersCanCreateTeams?: boolean
     teamsMaxSize?: number
     invertedScore: boolean
     globalTournamentPoints: globalTournamentPoints
 }
 
 export interface TournamentTeam {
+    seed: number
     name: string
     members: string[]
 }

@@ -4,6 +4,7 @@ import { useUsers } from "../contexts/UsersContext"
 interface UserTileProps {
     userId: string
     colorClass?: string
+    customClass?: string
     height?: number
     maxLength?: number
 }
@@ -18,7 +19,7 @@ export function UserTileRectangle({ userId, colorClass, height, maxLength }: Use
         maxLength = 2 * height
     const maxTeamLenght = (maxLength - height) * 1 / 3
     const maxUsernameLenght = (maxLength - height) * 2 / 3
-    return <div key={user.id} className={`is-flex gap-3 pr-3 is-align-items-center is-unselectable ${colorClass ? colorClass : ''}`}>
+    return <div key={user.id} className={`is-flex grow gap-1 pr-3 align-center is-unselectable ${colorClass ? colorClass : ''}`} style={{ maxWidth: maxLength }}>
         <div className='is-flex'>
             <UserAvatar username={user.username} avatar={user.avatar} size={height} />
         </div>

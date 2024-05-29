@@ -1,20 +1,19 @@
 import { NavLink } from "@remix-run/react";
 import { useTournaments } from "~/lib/components/contexts/TournamentsContext";
 import { useUser } from "~/lib/components/contexts/UserContext";
-import { Game } from "~/lib/types/games";
+import { useGames } from "~/lib/components/contexts/GamesContext";
 import { TournamentStatus } from "~/lib/types/tournaments";
 
 
 export default function TournamentsList() {
 
-    const isAdmin = true
     const user = useUser()
     const tournaments = useTournaments()
-    const gamesList: Game[] = []
+    const gamesList = useGames()
 
     return (
         <div className="tournamentsList flat-box is-flex is-flex-direction-column is-scrollable has-background-secondary-level">
-            {isAdmin &&
+            {user.isAdmin &&
                 <NavLink to="/tournaments/new" className={({ isActive }) => `tournamentTile has-background-primary-level is-clickable ${isActive ? 'is-active' : ''}`}>
                     <div className='tournamentName' >NOUVEAU TOURNOI</div>
                 </NavLink>

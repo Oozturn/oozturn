@@ -51,7 +51,7 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
     const [tLimit, set_tLimit] = useState(existingTournament ? existingTournament.bracket.options.limit : 1)
 
     // Teams options
-    const [tPlayersCanCreateTeams, set_tPlayersCanCreateTeams] = useState(existingTournament ? existingTournament.settings.playersCanCreateTeams : false)
+    const [tUsersCanCreateTeams, set_tUsersCanCreateTeams] = useState(existingTournament ? existingTournament.settings.usersCanCreateTeams : false)
     const [tTeamsMaxSize, set_tTeamsMaxSize] = useState(existingTournament ? existingTournament.settings.teamsMaxSize : 8)
 
 
@@ -72,7 +72,7 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                     leaders: tGlobalTournamentPointsLeaders,
                     default: tGlobalTournamentPointsDefault
                 },
-                playersCanCreateTeams: tPlayersCanCreateTeams,
+                usersCanCreateTeams: tUsersCanCreateTeams,
                 teamsMaxSize: tTeamsMaxSize
             },
             players: [],
@@ -338,7 +338,7 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                             <div className='is-flex is-align-items-center is-size-6'>
                                 <div className='mr-3 is-size-5'>Les joueurs peuvent créer des équipes :</div>
                                 <div className='is-flex is-flex-direction-column'>
-                                    <CustomRadio variable={tPlayersCanCreateTeams} setter={set_tPlayersCanCreateTeams} items={[{ label: 'non', value: false }, { label: 'oui', value: true }]} />
+                                    <CustomRadio variable={tUsersCanCreateTeams} setter={set_tUsersCanCreateTeams} items={[{ label: 'non', value: false }, { label: 'oui', value: true }]} />
                                 </div>
                             </div>
                         </>
