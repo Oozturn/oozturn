@@ -1,8 +1,8 @@
 import { json, redirect } from "@remix-run/node"
 import { logger } from "~/lib/logging/logging"
 import { getLan } from "~/lib/persistence/lan.server"
-import { getUser, registerNewUser } from "~/lib/persistence/users.server"
-import { createSessionWithUsername } from "~/lib/session.server"
+import { getUserByUsername, registerNewUser } from "~/lib/persistence/users.server"
+import { createSessionWithUser } from "~/lib/session.server"
 
 export async function doLogin(rawUsername: string) {
     const username = rawUsername.trim()
@@ -14,7 +14,7 @@ export async function doLogin(rawUsername: string) {
         return json({ error: "Nom d'utilisateur trop long (15 caratères max.)" })
     }
 
-    let user = getUser(rawUsername.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, ''))
+    let user = getUserByUsername(username)
     // If user exists, recover it from global. Else, register it
     if (user) {
         logger.info({ username: username }, `${username} logged in`)
@@ -23,7 +23,7 @@ export async function doLogin(rawUsername: string) {
         user = registerNewUser(rawUsername)
     }
 
-    const cookie = await createSessionWithUsername(user.username)
+    const cookie = await createSessionWithUser(user)
     return redirect(getLan().authenticationNeeded ? "step-password" : "/", {
         headers: {
             "Set-Cookie": cookie

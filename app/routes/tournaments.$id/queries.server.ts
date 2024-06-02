@@ -1,6 +1,6 @@
 import { logger } from "~/lib/logging/logging"
 import { getPlayerIndex, getTeam, getTeamIndex, getTournament } from "~/lib/persistence/tournaments.server"
-import { getUser } from "~/lib/persistence/users.server"
+import { getUserById } from "~/lib/persistence/users.server"
 import { Player, TournamentStatus, TournamentTeam } from "~/lib/types/tournaments"
 import { reSeedOpponents } from "~/lib/utils/tournaments"
 
@@ -26,7 +26,7 @@ export function addPlayerToTournament(TournamentId: string, userId: string) {
         if (tournament.players.find(p => p.userId == userId)) {
             throw new Error(`Player ${userId} has already joined tournament ${TournamentId}`)
         }
-        if (!getUser(userId)) {
+        if (!getUserById(userId)) {
             throw new Error(`Player ${userId} not found`)
         }
         const newPlayer: Player = {

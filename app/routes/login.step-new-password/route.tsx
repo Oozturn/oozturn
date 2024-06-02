@@ -2,7 +2,7 @@ import { ActionFunctionArgs, LoaderFunctionArgs, json, redirect } from "@remix-r
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getLan } from "~/lib/persistence/lan.server";
 import { storePassword } from "~/lib/persistence/password.server";
-import { getUsername, updateSessionWithPasswordAuth } from "~/lib/session.server";
+import { getUserFromRequest, getUserId, updateSessionWithPasswordAuth } from "~/lib/session.server";
 import { validate } from "./validate";
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -10,11 +10,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw redirect('/login');
   }
 
-  const username = await getUsername(request)
-  if (!username) {
+  const user = await getUserFromRequest(request)
+  if (!user) {
     throw redirect('/login');
   }
-  return { username: username }
+  return { ...user }
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -27,8 +27,8 @@ export async function action({ request }: ActionFunctionArgs) {
     return json({ ok: false, errors }, 400);
   }
 
-  const username = await getUsername(request) as string
-  storePassword(username, password)
+  const userId = await getUserId(request) as string
+  storePassword(userId, password)
 
   const cookie = await updateSessionWithPasswordAuth(request)
   return redirect("/", {

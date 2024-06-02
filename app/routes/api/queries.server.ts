@@ -5,8 +5,8 @@ import { getUserOrThrow } from '~/lib/persistence/users.server';
 
 const AVATAR_FOLDER = "public/avatar"
 
-export async function setAvatar(username: string, file: File) {
-    const user = getUserOrThrow(username)
+export async function setAvatar(userId: string, file: File) {
+    const user = getUserOrThrow(userId)
     const newAvatar = await storeAvatar(file)
     if(user.avatar) {
         await deleteOldAvatar(user.avatar)
@@ -14,8 +14,8 @@ export async function setAvatar(username: string, file: File) {
     user.avatar = newAvatar
 }
 
-export async function removeAvatar(username: string) {
-    const user = getUserOrThrow(username)
+export async function removeAvatar(userId: string) {
+    const user = getUserOrThrow(userId)
     if(user.avatar) {
         await deleteOldAvatar(user.avatar)
     }

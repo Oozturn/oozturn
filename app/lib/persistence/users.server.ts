@@ -33,13 +33,16 @@ export function getUsers() {
     return global.users
 }
 
-export function getUser(username: string): User | undefined {
-    const id = getId(username)
-    return global.users.find(user => user.id === id)
+export function getUserById(userId: string): User | undefined {
+    return global.users.find(user => user.id === userId)
 }
 
-export function getUserOrThrow(username: string) {
-    const user = getUser(username)
+export function getUserByUsername(username: string): User | undefined {
+    return global.users.find(user => user.username === username)
+}
+
+export function getUserOrThrow(userId: string) {
+    const user = getUserById(userId)
     if(!user) {
         throw Error("User not found")
     }
@@ -47,18 +50,18 @@ export function getUserOrThrow(username: string) {
 }
 
 export function registerNewUser(username: string) {
-    const user: User = { id: getId(username), username: username, avatar: "", team: "", isAdmin: false, ips: [] }
+    const user: User = { id: generateId(username), username: username, avatar: "", team: "", isAdmin: false, ips: [] }
     global.users.push(user)
     return user
 }
 
-export function updateUser(username: string, partialUser: Partial<User>) {
-    let userIndex = global.users.findIndex(user => user.username == username)
+export function updateUser(userId: string, partialUser: Partial<User>) {
+    let userIndex = global.users.findIndex(user => user.id == userId)
     if (userIndex != -1) {
         global.users[userIndex] = { ...global.users[userIndex], ...partialUser }
     }
 }
 
-function getId(username:string) {
+function generateId(username:string) {
     return username.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '')
 }
