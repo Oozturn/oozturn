@@ -1,7 +1,7 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from "@remix-run/node";
 import { useFetcher, useLoaderData, useNavigate } from "@remix-run/react";
 import { TournamentContext } from "~/lib/components/contexts/TournamentsContext";
-import { Tournament, TournamentStatus } from "~/lib/types/tournaments";
+import { Tournament, TournamentStatus, TournamentType } from "~/lib/types/tournaments";
 import { getTournament } from "~/lib/persistence/tournaments.server";
 import TournamentInfoSettings from "./tournament-info-settings";
 import { useUser } from "~/lib/components/contexts/UserContext";
@@ -12,6 +12,7 @@ import { BinSVG, LeaveSVG, ParticipateSVG, StartSVG, SubsribedSVG } from "~/lib/
 import { addPlayerToTournament, addTeamToTournament, toggleBalanceTournament, removePlayerFromTournament, reorderPlayers, reorderTeams, addPlayerToTeam, removeTeamFromTournament, renameTeam, removePlayerFromTeams, distributePlayersOnTeams, balanceTeams, randomizePlayersOnTeams } from "./queries.server";
 import { useUsers } from "~/lib/components/contexts/UsersContext";
 import { PlayersListSolo, PlayersListTeam } from "./players-list";
+import { GetFFAMaxPlayers } from "~/lib/utils/tournaments";
 
 export async function loader({
     params,
@@ -105,6 +106,8 @@ export default function TournamentPage() {
 
     const [showConfirmStart, setShowConfirmStart] = useState(false)
     const [showConfirmCancel, setShowConfirmCancel] = useState(false)
+
+    const canAddPlayers = tournament.settings.type == TournamentType.Duel || (tournament.players.length < GetFFAMaxPlayers(tournament.bracket.options.sizes, tournament.bracket.options.advancers) * (tournament.settings.useTeams ? tournament.settings.teamsMaxSize || 1 : 1))
 
     const joinTournament = () => {
         fetcher.submit(
@@ -225,7 +228,7 @@ export default function TournamentPage() {
                                 <>
                                     <CustomButton callback={toggleBalanceTournament} tooltip={tournament.status == TournamentStatus.Open ? "Empêcher les joueurs d'interragir avec le tournoi, pour pouvoir les re-seeder" : "Réouvrir le tournoi aux joueurs"} contentItems={tournament.status == TournamentStatus.Open ? [StartSVG(), "Verrouiller"] : [StartSVG(), "Déverrouiller"]} colorClass='has-background-primary-level' />
                                     {/**  DEV ONLY  */}
-                                    {process.env.NODE_ENV === "development" && <CustomButton callback={addFakePlayer} contentItems={["Add player"]} colorClass='has-background-primary' />}
+                                    {process.env.NODE_ENV === "development" && canAddPlayers && <CustomButton callback={addFakePlayer} contentItems={["Add player"]} colorClass='has-background-primary' />}
                                     {/**  DEV ONLY  */}
                                 </>
                                 :
@@ -234,7 +237,7 @@ export default function TournamentPage() {
                             {tournament.players.find(player => player.userId == user.id) ?
                                 <CustomButton callback={leaveTournament} contentItems={[LeaveSVG(), "Quitter"]} colorClass='has-background-secondary-accent' />
                                 :
-                                <CustomButton callback={joinTournament} contentItems={[ParticipateSVG(), "Participer"]} colorClass='has-background-primary-accent' />
+                                <CustomButton callback={joinTournament} active={canAddPlayers} contentItems={[ParticipateSVG(), "Participer"]} colorClass='has-background-primary-accent' />
                             }
                         </div>
                     </div>

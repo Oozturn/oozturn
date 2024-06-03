@@ -49,7 +49,7 @@ export default function Index() {
               </Link>
             }
             {tournaments.map(tournament =>
-              tournament && <IndexTournamentTile tournament={tournament} username={me.username} game={games?.find(game => game.id == tournament.game)} />
+              tournament && <IndexTournamentTile tournament={tournament} userId={me.id} game={games?.find(game => game.id == tournament.game)} />
             )}
           </div>
         </div>
@@ -58,12 +58,12 @@ export default function Index() {
   );
 }
 
-function IndexTournamentTile({ tournament, username, game }: { tournament: TournamentInfo, username: string, game: Game | undefined }) {
+function IndexTournamentTile({ tournament, userId, game }: { tournament: TournamentInfo, userId: string, game: Game | undefined }) {
   const backgroundImage = game?.id == undefined ? '' : 'url(/igdb/' + game?.picture + '.jpg)'
   return (
     <Link to={`/tournaments/${tournament.id}`} key={tournament.id} className={`flat-box homeTournamentBox is-clickable p-0 ${game?.id == undefined ? 'has-generic-game-background-image' : ''}`} style={{ backgroundImage: backgroundImage }}>
       <div className={`tournamentName ${tournament.status == TournamentStatus.Done && 'over'}`}>{tournament.name}</div>
-      {tournament.players.find(player => player.userId == username) &&
+      {tournament.players.find(player => player.userId == userId) &&
         <div className='subsribed is-flex is-align-items-center has-background-primary-accent'>
           <SubsribedSVG />
           <div className='ml-2'>Inscrit</div>

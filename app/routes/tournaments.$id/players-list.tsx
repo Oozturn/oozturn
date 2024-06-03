@@ -24,6 +24,7 @@ export function PlayersListSolo() {
     const fetcher = useFetcher()
     const [draggingPlayer, setDraggingPlayer] = useState<string | null>(null);
     const [sortablePlayers, setSortablePlayers] = useState<(Player & { id: string })[]>([]);
+    const [hooveredPlayer, setHooveredPlayer] = useState("")
 
     useEffect(() => {
         setSortablePlayers(tournament.players.map(player => {
@@ -57,13 +58,23 @@ export function PlayersListSolo() {
             )
         }
     }
+    async function removeUserFromTournament(userId: string) {
+        fetcher.submit(
+            {
+                intent: TournamentManagementIntents.REMOVE_PLAYER,
+                tournamentId: tournament?.id || "",
+                userId: userId
+            },
+            { method: "POST", encType: "application/json" }
+        )
+    }
 
 
     return (
         <div className='is-flex-col grow'>
             <DragOverlay style={{ opacity: ".75" }}>
                 {draggingPlayer != null ?
-                    <UserTileRectangle userId={draggingPlayer} />
+                    <UserTileRectangle userId={draggingPlayer} colorClass={draggingPlayer == user.id ? 'has-background-primary-accent' : "has-background-secondary-level"} />
                     : null}
             </DragOverlay>
             <div className='is-title medium is-uppercase'>Inscrits</div>
@@ -78,7 +89,7 @@ export function PlayersListSolo() {
                                 {sortablePlayers.map(player =>
                                     <div key={player.userId} className="grow">
                                         <Sortable id={player.userId}>
-                                            <UserTileRectangle userId={player.userId} colorClass="has-background-secondary-level" customClass={user.isAdmin && tournament.status == TournamentStatus.Balancing ? "is-draggable" : ""} />
+                                            <PlayerTileWithCommands userId={player.userId} isDraggable={user.isAdmin && tournament.status == TournamentStatus.Balancing} />
                                         </Sortable>
                                     </div>
                                 )}
@@ -206,7 +217,7 @@ export function PlayersListTeam() {
         <DndContext onDragEnd={onDragEnd} onDragStart={onDragStart} sensors={dndSensors}>
             <DragOverlay style={{ opacity: ".75" }}>
                 {draggingPlayer ?
-                    (<UserTileRectangle userId={draggingPlayer.replace("player_", "")} />)
+                    (<UserTileRectangle userId={draggingPlayer.replace("player_", "")} colorClass={draggingPlayer.replace("player_", "") == user.id ? 'has-background-primary-accent' : "has-background-secondary-level"} />)
                     : null}
                 {draggingTeam ?
                     <OverlayTeamTile team={tournament.teams?.find(team => team.name == draggingTeam.replace("team_", ""))} />
@@ -360,7 +371,7 @@ function TeamTile({ team, draggedPlayer, addPlayerToTeam, removePlayerFromTeams 
                     player ? <div key={player}>
                         {user.isAdmin ?
                             <Draggable id={'player_' + player} data={{ team: team.name }}>
-                                <UserTileRectangle userId={player} customClass="is-draggable" colorClass={player == user.id ? 'has-background-primary-accent' : 'has-background-grey'} />
+                                <PlayerTileWithCommands userId={player} isDraggable={true} baseColor="has-background-grey" />
                             </Draggable>
                             :
                             <UserTileRectangle userId={player} />
@@ -412,6 +423,7 @@ function PlayerWithoutTeamArea() {
     if (!tournament.teams) return null
     const teams = tournament.teams
     const notInTeamPlayers = tournament.players.filter(player => !([] as string[]).concat(...teams.map(team => team.members)).includes(player.userId)).map(player => player.userId)
+    const [hooveredPlayer, setHooveredPlayer] = useState("")
 
     const { isOver, setNodeRef } = useDroppable({
         id: 'no-team',
@@ -422,6 +434,16 @@ function PlayerWithoutTeamArea() {
             {
                 intent: TeamsManagementIntents.DISTRIBUTE,
                 tournamentId: tournament?.id || ""
+            },
+            { method: "POST", encType: "application/json" }
+        )
+    }
+    async function removeUserFromTournament(userId: string) {
+        fetcher.submit(
+            {
+                intent: TournamentManagementIntents.REMOVE_PLAYER,
+                tournamentId: tournament?.id || "",
+                userId: userId
             },
             { method: "POST", encType: "application/json" }
         )
@@ -462,9 +484,9 @@ function PlayerWithoutTeamArea() {
                 <div className='no-basis grow is-scrollable px-3 my-3'>
                     <div className='is-flex wrap gap-3'>
                         {notInTeamPlayers.map(player =>
-                            <div key={player} className={`grow ${user.isAdmin || user.id == player ? "is-draggable" : ""}`}>
+                            <div key={player} className="grow">
                                 <Draggable id={player} data={{ noTeam: true }}>
-                                    <UserTileRectangle userId={player} colorClass={player == user.id ? 'has-background-primary-accent' : "has-background-secondary-level"} />
+                                    <PlayerTileWithCommands userId={player} isDraggable={true} />
                                 </Draggable>
                             </div>
                         )}
@@ -474,4 +496,34 @@ function PlayerWithoutTeamArea() {
             </div>
         </>
     )
+}
+
+interface PlayerTileWithCommandsProps {
+    userId: string
+    isDraggable?: boolean
+    baseColor?: string
+}
+function PlayerTileWithCommands({ userId, isDraggable, baseColor }: PlayerTileWithCommandsProps) {
+    const [hooveredPlayer, setHooveredPlayer] = useState(false)
+    const user = useUser()
+    const tournament = useTournament()
+    const fetcher = useFetcher()
+
+    async function removeUserFromTournament(userId: string) {
+        fetcher.submit(
+            {
+                intent: TournamentManagementIntents.REMOVE_PLAYER,
+                tournamentId: tournament?.id || "",
+                userId: userId
+            },
+            { method: "POST", encType: "application/json" }
+        )
+    }
+
+    return <div className={`is-flex align-center grow ${isDraggable ? 'is-draggable' : ''} ${userId == user.id ? 'has-background-primary-accent' : baseColor ? baseColor : "has-background-secondary-level"}`} onMouseEnter={() => setHooveredPlayer(true)} onMouseLeave={() => setHooveredPlayer(false)}>
+        <UserTileRectangle userId={userId} />
+        <div className="is-flex align-center is-clickable" style={{ width: "20px" }} onClick={() => removeUserFromTournament(userId)}>
+            {user.isAdmin && hooveredPlayer && <BinSVG />}
+        </div>
+    </div>
 }

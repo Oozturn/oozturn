@@ -364,12 +364,12 @@ export default function Admin() {
                     <div className="is-title medium mb-2">Joueurs</div>
                     <div className="playerTilesContainer is-flex-col p-0 m-0 is-scrollable pr-2">
                         {users && users.sort((a, b) => a.username.toLowerCase().localeCompare(b.username.toLowerCase())).map(user =>
-                            <div key={user.id} className={`playerTile is-flex-col is-clickable ${activePlayer == user.username ? 'is-active' : ''}`} onMouseEnter={() => setHooveredPlayer(user.username)} onMouseLeave={() => setHooveredPlayer("")}>
+                            <div key={user.id} className={`playerTile is-flex-col is-clickable ${activePlayer == user.id ? 'is-active' : ''}`} onMouseEnter={() => setHooveredPlayer(user.id)} onMouseLeave={() => setHooveredPlayer("")}>
                                 <div className="is-flex is-justify-content-space-between is-align-items-center">
-                                    <div className="is-flex is-clickable grow" onClick={() => setActivePlayer(activePlayer == user.username ? '' : user.username)}>
-                                        <UserTileRectangle userId={user.username} height={40} />
+                                    <div className="is-flex is-clickable grow" onClick={() => setActivePlayer(activePlayer == user.id ? '' : user.id)}>
+                                        <UserTileRectangle userId={user.id} height={40} />
                                     </div>
-                                    <ButtonMore height={40} show={hooveredPlayer == user.username} callback={(e) => {
+                                    <ButtonMore height={40} show={hooveredPlayer == user.id} callback={(e) => {
                                         showMenu({
                                             id: user.id,
                                             event: e,
@@ -380,11 +380,11 @@ export default function Admin() {
                                     }}
                                          />
                                 </div>
-                                <div className='playerTooltip is-flex pl-3' onClick={() => setActivePlayer(activePlayer == user.username ? '' : user.username)}>
+                                <div className='playerTooltip is-flex pl-3' onClick={() => setActivePlayer(activePlayer == user.id ? '' : user.id)}>
                                     <div className='is-flex-col'>
                                         <div>IP: {user.ips ? user.ips[0] : 'unknown'}</div>
-                                        <div>Tournois: {tournaments?.filter(tournament => tournament.players.find(player => player.userId == user.username)).length || 0}</div>
-                                        <div>Points: {leaderboard?.find(pscore => pscore.player.username == user.username)?.points || 0}</div>
+                                        <div>Tournois: {tournaments?.filter(tournament => tournament.players.find(player => player.userId == user.id)).length || 0}</div>
+                                        <div>Points: {leaderboard?.find(pscore => pscore.player.id == user.id)?.points || 0}</div>
                                     </div>
                                 </div>
                                 <Menu id={user.id}>

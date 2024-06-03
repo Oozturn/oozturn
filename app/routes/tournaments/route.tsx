@@ -1,5 +1,5 @@
 import { Outlet } from "@remix-run/react";
-import TournamentsList from "../tournaments.$id/tournaments-list";
+import TournamentsList from "./tournaments-list";
 
 
 export default function Tournaments() {
