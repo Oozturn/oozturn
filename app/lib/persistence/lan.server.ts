@@ -17,7 +17,7 @@ const defaultLan: Lan = {
     endDate: { day: 0, hour: 14, min: 0 },
     newUsersByAdminOnly: false,
     authenticationNeeded: false,
-    globalTournamentDefaultSettings: { leaders: [10, 6, 4, 2], default: 1 },
+    globalTournamentDefaultPoints: { leaders: [10, 6, 4, 2], default: 1 },
     showPartialResults: false,
     weightTeamsResults: false,
     showTeamsResults: false,

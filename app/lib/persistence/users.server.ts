@@ -1,8 +1,8 @@
-import { logger } from "~/lib/logging/logging"
-import { dbFolderPath, subscribeObjectManager, writeSafe } from "./db.server"
 import * as fs from 'fs'
 import * as path from 'path'
+import { logger } from "~/lib/logging/logging"
 import { User } from "../types/user"
+import { dbFolderPath, subscribeObjectManager, writeSafe } from "./db.server"
 
 declare global {
     var users: User[]
@@ -33,32 +33,44 @@ export function getUsers() {
     return global.users
 }
 
-export function getUser(username: string): User | undefined {
-    const id = getId(username)
-    return global.users.find(user => user.id === id)
+export function getUserById(userId: string): User | undefined {
+    return global.users.find(user => user.id === userId)
 }
 
-export function getUserOrThrow(username: string) {
-    const user = getUser(username)
-    if(!user) {
+export function getUserByUsername(username: string): User | undefined {
+    return global.users.find(user => user.username === username)
+}
+
+export function getUserOrThrow(userId: string) {
+    const user = getUserById(userId)
+    if (!user) {
         throw Error("User not found")
     }
     return user
 }
 
 export function registerNewUser(username: string) {
-    const user: User = { id: getId(username), username: username, avatar: "", team: "", isAdmin: false, ips: [] }
+    const user: User = { id: generateUniqueId(username), username: username, avatar: "", team: "", isAdmin: false, ips: [] }
     global.users.push(user)
     return user
 }
 
-export function updateUser(username: string, partialUser: Partial<User>) {
-    let userIndex = global.users.findIndex(user => user.username == username)
+export function updateUser(userId: string, partialUser: Partial<User>) {
+    let userIndex = global.users.findIndex(user => user.id == userId)
     if (userIndex != -1) {
         global.users[userIndex] = { ...global.users[userIndex], ...partialUser }
     }
 }
 
-function getId(username:string) {
-    return username.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '')
+function generateUniqueId(username: string) {
+    let postfix = 0
+    let id;
+    while (true) {
+        id = username.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '') + (postfix ? postfix : "")
+        if (!getUserById(id)) {
+            break;
+        }
+        postfix = postfix + 1
+    }
+    return id
 }

@@ -29,16 +29,20 @@ subscribeObjectManager("passwords", {
     }
 })
 
-export function checkPassword(username: string, password: string) {
-    const hash = global.passwords[username]
+export function checkPassword(userId: string, password: string) {
+    const hash = global.passwords[userId]
     return compareSync(password, hash)
 }
 
-export function hasPassword(username: string) {
-    return !!global.passwords[username]
+export function hasPassword(userId: string) {
+    return !!global.passwords[userId]
 }
 
-export function storePassword(username: string, password: string) {
+export function storePassword(userId: string, password: string) {
     const hash = hashSync(password, 8)
-    global.passwords[username] = hash
+    global.passwords[userId] = hash
+}
+
+export function resetPassword(userId: string) {
+    delete global.passwords[userId]
 }

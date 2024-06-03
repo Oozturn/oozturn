@@ -16,6 +16,8 @@ import { requireUserAdmin, requireUserLoggedIn } from "~/lib/session.server";
 import { Lan } from "~/lib/types/lan";
 import { autoSubmit } from "~/lib/utils/autosubmit";
 import { Days, range } from "~/lib/utils/ranges";
+import { Item, ItemParams, Menu, Separator, Submenu, useContextMenu } from "react-contexify";
+import { resetUserPassword } from "./queries.server";
 
 export const meta: MetaFunction = () => {
     return [
@@ -24,7 +26,6 @@ export const meta: MetaFunction = () => {
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
-    await requireUserLoggedIn(request)
     await requireUserAdmin(request)
     return null
 }
@@ -37,7 +38,7 @@ export enum AdminIntents {
     // REMOVE_PLAYERS,
     // RENAME_PLAYER,
     // MERGE_PLAYERS,
-    // RESET_PLAYER_PASSWORD,
+    RESET_USER_PASSWORD = "reset_user_password",
 
     // REMOVE_GAME,
     // ADD_GAME,
@@ -72,7 +73,9 @@ export async function action({ request }: ActionFunctionArgs) {
             Object.keys(partialLan).forEach(key => (partialLan as any)[key] === undefined && delete (partialLan as any)[key])
             updateLan(partialLan)
             break;
-
+        case AdminIntents.RESET_USER_PASSWORD:
+            await resetUserPassword(request, String(formData.get("userId")))
+            break;
         default:
             break;
     }
@@ -80,6 +83,13 @@ export async function action({ request }: ActionFunctionArgs) {
     return null
 }
 
+type test = {userId:string}
+
+interface Test2<T = any> {
+
+}
+
+type test3 = Test2<{userId:string}>
 export default function Admin() {
 
     const lan = useLan()
@@ -88,6 +98,7 @@ export default function Admin() {
     const games = useGames()
     const fetcher = useFetcher()
     const navigate = useNavigate()
+    const { show : showMenu } = useContextMenu();
 
     const [activePlayer, setActivePlayer] = useState("")
     const [hooveredPlayer, setHooveredPlayer] = useState("")
@@ -100,9 +111,25 @@ export default function Admin() {
         fetcher.submit(fd, { method: "POST" })
     }
 
+    function resetUserPassword(userId: string) {
+        let fd = new FormData()
+        fd.append("userId", userId)
+        fd.append("intent", AdminIntents.RESET_USER_PASSWORD)
+        fetcher.submit(fd, { method: "POST" })
+    }
+
     async function updateTopRanks(value: string, index: number) { }
 
     async function updateDefault(value: string) { }
+
+    const handleMenuItemClick = ({ id, event, props }: ItemParams<{ userId: string }>) => {
+        switch (id) {
+            case "resetPassword":
+                resetUserPassword(props!.userId)
+                console.log(event, props)
+                break;
+        }
+    }
 
     const leaderboard: any[] = []
 
@@ -337,22 +364,35 @@ export default function Admin() {
                     <div className="is-title medium mb-2">Joueurs</div>
                     <div className="playerTilesContainer is-flex-col p-0 m-0 is-scrollable pr-2">
                         {users && users.sort((a, b) => a.username.toLowerCase().localeCompare(b.username.toLowerCase())).map(user =>
-                            user ?
-                                <div key={user.username} className={`playerTile is-flex-col is-clickable ${activePlayer == user.username ? 'is-active' : ''}`} onMouseEnter={() => setHooveredPlayer(user.username)} onMouseLeave={() => setHooveredPlayer("")}>
-                                    <div className="is-flex is-justify-content-space-between is-align-items-center">
-                                        <div className="is-flex is-clickable grow" onClick={() => setActivePlayer(activePlayer == user.username ? '' : user.username)}>
-                                            <UserTileRectangle userId={user.username} height={40}/>
-                                        </div>
-                                        <ButtonMore show={hooveredPlayer == user.username} callback={()=>{}} height={40}/>
+                            <div key={user.id} className={`playerTile is-flex-col is-clickable ${activePlayer == user.username ? 'is-active' : ''}`} onMouseEnter={() => setHooveredPlayer(user.username)} onMouseLeave={() => setHooveredPlayer("")}>
+                                <div className="is-flex is-justify-content-space-between is-align-items-center">
+                                    <div className="is-flex is-clickable grow" onClick={() => setActivePlayer(activePlayer == user.username ? '' : user.username)}>
+                                        <UserTileRectangle userId={user.username} height={40} />
                                     </div>
-                                    <div className='playerTooltip is-flex pl-3' onClick={() => setActivePlayer(activePlayer == user.username ? '' : user.username)}>
-                                        <div className='is-flex-col'>
-                                            <div>IP: {user.ips ? user.ips[0] : 'unknown'}</div>
-                                            <div>Tournois: {tournaments?.filter(tournament => tournament.players.find(player => player.userId == user.username)).length || 0}</div>
-                                            <div>Points: {leaderboard?.find(pscore => pscore.player.username == user.username)?.points || 0}</div>
-                                        </div>
+                                    <ButtonMore height={40} show={hooveredPlayer == user.username} callback={(e) => {
+                                        showMenu({
+                                            id: user.id,
+                                            event: e,
+                                            props: {
+                                                userId: user.id
+                                            }
+                                        })
+                                    }}
+                                         />
+                                </div>
+                                <div className='playerTooltip is-flex pl-3' onClick={() => setActivePlayer(activePlayer == user.username ? '' : user.username)}>
+                                    <div className='is-flex-col'>
+                                        <div>IP: {user.ips ? user.ips[0] : 'unknown'}</div>
+                                        <div>Tournois: {tournaments?.filter(tournament => tournament.players.find(player => player.userId == user.username)).length || 0}</div>
+                                        <div>Points: {leaderboard?.find(pscore => pscore.player.username == user.username)?.points || 0}</div>
                                     </div>
-                                </div> : <></>
+                                </div>
+                                <Menu id={user.id}>
+                                    {lan.authenticationNeeded &&
+                                        <Item id="resetPassword" onClick={handleMenuItemClick}>Réinitialisation du mot de passe</Item>
+                                    }
+                                </Menu>
+                            </div>
                         )}
                     </div>
                 </div>
