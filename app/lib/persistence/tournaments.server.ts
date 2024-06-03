@@ -42,9 +42,9 @@ export function getTournaments(): TournamentInfo[] {
     })
 }
 
-export function getTournament(id: string): Tournament {
-    const tournament = global.tournaments.find(tournament => tournament.id == id)
-    if (!tournament) throw new Error(`Tournament ${id} not found`)
+export function getTournament(tournamentId: string): Tournament {
+    const tournament = global.tournaments.find(tournament => tournament.id == tournamentId)
+    if (!tournament) throw new Error(`Tournament ${tournamentId} not found`)
     return tournament
 }
 
@@ -68,11 +68,19 @@ export function getTeam(tournament: Tournament, teamName: string): TournamentTea
     return team
 }
 
-export function updateTournament(id: string, partialTournament: Partial<Tournament>) {
-    let tournamentIndex = global.tournaments.findIndex(tournament => tournament.id == id)
-    if (tournamentIndex != -1) {
-        global.tournaments[tournamentIndex] = { ...global.tournaments[tournamentIndex], ...partialTournament }
-    } else {
-        global.tournaments.push(partialTournament as Tournament)
-    }
+export function newTournament(tournament: Tournament) {
+    if (global.tournaments.find(t => t.id == tournament.id)) throw new Error(`Tournament ${tournament.id} already exists`)
+    global.tournaments.push(tournament)
+}
+
+export function updateTournament(tournamentId: string, partialTournament: Partial<Tournament>) {
+    let tournamentIndex = global.tournaments.findIndex(tournament => tournament.id == tournamentId)
+    if (tournamentIndex == -1) throw new Error(`Tournament ${tournamentId} not found`)
+    global.tournaments[tournamentIndex] = { ...global.tournaments[tournamentIndex], ...partialTournament }
+}
+
+export function cancelTournament(tournamentId: string) {
+    let tournamentIndex = global.tournaments.findIndex(tournament => tournament.id == tournamentId)
+    if (tournamentIndex == -1) throw new Error(`Tournament ${tournamentId} not found`)
+    global.tournaments.splice(tournamentIndex, 1)
 }

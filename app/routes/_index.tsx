@@ -59,7 +59,7 @@ export default function Index() {
 }
 
 function IndexTournamentTile({ tournament, username, game }: { tournament: TournamentInfo, username: string, game: Game | undefined }) {
-  const backgroundImage = game?.id == undefined ? '' : 'url(/api/static/igdb/' + game?.picture + '.jpg)'
+  const backgroundImage = game?.id == undefined ? '' : 'url(/igdb/' + game?.picture + '.jpg)'
   return (
     <Link to={`/tournaments/${tournament.id}`} key={tournament.id} className={`flat-box homeTournamentBox is-clickable p-0 ${game?.id == undefined ? 'has-generic-game-background-image' : ''}`} style={{ backgroundImage: backgroundImage }}>
       <div className={`tournamentName ${tournament.status == TournamentStatus.Done && 'over'}`}>{tournament.name}</div>

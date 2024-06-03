@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLan } from "../contexts/LanContext";
-import { Tournament, TournamentStatus, TournamentType } from "~/lib/types/tournaments";
+import { Tournament, TournamentSettings, TournamentStatus, TournamentType, globalTournamentPoints } from "~/lib/types/tournaments";
 import { CustomSelect } from "../elements/custom-select";
 import { useGames } from "../contexts/GamesContext";
 import { Days, range } from "~/lib/utils/ranges";
@@ -9,12 +9,25 @@ import { CustomRadio } from "../elements/custom-radio";
 import { GetFFAMaxPlayers } from "~/lib/utils/tournaments";
 import { CustomButton } from "../elements/custom-button";
 import { useFetcher } from "@remix-run/react";
+import { EditGlobalTournamentPoints } from "../elements/global-tournament-points";
 
 const enum tournamentEditSteps {
     PROPERTIES,
     TYPE,
     PARAMETERS,
     COMMENTS,
+}
+
+
+export function useStateMonitored<T>(defaultValue: T): [value: T, setValue: (newValue: T) => void, modified: boolean] {
+    const [value, _setValue] = useState(defaultValue)
+    const initialValue = defaultValue
+    const [modified, setModified] = useState(false)
+    const setValue = (v: T) => {
+        if (v != value) _setValue(v)
+        setModified(initialValue != v)
+    }
+    return [value, setValue, modified]
 }
 
 interface TournamentEditProps {
@@ -29,35 +42,35 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
 
     const tId = existingTournament ? existingTournament.id : Date.now().toString()
 
-    const [tName, set_tName] = useState(existingTournament ? existingTournament.name : "")
-    const [tGame, set_tGame] = useState(existingTournament ? existingTournament.game : undefined)
-    const [tGlobalTournamentPointsLeaders, set_tGlobalTournamentPointsLeaders] = useState(existingTournament ? existingTournament.settings.globalTournamentPoints.leaders : lan.globalTournamentDefaultPoints.leaders)
-    const [tGlobalTournamentPointsDefault, set_tGlobalTournamentPointsDefault] = useState(existingTournament ? existingTournament.settings.globalTournamentPoints.default : lan.globalTournamentDefaultPoints.default)
-    const [tStartTime, set_tStartTime] = useState(existingTournament ? existingTournament.settings.startTime : lan.startDate)
-    const [tComments, set_tComments] = useState(existingTournament ? existingTournament.comments : "")
+    const [tName, set_tName, modified_tName] = useStateMonitored(existingTournament ? existingTournament.name : "")
+    const [tGame, set_tGame, modified_tGame] = useStateMonitored(existingTournament ? existingTournament.game : undefined)
+    const [tGlobalTournamentPoints, set_tGlobalTournamentPoints, modified_tGlobalTournamentPoints] = useStateMonitored<globalTournamentPoints>(existingTournament ? { leaders: existingTournament.settings.globalTournamentPoints.leaders.slice(), default: existingTournament.settings.globalTournamentPoints.default } : lan.globalTournamentDefaultPoints)
+    // const [tGlobalTournamentPointsLeaders, set_tGlobalTournamentPointsLeaders, modified_tGlobalTournamentPointsLeaders] = useStateMonitored(existingTournament ? existingTournament.settings.globalTournamentPoints.leaders : lan.globalTournamentDefaultPoints.leaders)
+    // const [tGlobalTournamentPointsDefault, set_tGlobalTournamentPointsDefault, modified_tGlobalTournamentPointsDefault] = useStateMonitored(existingTournament ? existingTournament.settings.globalTournamentPoints.default : lan.globalTournamentDefaultPoints.default)
+    const [tStartTime, set_tStartTime, modified_tStartTime] = useStateMonitored(existingTournament ? existingTournament.settings.startTime : lan.startDate)
+    const [tComments, set_tComments, modified_tComments] = useStateMonitored(existingTournament ? existingTournament.comments : "")
 
-    const [tType, set_tType] = useState(existingTournament ? existingTournament.settings.type : TournamentType.Duel)
-    const [tUseTeams, set_tUseTeams] = useState(existingTournament ? existingTournament.settings.useTeams : false)
-    const [tInvertedScore, set_tInvertedScore] = useState(existingTournament ? existingTournament.settings.invertedScore : false)
+    const [tType, set_tType, modified_tType] = useStateMonitored(existingTournament ? existingTournament.settings.type : TournamentType.Duel)
+    const [tUseTeams, set_tUseTeams, modified_tUseTeams] = useStateMonitored(existingTournament ? existingTournament.settings.useTeams : false)
+    const [tInvertedScore, set_tInvertedScore, modified_tInvertedScore] = useStateMonitored(existingTournament ? existingTournament.settings.invertedScore : false)
 
     // Duel options
-    const [tCatchUp, set_tCatchUp] = useState(existingTournament ? existingTournament.bracket.options.last : undefined)
-    const [tShortBracket, set_tShortBracket] = useState(existingTournament ? existingTournament.bracket.options.short : undefined)
+    const [tCatchUp, set_tCatchUp, modified_tCatchUp] = useStateMonitored(existingTournament ? existingTournament.bracket.options.last : undefined)
+    const [tShortBracket, set_tShortBracket, modified_tShortBracket] = useStateMonitored(existingTournament ? existingTournament.bracket.options.short : undefined)
 
     // FFA options
     const [tNbRounds, set_tNbRounds] = useState(existingTournament ? existingTournament.bracket.options.sizes.length : 2)
-    const [tSizes, set_tSizes] = useState(existingTournament ? existingTournament.bracket.options.sizes : [6, 6])
-    const [tAdvancers, set_tAdvancers] = useState(existingTournament ? existingTournament.bracket.options.advancers : [3])
-    const [tLimit, set_tLimit] = useState(existingTournament ? existingTournament.bracket.options.limit : 1)
+    const [tSizes, set_tSizes, modified_tSizes] = useStateMonitored(existingTournament ? existingTournament.bracket.options.sizes : [6, 6])
+    const [tAdvancers, set_tAdvancers, modified_tAdvancers] = useStateMonitored(existingTournament ? existingTournament.bracket.options.advancers : [3])
+    const [tLimit, set_tLimit, modified_tLimit] = useStateMonitored(existingTournament ? existingTournament.bracket.options.limit : 1)
 
     // Teams options
-    const [tUsersCanCreateTeams, set_tUsersCanCreateTeams] = useState(existingTournament ? existingTournament.settings.usersCanCreateTeams : false)
-    const [tTeamsMaxSize, set_tTeamsMaxSize] = useState(existingTournament ? existingTournament.settings.teamsMaxSize : 8)
+    const [tUsersCanCreateTeams, set_tUsersCanCreateTeams, modified_tUsersCanCreateTeams] = useStateMonitored(existingTournament ? existingTournament.settings.usersCanCreateTeams : false)
+    const [tTeamsMaxSize, set_tTeamsMaxSize, modified_tTeamsMaxSize] = useStateMonitored(existingTournament ? existingTournament.settings.teamsMaxSize : 8)
 
 
     const fetcher = useFetcher();
     function PublishTournament() {
-        let fd = new FormData()
         const tournament: Tournament = {
             id: tId,
             name: tName,
@@ -68,10 +81,7 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                 type: tType,
                 startTime: tStartTime,
                 useTeams: tUseTeams,
-                globalTournamentPoints: {
-                    leaders: tGlobalTournamentPointsLeaders,
-                    default: tGlobalTournamentPointsDefault
-                },
+                globalTournamentPoints: tGlobalTournamentPoints,
                 usersCanCreateTeams: tUsersCanCreateTeams,
                 teamsMaxSize: tTeamsMaxSize
             },
@@ -89,63 +99,104 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
             },
             comments: tComments,
         }
-        fd.append("tournament", JSON.stringify(tournament))
-        fetcher.submit(fd, { method: "POST" })
+        fetcher.submit(
+            {
+                tournamentId: tournament.id,
+                tournament: JSON.stringify(tournament)
+            },
+            { method: "POST", encType: "application/json" }
+        )
+
+    }
+    function UpdateTournament() {
+        if (!existingTournament) return;
+        const partialTournament: Partial<Tournament> = {}
+        if (modified_tName) partialTournament.name = tName
+        if (modified_tGame) partialTournament.game = tGame
+        if (modified_tComments) partialTournament.comments = tComments
+        if (modified_tType
+            || modified_tStartTime
+            || modified_tUseTeams
+            || modified_tUsersCanCreateTeams
+            || modified_tTeamsMaxSize
+            || modified_tInvertedScore
+            || modified_tGlobalTournamentPoints) {
+            partialTournament.settings = {
+                type: tType,
+                startTime: tStartTime,
+                useTeams: tUseTeams,
+                usersCanCreateTeams: tUsersCanCreateTeams,
+                teamsMaxSize: tTeamsMaxSize,
+                invertedScore: tInvertedScore,
+                globalTournamentPoints: tGlobalTournamentPoints
+            }
+        }
+        if (modified_tCatchUp
+            || modified_tShortBracket
+            || modified_tInvertedScore
+            || modified_tSizes
+            || modified_tAdvancers
+            || modified_tLimit) {
+            partialTournament.bracket = {
+                type: tType,
+                options: {
+                    last: tCatchUp,
+                    short: tShortBracket,
+                    lowerScoreIsBetter: tInvertedScore,
+                    sizes: tSizes,
+                    advancers: tAdvancers,
+                    limit: tLimit
+                }
+            }
+        }
+        fetcher.submit(
+            {
+                tournamentId: tId,
+                tournament: JSON.stringify(partialTournament)
+            },
+            { method: "POST", encType: "application/json" }
+        )
     }
 
     return (
         <div className="is-flex-col grow gap-3 p-0 is-full-height">
-            <div className="is-title big is-uppercase has-background-secondary-level p-2 px-4 " onClick={() => set_editStep(tournamentEditSteps.PROPERTIES)}>
+            <div className="is-title big is-uppercase has-background-secondary-level p-2 px-4" onClick={() => set_editStep(tournamentEditSteps.PROPERTIES)}>
                 {existingTournament ? "Édition de " + tName : "Nouveau tournoi"}
             </div>
-            <div className={`is-clipped has-background-secondary-level px-4 is-flex-col ${editStep == tournamentEditSteps.PROPERTIES ? "grow no-basis" : ""}`}>
-                <div className="is-title medium is-uppercase py-2 px-1" onClick={() => set_editStep(tournamentEditSteps.PROPERTIES)}>
+            <div className={`is-clipped has-background-secondary-level is-flex-col ${editStep == tournamentEditSteps.PROPERTIES ? "grow no-basis" : ""}`}>
+                <div className={`is-title medium is-uppercase py-2 px-4 ${editStep > tournamentEditSteps.PROPERTIES ? "is-clickable" : ""}`} onClick={() => set_editStep(tournamentEditSteps.PROPERTIES)}>
                     Propriétés du tournoi
                 </div>
-                <div className="is-flex-col gap-4" style={{ maxHeight: editStep == tournamentEditSteps.PROPERTIES ? undefined : 0 }}>
-                    <div className='is-flex is-align-items-center field'>
-                        <div className='mr-3'>Nom du tournoi :</div>
-                        <input className='input' type="text" placeholder="Nom du tournoi" value={tName} onChange={(e) => { set_tName(e.target.value); }} />
+                <div className="is-flex-col gap-5 grow px-4" style={{ maxHeight: editStep == tournamentEditSteps.PROPERTIES ? undefined : 0 }}>
+                    <div className='is-flex align-center gap-3'>
+                        <div className='has-text-right is-one-fifth'>Nom du tournoi :</div>
+                        <input className='input is-one-quarter' type="text" placeholder="Nom du tournoi" value={tName} onChange={(e) => { set_tName(e.target.value); }} />
                     </div>
-                    <div className='is-flex is-align-items-center field'>
-                        <div className='mr-3'>Jeu :</div>
+                    <div className='is-flex align-center gap-3'>
+                        <div className='has-text-right is-one-fifth'>Jeu :</div>
                         <CustomSelect
                             variable={tGame}
                             setter={(v: string) => set_tGame(Number(v))}
                             items={games.sort((a, b) => a.id == -1 ? -1 : b.id == -1 ? 1 : a.name < b.name ? -1 : a.name == b.name ? 0 : 1).map(game => { return { label: game.name, value: game.id } })}
                             itemsToShow={20}
+                            customClass="is-one-quarter"
                         />
                     </div>
-                    <div className="mt-3 globalTournamentOptions">
-                        <div className='mb-3'>Points au classement global :</div>
-                        <div className='is-flex is-flex-wrap-wrap topRanksPoints pl-6'>
-                            <div className='rankPoints is-flex is-flex-direction-column mr-4'>
-                                <div className='rank has-text-right has-text-weight-normal'>Place :</div>
-                                <div className='points has-text-right'>Points :</div>
-                            </div>
-                            {tGlobalTournamentPointsLeaders.map((points, index) =>
-                                <div key={index} className="rankPoints is-flex is-flex-direction-column">
-                                    <div className="rank is-flex is-justify-content-center is-align-items-center">{index + 1}</div>
-                                    <input className="points" type="number" value={String(tGlobalTournamentPointsLeaders[index])} onChange={(e) => set_tGlobalTournamentPointsLeaders(tGlobalTournamentPointsLeaders.map((pts, idx) => idx == index ? Number(e.target.value) : tGlobalTournamentPointsLeaders[idx]))}></input>
-                                </div>
-                            )}
-                            <div className="rankPoints is-flex is-flex-direction-column">
-                                <div className="rank is-flex is-justify-content-center is-align-items-center">5 et +</div>
-                                <input className="points" type="number" value={String(tGlobalTournamentPointsDefault)} onChange={(e) => set_tGlobalTournamentPointsDefault(Number(e.target.value))}></input>
-                            </div>
+                    <div className="is-flex gap-3">
+                        <div className='has-text-right is-one-fifth'>Points au classement global :</div>
+                        <div className="is-flex-col gap-2">
+                            <EditGlobalTournamentPoints points={tGlobalTournamentPoints} updatePoints={set_tGlobalTournamentPoints} />
+                            <div className='is-size-7 no-basis grow is-align-self-flex-end'>Dans ce tableau, indique le nombre de points que les joueurs recevront en fonction de leur classement.</div>
                         </div>
-                        <div className='is-size-7 mt-2 pl-6'>Dans ce tableau, indique le nombre de points que les joueurs recevront en fonction de leur classement.</div>
                     </div>
-                    <div>Heure de démarrage du tournoi</div>
-                    <div className='field is-flex is-align-items-start mb-5'>
-                        <p className='mr-3'>Début du tournoi :</p>
-                        <div className='is-flex is-flex-direction-column'>
-                            <div className='is-flex is-align-items-center'>
+                    <div className='is-flex gap-3'>
+                        <p className='has-text-right is-one-fifth'>Début du tournoi :</p>
+                        <div className="is-flex-col gap-2">
+                            <div className='is-flex align-center gap-3'>
                                 <CustomSelect
                                     variable={tStartTime.day}
                                     setter={(v: string) => set_tStartTime({ ...tStartTime, day: Number(v) })}
                                     items={[...range(lan.startDate.day, 6, 1), ...range(0, lan.endDate.day, 1)].map(d => { return { label: Days[d], value: d } })}
-                                    customClass='mr-3'
                                 />
                                 <CustomSelect
                                     variable={tStartTime.hour}
@@ -155,10 +206,10 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                                     itemsToShow={7}
                                 />
                             </div>
-                            <div className="is-size-7 mt-1">Cette info est indicative seulement, le tournoi sera démarré manuellement</div>
+                            <div className="is-size-7 no-basis grow is-align-self-flex-end">Cette info est indicative seulement, le tournoi sera démarré manuellement</div>
                         </div>
                     </div>
-                    <div className='nextStep-button'>
+                    <div className='is-flex grow align-end justify-end pb-4'>
                         <CustomButton
                             callback={() => set_editStep(editStep + 1)}
                             colorClass='has-background-primary-accent'
@@ -168,58 +219,51 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                 </div>
             </div>
 
-            <div className={`is-clipped has-background-secondary-level px-4 is-flex-col ${editStep == tournamentEditSteps.TYPE ? "grow no-basis" : ""}`}>
-                <div className="is-title medium is-uppercase py-2 px-1 " onClick={() => { if (editStep > tournamentEditSteps.TYPE) set_editStep(tournamentEditSteps.TYPE) }}>
+            <div className={`is-clipped has-background-secondary-level is-flex-col ${editStep == tournamentEditSteps.TYPE ? "grow no-basis" : ""}`}>
+                <div className={`is-title medium is-uppercase py-2 px-4 ${editStep > tournamentEditSteps.TYPE ? "is-clickable" : ""}`} onClick={() => { if (editStep > tournamentEditSteps.TYPE) set_editStep(tournamentEditSteps.TYPE) }}>
                     Type de tournoi
                 </div>
-                <div className="is-flex-col gap-4" style={{ maxHeight: editStep == tournamentEditSteps.TYPE ? undefined : 0 }}>
-                    <div className='is-flex is-align-items-center is-justify-content-space-around mt-4 mb-6'>
-                        <div className='is-flex is-flex-direction-column is-align-items-center'>
+                <div className="is-flex-col gap-6 grow is-scrollable px-4" style={{ maxHeight: editStep == tournamentEditSteps.TYPE ? undefined : 0 }}>
+                    <div className='is-flex gap-3'>
+                        {/* <div className='has-text-right is-one-fifth'>Type de match :</div> */}
+                        <div className='is-flex-col align-center gap-1 grow no-basis'>
                             <div className={`svgSelection is-clickable ${tType == TournamentType.Duel ? 'is-active' : ''}`} onClick={() => set_tType(TournamentType.Duel)}>
                                 <DuelSVG />
                             </div>
-                            <div className='is-title medium my-3'>DUEL</div>
-                            <div className='typeDescription is-size-7 has-text-centered'>Sélectionne le mode Duel si le jeu fait s’opposer 2 camps lors d’un duel qui fera ressortir un gagnant et un perdant.</div>
+                            <div className='is-title medium'>DUEL</div>
+                            <div className='px-4 is-size-7 has-text-centered'>Sélectionne le mode Duel si le jeu fait s’opposer 2 camps lors d’un duel qui fera ressortir un gagnant et un perdant.</div>
                         </div>
-                        <div className='is-flex is-flex-direction-column is-align-items-center'>
+                        <div className='is-flex-col align-center gap-1 grow no-basis'>
                             <div className={`svgSelection is-clickable ${tType == TournamentType.FFA ? 'is-active' : ''}`} onClick={() => set_tType(TournamentType.FFA)}>
                                 <FFASVG />
 
                             </div>
-                            <div className='is-title medium my-3'>CLASSEMENT</div>
-                            <div className='typeDescription is-size-7 has-text-centered'>Sélectionne le mode Classement si le jeu fait s’opposer plus de 2 camps et qu’il donne un résultat sous forme de classement.</div>
+                            <div className='is-title medium'>CLASSEMENT</div>
+                            <div className='px-4 is-size-7 has-text-centered'>Sélectionne le mode Classement si le jeu fait s’opposer plus de 2 camps et qu’il donne un résultat sous forme de classement.</div>
                         </div>
                     </div>
 
-                    <div className='is-flex is-align-items-center is-justify-content-space-around mt-4 mb-4'>
-                        <div className='is-flex is-flex-direction-column is-align-items-center'>
+                    <div className='is-flex gap-3'>
+                        {/* <div className='has-text-right is-one-fifth'>Type d’opposants :</div> */}
+                        <div className='is-flex-col align-center gap-1 grow no-basis'>
                             <div className={`svgSelection is-clickable ${tUseTeams == false ? 'is-active' : ''}`} onClick={() => set_tUseTeams(false)}>
                                 {tType == TournamentType.Duel ? <DuelSoloSVG /> : <FFASoloSVG />}
                             </div>
-                            <div className='is-title medium my-3'>SOLO</div>
+                            <div className='is-title medium'>SOLO</div>
                         </div>
-                        <div className='is-flex is-flex-direction-column is-align-items-center'>
+                        <div className='is-flex-col align-center gap-1 grow no-basis'>
                             <div className={`svgSelection is-clickable ${tUseTeams == true ? 'is-active' : ''}`} onClick={() => set_tUseTeams(true)}>
                                 {tType == TournamentType.Duel ? <DuelTeamSVG /> : <FFATeamSVG />}
                             </div>
-                            <div className='is-title medium my-3'>ÉQUIPES</div>
+                            <div className='is-title medium'>ÉQUIPES</div>
                         </div>
                     </div>
-                    <div className='is-flex is-align-items-start'>
-                        <div className='mr-3'>Type de score :</div>
-                        <div className='is-flex is-flex-direction-column'>
-                            <CustomRadio variable={tInvertedScore} setter={set_tInvertedScore} items={[{ label: 'Score classique', value: false }, { label: 'Score inversé', value: true }]} />
-                            <div className='mx-3 is-size-7'>Sélectionne <i>score classique</i> si le camp gagnant est celui qui a le plus haut score en fin de partie. Dans le cas contraire, bien sûr, sélectionne <i>Score inversé</i>.</div>
-                        </div>
-                    </div>
-                    <div className='nextStep-button'>
+                    <div className='is-flex grow align-end justify-space-between pb-4'>
                         <CustomButton
                             callback={() => set_editStep(editStep - 1)}
                             colorClass='has-background-primary-accent'
                             contentItems={['Précédent']}
                         />
-                    </div>
-                    <div className='nextStep-button'>
                         <CustomButton
                             callback={() => set_editStep(editStep + 1)}
                             colorClass='has-background-primary-accent'
@@ -229,33 +273,40 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                 </div>
             </div>
 
-            <div className={`is-clipped has-background-secondary-level px-4 is-flex-col ${editStep == tournamentEditSteps.PARAMETERS ? "grow no-basis" : ""}`}>
-                <div className="is-title medium is-uppercase py-2 px-1 " onClick={() => { if (editStep > tournamentEditSteps.PARAMETERS) set_editStep(tournamentEditSteps.PARAMETERS) }}>
+            <div className={`is-clipped has-background-secondary-level is-flex-col ${editStep == tournamentEditSteps.PARAMETERS ? "grow no-basis" : ""}`}>
+                <div className={`is-title medium is-uppercase py-2 px-4 ${editStep > tournamentEditSteps.PARAMETERS ? "is-clickable" : ""}`} onClick={() => { if (editStep > tournamentEditSteps.PARAMETERS) set_editStep(tournamentEditSteps.PARAMETERS) }}>
                     Paramètres du tournoi
                 </div>
-                <div className="is-flex-col gap-4" style={{ maxHeight: editStep == tournamentEditSteps.PARAMETERS ? undefined : 0 }}>
+                <div className="is-flex-col gap-5 grow px-4" style={{ maxHeight: editStep == tournamentEditSteps.PARAMETERS ? undefined : 0 }}>
+                            <div className='is-flex'>
+                                <div className='has-text-right is-one-fifth'>Type de score :</div>
+                                <div className='is-flex-col'>
+                                    <CustomRadio variable={tInvertedScore} setter={set_tInvertedScore} items={[{ label: 'Score classique', value: false }, { label: 'Score inversé', value: true }]} />
+                                    <div className='mx-3 is-size-7'>Sélectionne <i>score classique</i> si le camp gagnant est celui qui a le plus haut score en fin de partie. Dans le cas contraire, bien sûr, sélectionne <i>Score inversé</i>.</div>
+                                </div>
+                            </div>
                     {/* Si DUEL */}
                     {tType == TournamentType.Duel &&
                         <>
-                            <div className='is-flex is-align-items-start mb-5'>
-                                <div className='mr-3'>Rattrapage :</div>
-                                <div className='is-flex is-flex-direction-column'>
+                            <div className='is-flex'>
+                                <div className='has-text-right is-one-fifth'>Rattrapage :</div>
+                                <div className='is-flex-col no-basis grow'>
                                     <CustomRadio variable={tCatchUp} setter={set_tCatchUp} items={[{ label: 'non', value: false }, { label: 'oui', value: true }]} />
-                                    <div className='mx-3 is-size-7 longDescription'>En sélectionnant <i>non</i>, le tounois sera à élimination directe, une défaite et zou, tu dégages ! En sélectionnant <i>oui</i>, les joueurs qui perdent une première fois restent en compétition. Au prix de sang et de larmes ils pourront revenir au sommet. Mais en cas de seconde défaite prends ton flambeau, la sentance sera irrévocable.</div>
+                                    <div className='mx-3 is-size-7'>En sélectionnant <i>non</i>, le tounois sera à élimination directe, une défaite et zou, tu dégages ! En sélectionnant <i>oui</i>, les joueurs qui perdent une première fois restent en compétition. Au prix de sang et de larmes ils pourront revenir au sommet. Mais en cas de seconde défaite prends ton flambeau, la sentance sera irrévocable.</div>
                                 </div>
                             </div>
-                            <div className='is-flex is-align-items-start mb-5'>
-                                <div className='mr-3'>Format court :</div>
-                                <div className='is-flex is-flex-direction-column'>
+                            <div className='is-flex'>
+                                <div className='has-text-right is-one-fifth'>Format court :</div>
+                                <div className='is-flex-col no-basis grow'>
                                     <CustomRadio variable={tShortBracket} setter={set_tShortBracket} items={[{ label: 'non', value: false }, { label: 'oui', value: true }]} />
                                     {tCatchUp == true &&
-                                        <div className='mx-3 is-size-7 longDescription'>En sélectionnant <i>oui</i>, il n&apos;y aura pas de double finale. Le gagnant du rattrapage pourra voler la victoire contre le gagnant du tableau principal en une rencontre. C&apos;est pas juste, mais c&apos;est comme ça. En sélectionnant <i>non</i>, la justice reprend le dessus et le gagnant sera alors vraiment celui ayant le moins de défaites.</div>
+                                        <div className='mx-3 is-size-7'>En sélectionnant <i>oui</i>, il n&apos;y aura pas de double finale. Le gagnant du rattrapage pourra voler la victoire contre le gagnant du tableau principal en une rencontre. C&apos;est pas juste, mais c&apos;est comme ça. En sélectionnant <i>non</i>, la justice reprend le dessus et le gagnant sera alors vraiment celui ayant le moins de défaites.</div>
                                     }
                                     {tCatchUp == false &&
-                                        <div className='mx-3 is-size-7 longDescription'>En sélectionnant <i>oui</i>, il n&apos;y aura pas de petite finale. Premier, second, les autres sont des perdants. En sélectionnant <i>non</i>, on connaitra le vainqueur de la médaille en chocolat.</div>
+                                        <div className='mx-3 is-size-7'>En sélectionnant <i>oui</i>, il n&apos;y aura pas de petite finale. Premier, second, les autres sont des perdants. En sélectionnant <i>non</i>, on connaitra le vainqueur de la médaille en chocolat.</div>
                                     }
                                     {tCatchUp == undefined &&
-                                        <div className='mx-3 is-size-7 longDescription'>Sélectionne une option de rattrapage pour avoir des précisions sur ce paramètre</div>
+                                        <div className='mx-3 is-size-7'>Sélectionne une option de rattrapage pour avoir des précisions sur ce paramètre</div>
                                     }
                                 </div>
                             </div>
@@ -264,8 +315,8 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                     {/* Si FFA */}
                     {tType == TournamentType.FFA &&
                         <>
-                            <div className='is-flex is-align-items-center'>
-                                <div className='mr-3 is-size-5'>Nombre de manches :</div>
+                            <div className='is-flex gap-3'>
+                                <div className='has-text-right is-one-fifth'>Nombre de manches :</div>
                                 <CustomSelect
                                     variable={tNbRounds}
                                     setter={(value: string) => {
@@ -279,26 +330,25 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                                     itemsToShow={6}
                                 />
                             </div>
-                            <div className='is-flex ffa-sequence my-2 is-align-items-stretch'>
-                                <div className='is-size-5 mt-4'>Déroulement du tournoi :</div>
-                                <div className='is-flex is-flex-direction-column is-align-items-stretch mt-0 mr-3'>
-                                    <div className='ffa-round-name is-align-items-start is-justify-content-start'></div>
-                                    <div className='ffa-round-nb-select my-1 is-justify-content-end is-align-items-center'>{tUseTeams == true ? "Équipes" : tUseTeams == false ? "Joueurs" : "Opposants"} max par match :</div>
-                                    <div className='ffa-round-nb-select my-1 is-justify-content-end is-align-items-center ml-4'>Qualifiés pour la manche suivante :</div>
-                                    <div className='ffa-max-players is-justify-content-end mt-2'>Nombre {tUseTeams == true ? "d'équipes" : tUseTeams == false ? "de joueurs" : "d'opposants"} max dans le tournoi :</div>
+                            <div className='is-flex gap-5'>
+                                <div className='has-text-right is-one-fifth'>Déroulement du tournoi :</div>
+                                <div className='is-flex-col align-end justify-end'>
+                                    <div style={{marginBottom:'.6rem'}}>{tUseTeams == true ? "Équipes" : tUseTeams == false ? "Joueurs" : "Opposants"} max par match :</div>
+                                    <div style={{marginBottom:'.6rem'}}>Qualifiés pour la manche suivante :</div>
+                                    <div>Nombre {tUseTeams == true ? "d'équipes" : tUseTeams == false ? "de joueurs" : "d'opposants"} max dans le tournoi :</div>
                                 </div>
-                                <div className='is-flex is-flex-direction-column'>
-                                    <div className='is-flex'>
+                                <div className='is-flex-col'>
+                                    <div className='is-flex gap-5'>
                                         {tSizes.map((_, i) =>
-                                            <div key={i} className='is-flex is-flex-direction-column is-align-items-center mr-3'>
-                                                <div className='ffa-round-name'>Manche {i + 1}</div>
+                                            <div key={i} className='is-flex-col align-center gap-2'>
+                                                <div>Manche {i + 1}</div>
                                                 <CustomSelect
                                                     variable={tSizes[i]}
                                                     setter={(v: string) =>
                                                         set_tSizes(tSizes.slice(0, i).concat([Number(v)], tSizes.slice(i + 1)))
                                                     }
                                                     items={range(i == 0 ? 2 : tAdvancers[i - 1] > 2 ? tAdvancers[i - 1] : 2, i == 0 ? 128 : tAdvancers[i - 1] * 5, i == 0 ? 1 : tAdvancers[i - 1]).map(d => { return { label: String(d), value: d } })}
-                                                    customClass='ffa_nb_round_select mt-1'
+                                                    customClass=''
                                                     itemsToShow={6}
                                                 />
                                                 {i < tNbRounds - 1 ?
@@ -308,16 +358,17 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                                                             set_tAdvancers(tAdvancers.slice(0, i).concat([Number(v)], tAdvancers.slice(i + 1)))
                                                         }
                                                         items={range(1, tSizes[i], 1).map(d => { return { label: String(d), value: d } })}
-                                                        customClass='ffa_nb_round_select mt-2'
+                                                        customClass=''
                                                         itemsToShow={6}
                                                     />
                                                     :
-                                                    <div className='ffa-round-nb-select my-1'></div>
+                                                    <div></div>
                                                 }
+                                                {i == 0 && <div>{GetFFAMaxPlayers(tSizes, tAdvancers)}</div>}
                                             </div>
                                         )}
                                     </div>
-                                    <div className='ffa-max-players is-justify-content-start mt-3'>{GetFFAMaxPlayers(tSizes, tAdvancers)}</div>
+                                    
                                 </div>
                             </div>
                         </>
@@ -325,8 +376,8 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                     {/* Si team */}
                     {tUseTeams &&
                         <>
-                            <div className='is-flex is-align-items-center field mb-4 is-size-6'>
-                                <div className='mr-3 is-size-5'>Nombre de joueurs par équipe :</div>
+                            <div className='is-flex align-center gap-3'>
+                                <div className='has-text-right is-one-fifth'>Nombre de joueurs par équipe :</div>
                                 <CustomSelect
                                     variable={tTeamsMaxSize}
                                     setter={(v: string) => set_tTeamsMaxSize(Number(v))}
@@ -335,22 +386,18 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                                     showOnTop={true}
                                 />
                             </div>
-                            <div className='is-flex is-align-items-center is-size-6'>
-                                <div className='mr-3 is-size-5'>Les joueurs peuvent créer des équipes :</div>
-                                <div className='is-flex is-flex-direction-column'>
-                                    <CustomRadio variable={tUsersCanCreateTeams} setter={set_tUsersCanCreateTeams} items={[{ label: 'non', value: false }, { label: 'oui', value: true }]} />
-                                </div>
+                            <div className='is-flex'>
+                                <div className='has-text-right is-one-fifth'>Les joueurs peuvent créer des équipes :</div>
+                                <CustomRadio variable={tUsersCanCreateTeams} setter={set_tUsersCanCreateTeams} items={[{ label: 'non', value: false }, { label: 'oui', value: true }]} />
                             </div>
                         </>
                     }
-                    <div className='nextStep-button'>
+                    <div className='is-flex grow align-end justify-space-between pb-4'>
                         <CustomButton
                             callback={() => set_editStep(editStep - 1)}
                             colorClass='has-background-primary-accent'
                             contentItems={['Précédent']}
                         />
-                    </div>
-                    <div className='nextStep-button'>
                         <CustomButton
                             callback={() => set_editStep(editStep + 1)}
                             colorClass='has-background-primary-accent'
@@ -360,28 +407,26 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                 </div>
             </div>
 
-            <div className={`is-clipped has-background-secondary-level px-4 is-flex-col ${editStep == tournamentEditSteps.COMMENTS ? "grow no-basis" : ""}`}>
-                <div className="is-title medium is-uppercase py-2 px-1 ">
+            <div className={`is-clipped has-background-secondary-level is-flex-col ${editStep == tournamentEditSteps.COMMENTS ? "grow no-basis" : ""}`}>
+                <div className="is-title medium is-uppercase py-2 px-4">
                     Commentaires
                 </div>
-                <div className="is-flex-col gap-4" style={{ maxHeight: editStep == tournamentEditSteps.COMMENTS ? undefined : 0 }}>
-                    <div className='is-flex is-align-items-start'>
-                        <p className='mr-3'>Commentaires :</p>
-                        <div className='is-flex is-flex-direction-column is-flex-grow-1'>
+                <div className="is-flex-col gap-5 grow px-4" style={{ maxHeight: editStep == tournamentEditSteps.COMMENTS ? undefined : 0 }}>
+                    <div className='is-flex gap-3'>
+                        <p className='has-text-right is-one-fifth'>Commentaires :</p>
+                        <div className='is-flex-col gap-2 grow no-basis'>
                             <textarea placeholder="Commentaires" value={tComments} onChange={(e) => { set_tComments(e.target.value); }} rows={8} />
-                            <div className='longDescription is-size-7'>Dans cette zone tu peux ajouter d’autres informations utiles pour le tournoi comme par exemple des règles, l’emplacement du jeu, ou les identifiants pour le serveur.</div>
+                            <div className='is-size-7'>Dans cette zone tu peux ajouter d’autres informations utiles pour le tournoi comme par exemple des règles, l’emplacement du jeu, ou les identifiants pour le serveur.</div>
                         </div>
                     </div>
-                    <div className='nextStep-button'>
+                    <div className='is-flex grow align-end justify-space-between pb-4'>
                         <CustomButton
                             callback={() => set_editStep(editStep - 1)}
                             colorClass='has-background-primary-accent'
                             contentItems={['Précédent']}
                         />
-                    </div>
-                    <div className='nextStep-button'>
                         <CustomButton
-                            callback={PublishTournament}
+                            callback={existingTournament ? UpdateTournament : PublishTournament}
                             colorClass='has-background-primary-accent'
                             contentItems={['Publier']}
                         />

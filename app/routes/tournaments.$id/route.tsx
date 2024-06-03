@@ -1,11 +1,9 @@
-import { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import { useFetcher, useLoaderData, useRevalidator } from "@remix-run/react";
-import TournamentsList from "./tournaments-list";
+import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from "@remix-run/node";
+import { useFetcher, useLoaderData, useNavigate } from "@remix-run/react";
 import { TournamentContext } from "~/lib/components/contexts/TournamentsContext";
 import { Tournament, TournamentStatus } from "~/lib/types/tournaments";
 import { getTournament } from "~/lib/persistence/tournaments.server";
-import TournamentNotFound from "~/lib/components/tournaments/not-found";
-import TournamentInfoSettings from "~/lib/components/tournaments/info-settings";
+import TournamentInfoSettings from "./tournament-info-settings";
 import { useUser } from "~/lib/components/contexts/UserContext";
 import { CustomButton } from "~/lib/components/elements/custom-button";
 import { CustomModalBinary } from "~/lib/components/elements/custom-modal";
@@ -18,12 +16,12 @@ import { PlayersListSolo, PlayersListTeam } from "./players-list";
 export async function loader({
     params,
 }: LoaderFunctionArgs): Promise<{
-    tournament: Tournament | undefined;
+    tournament: Tournament;
 }> {
     let tournament: Tournament | undefined = undefined
     try {
         tournament = getTournament(params.id || "")
-    } catch { }
+    } catch { throw redirect('/tournaments/404') }
     return { tournament: tournament };
 }
 
@@ -103,16 +101,10 @@ export default function TournamentPage() {
     const user = useUser()
     const fetcher = useFetcher()
     const users = useUsers()
+    const navigate = useNavigate()
 
     const [showConfirmStart, setShowConfirmStart] = useState(false)
     const [showConfirmCancel, setShowConfirmCancel] = useState(false)
-
-    if (!tournament) {
-        return <div className="is-flex-row grow gap-3 p-0 is-full-height">
-            <TournamentsList />
-            <TournamentNotFound />
-        </div>
-    }
 
     const joinTournament = () => {
         fetcher.submit(
@@ -138,7 +130,6 @@ export default function TournamentPage() {
     const addFakePlayer = () => {
         const notInTournament = users.filter(u => !tournament.players.map(p => p.userId).includes(u.id))
         const player = notInTournament.sort(() => Math.floor(Math.random() * notInTournament.length))[0]
-        console.log(player)
         fetcher.submit(
             {
                 intent: TournamentManagementIntents.ADD_PLAYER,
@@ -181,6 +172,8 @@ export default function TournamentPage() {
     }
 
     const editTournament = () => {
+        navigate(`/tournaments/edit/${tournament.id}`)
+        return;
         fetcher.submit(
             {
                 intent: TournamentManagementIntents.EDIT,
@@ -202,7 +195,6 @@ export default function TournamentPage() {
 
     return <div className="is-flex-row grow gap-3 p-0 is-full-height">
         <TournamentContext.Provider value={tournament}>
-            <TournamentsList />
             <div className="is-flex-col grow gap-3">
                 <div className="is-title big is-uppercase has-background-secondary-level p-2 px-4">
                     Tournoi {tournament.name}

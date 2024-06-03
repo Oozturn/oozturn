@@ -7,10 +7,10 @@ import { useLan } from "~/lib/components/contexts/LanContext";
 import { useTournaments } from "~/lib/components/contexts/TournamentsContext";
 import { UsersContext } from "~/lib/components/contexts/UsersContext";
 import { ButtonMore, CustomButton } from "~/lib/components/elements/custom-button";
+import { EditGlobalTournamentPoints } from "~/lib/components/elements/global-tournament-points";
 import { CustomCheckbox } from "~/lib/components/elements/custom-checkbox";
 import { CustomSelect } from "~/lib/components/elements/custom-select";
 import { UserTileRectangle } from "~/lib/components/elements/user-tile";
-import { UserAvatar } from "~/lib/components/elements/user-avatar";
 import { updateLan } from "~/lib/persistence/lan.server";
 import { requireUserAdmin, requireUserLoggedIn } from "~/lib/session.server";
 import { Lan } from "~/lib/types/lan";
@@ -29,7 +29,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return null
 }
 
-enum AdminIntents {
+export enum AdminIntents {
     UPDATE_LAN = "update_lan",
     END_LAN = "end_lan",
 
@@ -64,7 +64,7 @@ export async function action({ request }: ActionFunctionArgs) {
                 endDate: formData.get("lan_end_date") ? JSON.parse(String(formData.get("lan_end_date"))) : undefined,
                 newUsersByAdminOnly: formData.get("lan_newUsersByAdminOnly") ? JSON.parse(String(formData.get("lan_newUsersByAdminOnly"))) : undefined,
                 authenticationNeeded: formData.get("lan_authenticationNeeded") ? JSON.parse(String(formData.get("lan_authenticationNeeded"))) : undefined,
-                globalTournamentDefaultPoints: undefined,
+                globalTournamentDefaultPoints: formData.get("lan_globalTournamentDefaultPoints") ? JSON.parse(String(formData.get("lan_globalTournamentDefaultPoints"))) : undefined,
                 showPartialResults: formData.get("lan_showPartialResults") ? JSON.parse(String(formData.get("lan_showPartialResults"))) : undefined,
                 weightTeamsResults: formData.get("lan_weightTeamsResults") ? JSON.parse(String(formData.get("lan_weightTeamsResults"))) : undefined,
                 showTeamsResults: formData.get("lan_showTeamsResults") ? JSON.parse(String(formData.get("lan_showTeamsResults"))) : undefined,
@@ -187,19 +187,19 @@ export default function Admin() {
                             </div>
                             <div></div>  {/* Spacer */}
                             {/* User creation */}
-                            <div className="is-flex gap-3 is-align-items-center">
-                                <CustomCheckbox variable={lan.newUsersByAdminOnly} customClass='is-justify-content-flex-end is-one-fifth' setter={(value: boolean) => updateLan("lan_newUsersByAdminOnly", JSON.stringify(value))} />
+                            <div className="is-flex gap-3 align-center">
+                                <CustomCheckbox variable={lan.newUsersByAdminOnly} customClass='justify-flex-end is-one-fifth' setter={(value: boolean) => updateLan("lan_newUsersByAdminOnly", JSON.stringify(value))} />
                                 <div className='lanSubscriptiontByAdmins'>Seuls les admins peuvent inscrire les nouveaux joueurs </div>
                                 <CustomButton callback={() => { }} contentItems={["New players"]} colorClass="has-background-primary-level" />
                             </div>
                             {/* Authentication */}
-                            <div className="is-flex gap-3 is-align-items-center">
-                                <CustomCheckbox variable={lan.authenticationNeeded} customClass='is-justify-content-flex-end is-one-fifth' setter={(value: boolean) => updateLan("lan_authenticationNeeded", JSON.stringify(value))} />
+                            <div className="is-flex gap-3 align-center">
+                                <CustomCheckbox variable={lan.authenticationNeeded} customClass='justify-flex-end is-one-fifth' setter={(value: boolean) => updateLan("lan_authenticationNeeded", JSON.stringify(value))} />
                                 <div className='lanSubscriptiontByAdmins'>Authentification par mot de passe</div>
                             </div>
                             <div></div>  {/* Spacer */}
                             {/* End of LAN */}
-                            <div className="is-flex grow is-justify-content-center">
+                            <div className="is-flex grow justify-center">
                                 <CustomButton callback={() => { }} contentItems={["Terminer la LAN"]} colorClass="has-background-primary-level" />
                             </div>
                         </div>
@@ -237,10 +237,10 @@ export default function Admin() {
                                 <div className="has-text-right is-one-fifth mt-4">Tournois de la LAN :</div>
                                 <div id="tournamentsList" className="is-flex wrap grow gap-1 p-2 has-background-primary-level is-scrollable">
                                     <div className="is-flex">
-                                        <CustomButton customClasses="grow" contentItems={["New tournament"]} colorClass="has-background-secondary-level" callback={() => { navigate("/tournaments/new")}}></CustomButton>
+                                        <CustomButton customClasses="grow" contentItems={["New tournament"]} colorClass="has-background-secondary-level" callback={() => { navigate("/tournaments/new") }}></CustomButton>
                                     </div>
                                     {tournaments.map(tournament =>
-                                        <CustomButton customClasses="grow" contentItems={[tournament.name]} colorClass="has-background-secondary-level" callback={() => { navigate("/tournaments/" + tournament.id)}}></CustomButton>
+                                        <CustomButton customClasses="grow" contentItems={[tournament.name]} colorClass="has-background-secondary-level" callback={() => { navigate("/tournaments/" + tournament.id) }}></CustomButton>
                                         // <div className="has-background-secondary-level p-2 grow has-text-centered" style={{ minWidth: "190px" }} key={tournament.id}>{tournament.name}</div>
                                     )}
                                     <div className="growmax" style={{ width: 0, margin: "-.5rem" }}></div>
@@ -254,52 +254,36 @@ export default function Admin() {
                             Tournoi global et résultats
                         </div>
                         <div className="is-flex-col gap-4" style={{ maxHeight: activeSection == "globalTournamentSettings" ? undefined : 0 }}>
-                            <div className="is-flex gap-3 is-align-items-start">
+                            <div className="is-flex gap-3">
                                 <div className="has-text-right is-one-fifth">Points par défaut :</div>
-                                <div className="is-flex-col">
-                                    <div className='globalTournamentOptions is-flex is-flex-wrap-wrap gap-2'>
-                                        <div className='rankPoints is-flex-col mr-4 gap-2'>
-                                            <div className='rank has-text-right has-text-weight-normal'>Place :</div>
-                                            <div className='points has-text-right'>Points :</div>
-                                        </div>
-                                        {lan.globalTournamentDefaultPoints.leaders.map((points, index) =>
-                                            <div key={index} className="rankPoints is-flex-col">
-                                                <div className="rank is-flex is-justify-content-center is-align-items-center">{index + 1}</div>
-                                                <input className="points" type="text" placeholder={String(points)} value={String(points)} onChange={(e) => updateTopRanks(e.target.value, index)}></input>
-                                            </div>
-                                        )}
-                                        <div className="rankPoints is-flex-col">
-                                            <div className="rank is-flex is-justify-content-center is-align-items-center">5 et +</div>
-                                            <input className="points" type="text" placeholder={String(lan.globalTournamentDefaultPoints.default)} value={String(lan.globalTournamentDefaultPoints.default)} onChange={(e) => updateDefault(e.target.value)}></input>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className='is-size-7 mt-2'>Dans ce tableau, indique le nombre de points que les joueurs recevront à chaque tournoi en fonction de leur classement.</div>
+                                <EditGlobalTournamentPoints points={lan.globalTournamentDefaultPoints} updatePoints={(pts) => updateLan("lan_globalTournamentDefaultPoints", JSON.stringify(pts))
+                                } />
+                                <div className='is-size-7 pb-3 pl-3 no-basis grow is-align-self-flex-end'>Dans ce tableau, indique le nombre de points que les joueurs recevront à chaque tournoi en fonction de leur classement.</div>
                             </div>
                             <div></div>  {/* Spacer */}
-                            <div className='is-flex gap-3 is-align-items-start'>
-                                <CustomCheckbox variable={lan.showPartialResults} customClass='mt-2 is-justify-content-flex-end is-one-fifth' setter={(value: boolean) => updateLan("lan_showPartialResults", JSON.stringify(value))} />
+                            <div className='is-flex gap-3'>
+                                <CustomCheckbox variable={lan.showPartialResults} customClass='mt-2 justify-flex-end is-one-fifth' setter={(value: boolean) => updateLan("lan_showPartialResults", JSON.stringify(value))} />
                                 <div className='is-flex-col'>
                                     <div>Résultats provisoires</div>
                                     <div className='is-size-7 no-basis grow'>En choisissant <i>oui</i>, les résultats des tournois seront calculés et mis à jour à chaque match.<br />Chaque participant aura le minimum de points possible en fonction de ses matchs terminés.</div>
                                 </div>
                             </div>
-                            <div className='is-flex gap-3 is-align-items-start'>
-                                <CustomCheckbox variable={lan.showTeamsResults} customClass='mt-2 is-justify-content-flex-end is-one-fifth' setter={(value: boolean) => updateLan("lan_showTeamsResults", JSON.stringify(value))} />
+                            <div className='is-flex gap-3'>
+                                <CustomCheckbox variable={lan.showTeamsResults} customClass='mt-2 justify-flex-end is-one-fifth' setter={(value: boolean) => updateLan("lan_showTeamsResults", JSON.stringify(value))} />
                                 <div className='is-flex-col'>
                                     <div>Afficher le classement par équipes</div>
                                     <div className='is-size-7'>Sélectionne <i>oui</i> pour pondérer les scores d&apos;équipe en fonction du nombre de joueurs qui la composent. Dans le cas contraire, bien sûr, sélectionne <i>non</i>.</div>
                                 </div>
                             </div>
-                            <div className='is-flex gap-3 is-align-items-start'>
-                                <CustomCheckbox variable={lan.weightTeamsResults} customClass='mt-2 is-justify-content-flex-end is-one-fifth' setter={(value: boolean) => updateLan("lan_weightTeamsResults", JSON.stringify(value))} />
+                            <div className='is-flex gap-3'>
+                                <CustomCheckbox variable={lan.weightTeamsResults} customClass='mt-2 justify-flex-end is-one-fifth' setter={(value: boolean) => updateLan("lan_weightTeamsResults", JSON.stringify(value))} />
                                 <div className='is-flex-col'>
                                     <div>Classement d&apos;équipe pondéré</div>
                                     <div className='is-size-7'>Sélectionne <i>oui</i> pour pondérer les scores d&apos;équipe en fonction du nombre de joueurs qui la composent. Dans le cas contraire, bien sûr, sélectionne <i>non</i>.</div>
                                 </div>
                             </div>
-                            <div className='is-flex gap-3 is-align-items-center'>
-                                <CustomCheckbox variable={lan.showTeamsResults} customClass='is-justify-content-flex-end is-one-fifth' setter={(value: boolean) => updateLan("lan_showTeamsResults", JSON.stringify(value))} />
+                            <div className='is-flex gap-3 align-center'>
+                                <CustomCheckbox variable={lan.showTeamsResults} customClass='justify-flex-end is-one-fifth' setter={(value: boolean) => updateLan("lan_showTeamsResults", JSON.stringify(value))} />
                                 <div>Afficher les achievements</div>
                                 {/* <div className='is-flex-col'>
                                     <div className='is-size-7'>Sélectionne <i>oui</i> pour pondérer les scores d&apos;équipe en fonction du nombre de joueurs qui la composent. Dans le cas contraire, bien sûr, sélectionne <i>non</i>.</div>

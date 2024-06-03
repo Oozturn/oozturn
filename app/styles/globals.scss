@@ -907,40 +907,13 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
 *******************************/
 
 .globalTournamentOptions {
-    .rankPoints {
-        .rank {
-            flex: 1;
-            text-align: center;
-            font-weight: 600;
-            line-height: 2rem;
-        }
-        .points {
-            flex: 1;
-            text-align: center;
-            line-height: 2rem;
-            min-width: 2rem;
-        }
-        input.points {
-            width: 3.5rem;
-            line-height: 2rem;
-        }
+    .rankPoints:not(:last-child):not(:first-child) {
+        border-right: solid 1px var(--background-primary-level);
+        padding-right: .5rem;
     }
-}
-
-.info, .tournamentInfoSettings {
-    .topRanksPoints {
-        gap: 0.5rem;
-        .rankPoints:not(:last-child):not(:first-child) {
-            border-right: solid 1px var(--background-primary-level);
-            padding-right: .5rem;
-        }
-    }
-    .editing .topRanksPoints {
-        gap: .25rem;
-        .rankPoints:not(:last-child) {
-            border-right: unset;
-            padding-right: unset;
-        }
+    &.editing .rankPoints:not(:last-child) {
+        border-right: unset;
+        padding-right: unset;
     }
 }
 
@@ -1115,110 +1088,21 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
         }
     }
 }
-
-.tournamentEdit {
-    font-size: 20px;
-    flex: 5;
-    gap: 1rem;
-    .tournamentEditStepsList {
-        color: var(--text-color);
-        overflow: hidden;
-        .tournamentEditStep {
-            position: relative;
-            flex: 1;
-            padding: .75rem;
-            padding-left: 1.25rem;
-            text-transform: uppercase;
-            .name {
-                position: relative;
-                z-index: 1;
-            }
-            &.is-active .name {
-                color: white;
-            }
-            .bg {
-                z-index: 0;
-                position: absolute;
-                top: 0; bottom: 0;
-                background-color: var(--background-secondary-level);
-                -webkit-transform: skewX(-27.5deg);
-                -moz-transform: skewX(-27.5deg);
-                -ms-transform: skewX(-27.5deg);
-                transform: skewX(-27.5deg);
-            }
-            &:not(:first-child) .bg {
-                left: 0.25rem;
-            }
-            &:first-child .bg {
-                left: -10%;
-            }
-            &:not(:last-child) .bg {
-                right: 0.25rem;
-            }
-            &:last-child .bg {
-                right: -10%;
-            }
-            &.is-active .bg {
-                background-color: var(--accent-secondary-color);
-            }
-            
+.svgSelection {
+    display: flex;
+    width: 540px;
+    height: 260px;
+    background-color: var(--background-primary-level);
+    justify-content: center;
+    align-items: center;
+    &:hover svg, &.is-active svg {
+        .fillAsText {
+            fill: var(--accent-primary-color);
         }
     }
-    .tournamentEditStepOptions {
-        position: relative;
-        .svgSelection {
-            display: flex;
-            width: 540px;
-            height: 260px;
-            background-color: var(--background-primary-level);
-            justify-content: center;
-            align-items: center;
-            &:hover svg, &.is-active svg {
-                .fillAsText {
-                    fill: var(--accent-primary-color);
-                }
-            }
-            &.is-active {
-                border: 2px solid var(--accent-primary-color);
-            }
-        }
-        .typeDescription {
-            width: 500px;
-        }
-        .longDescription {
-            width: 80vh;
-        }
-        .nextStep-button {
-            position: absolute;
-            right: .75rem;
-            bottom: .75rem;
-        }
+    &.is-active {
+        border: 2px solid var(--accent-primary-color);
     }
-    .ffa-round-name {
-        height: 1rem;
-        display: flex;
-        align-items: flex-end;
-    }
-    .ffa-max-players {
-        height: 2.5rem;
-        display: flex;
-        justify-content: center;
-    }
-    .ffa-round-nb-select {
-        height: 2rem;
-        display: flex;
-        justify-content: center;
-    }
-    .optionContent {
-        position: relative;
-        display: none;
-        gap: 0.75rem;
-        justify-content: center;
-    }
-    .optionContent.is-active {
-        display: flex;
-    }
-    
 }
 
 

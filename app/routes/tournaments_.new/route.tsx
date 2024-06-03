@@ -1,20 +1,21 @@
 import { ActionFunctionArgs, redirect } from "@remix-run/node";
 import TournamentEdit from "~/lib/components/tournaments/edit";
-import { updateTournament } from "~/lib/persistence/tournaments.server";
+import { newTournament, updateTournament } from "~/lib/persistence/tournaments.server";
 import { requireUserLoggedIn } from "~/lib/session.server";
 import { Tournament } from "~/lib/types/tournaments";
 
 
 export async function action({ request }: ActionFunctionArgs) {
     requireUserLoggedIn(request)
-
-    const formData = await request.formData()
-    const tournament = JSON.parse(String(formData.get("tournament"))) as Tournament
-    updateTournament(tournament.id, tournament)
+    const jsonData = await request.json()
+    const tournament = JSON.parse(jsonData.tournament) as Tournament
+    newTournament(tournament)
 
     return redirect("/tournaments/" + tournament.id);
 }
 
 export default function NewTournament() {
-    return <TournamentEdit />
+    return <div className="is-full-height is-flex-row gap-3 p-3">
+        <TournamentEdit />
+    </div>
 }
