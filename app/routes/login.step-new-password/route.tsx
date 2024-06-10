@@ -1,9 +1,17 @@
-import { ActionFunctionArgs, LoaderFunctionArgs, json, redirect } from "@remix-run/node";
+import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction, json, redirect } from "@remix-run/node";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getLan } from "~/lib/persistence/lan.server";
 import { storePassword } from "~/lib/persistence/password.server";
 import { getUserFromRequest, getUserId, updateSessionWithPasswordAuth } from "~/lib/session.server";
 import { validate } from "./validate";
+import { useLan } from "~/lib/components/contexts/LanContext";
+
+
+export const meta: MetaFunction = () => {
+  return [
+    { title: useLan().name + " - Nouveau mot de passe" }
+  ]
+}
 
 export async function loader({ request }: LoaderFunctionArgs) {
   if (!getLan().authenticationNeeded) {

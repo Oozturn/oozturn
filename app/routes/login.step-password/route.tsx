@@ -1,8 +1,15 @@
-import { ActionFunctionArgs, LoaderFunctionArgs, json, redirect } from "@remix-run/node";
+import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction, json, redirect } from "@remix-run/node";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
+import { useLan } from "~/lib/components/contexts/LanContext";
 import { getLan } from "~/lib/persistence/lan.server";
 import { checkPassword, hasPassword } from "~/lib/persistence/password.server";
 import { getUserId, updateSessionWithPasswordAuth } from "~/lib/session.server";
+
+export const meta: MetaFunction = () => {
+  return [
+    { title: useLan().name + " - Connexion" }
+  ]
+}
 
 export async function loader({ request }: LoaderFunctionArgs) {
   if (!getLan().authenticationNeeded) {
@@ -26,7 +33,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   let errors: { password?: string } = {};
 
-  if(!checkPassword(username, password)) {
+  if (!checkPassword(username, password)) {
     errors.password = "Mot de passe incorrect"
   }
 
@@ -47,35 +54,35 @@ export default function LoginStepPassword() {
   let actionResult = useActionData<typeof action>();
 
   return <div className="is-flex is-flex-direction-column is-align-items-center">
-  <div className="flat-box has-background-secondary-level is-full-width">
-    <div className="has-text-centered mb-4 is-size-3">Bienvenue <i style={{ color: "var(--accent-primary-color)" }}>{username}</i> ! </div>
-    <Form method="post">
-      <div className="field">
-        <label className="has-text-centered" htmlFor="username">Mot de passe :</label>
-        <div className="control">
-          <input
-            id="password"
-            name="password"
-            className="mt-2 input is-radiusless"
-            type="password"
-            placeholder="Mot de passe"
-            required
-            autoFocus
-            maxLength={18}
-          />
-        </div>
-        {actionResult?.errors?.password && (
+    <div className="flat-box has-background-secondary-level is-full-width">
+      <div className="has-text-centered mb-4 is-size-3">Bienvenue <i style={{ color: "var(--accent-primary-color)" }}>{username}</i> ! </div>
+      <Form method="post">
+        <div className="field">
+          <label className="has-text-centered" htmlFor="username">Mot de passe :</label>
+          <div className="control">
+            <input
+              id="password"
+              name="password"
+              className="mt-2 input is-radiusless"
+              type="password"
+              placeholder="Mot de passe"
+              required
+              autoFocus
+              maxLength={18}
+            />
+          </div>
+          {actionResult?.errors?.password && (
             <p className="help is-danger">
               {actionResult.errors.password}
             </p>
           )}
-      </div>
-      <div className="field mt-4">
-        <div className="control">
-          <button type='submit' className={`is-link my-0 is-radiusless is-borderless has-background-secondary-accent py-2 px-4 is-pulled-right`}>Se connecter</button>
         </div>
-      </div>
-    </Form>
+        <div className="field mt-4">
+          <div className="control">
+            <button type='submit' className={`is-link my-0 is-radiusless is-borderless has-background-secondary-accent py-2 px-4 is-pulled-right`}>Se connecter</button>
+          </div>
+        </div>
+      </Form>
+    </div>
   </div>
-</div>
 }

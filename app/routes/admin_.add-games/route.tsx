@@ -1,4 +1,4 @@
-import { ActionFunctionArgs, LoaderFunctionArgs, json, redirect } from "@remix-run/node";
+import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction, json, redirect } from "@remix-run/node";
 import { Form, useFetcher, useLoaderData, useNavigate } from "@remix-run/react";
 import { SearchSVG } from "~/lib/components/data/svg-container"
 import { AddOrUpdateGameRepresentation, addOrUpdateGame, searchGames } from "./queries.server";
@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useGames } from "~/lib/components/contexts/GamesContext";
 import { CustomButton } from "~/lib/components/elements/custom-button";
 import { CustomModalBinary } from "~/lib/components/elements/custom-modal";
-import { Game } from "~/lib/types/games";
+import { useLan } from "~/lib/components/contexts/LanContext";
 
 interface GameInfo {
     id: number,
@@ -20,6 +20,12 @@ interface GameInfo {
 enum GameManagementIntents {
     ADD_GAME = "addGame",
     REMOVE_GAME = "removeGame",
+}
+
+export const meta: MetaFunction = () => {
+    return [
+        { title: useLan().name + " - Ajout de jeu" }
+    ]
 }
 
 export async function action({ request }: ActionFunctionArgs) {

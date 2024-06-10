@@ -1,9 +1,9 @@
-import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from "@remix-run/node";
+import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction, redirect } from "@remix-run/node";
 import { useFetcher, useLoaderData, useNavigate } from "@remix-run/react";
 import { TournamentContext } from "~/lib/components/contexts/TournamentsContext";
 import { Tournament, TournamentStatus, TournamentType } from "~/lib/types/tournaments";
 import { getTournament } from "~/lib/persistence/tournaments.server";
-import TournamentInfoSettings from "./tournament-info-settings";
+import TournamentInfoSettings from "./components/tournament-info-settings";
 import { useUser } from "~/lib/components/contexts/UserContext";
 import { CustomButton } from "~/lib/components/elements/custom-button";
 import { CustomModalBinary } from "~/lib/components/elements/custom-modal";
@@ -11,19 +11,26 @@ import { useState } from "react";
 import { BinSVG, LeaveSVG, ParticipateSVG, StartSVG, SubsribedSVG } from "~/lib/components/data/svg-container";
 import { addPlayerToTournament, addTeamToTournament, toggleBalanceTournament, removePlayerFromTournament, reorderPlayers, reorderTeams, addPlayerToTeam, removeTeamFromTournament, renameTeam, removePlayerFromTeams, distributePlayersOnTeams, balanceTeams, randomizePlayersOnTeams } from "./queries.server";
 import { useUsers } from "~/lib/components/contexts/UsersContext";
-import { PlayersListSolo, PlayersListTeam } from "./players-list";
+import { PlayersListSolo, PlayersListTeam } from "./components/players-list";
 import { GetFFAMaxPlayers } from "~/lib/utils/tournaments";
+import { useLan } from "~/lib/components/contexts/LanContext";
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+    return [
+        { title: useLan().name + " - Tournoi " + data?.tournament.name }
+    ]
+}
 
 export async function loader({
     params,
 }: LoaderFunctionArgs): Promise<{
-    tournament: Tournament;
+    tournament: Tournament
 }> {
     let tournament: Tournament | undefined = undefined
     try {
         tournament = getTournament(params.id || "")
     } catch { throw redirect('/tournaments/404') }
-    return { tournament: tournament };
+    return { tournament: tournament }
 }
 
 export async function action({ request }: ActionFunctionArgs) {

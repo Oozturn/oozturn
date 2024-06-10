@@ -1,9 +1,15 @@
-import { ActionFunctionArgs, redirect } from "@remix-run/node";
+import { ActionFunctionArgs, MetaFunction, redirect } from "@remix-run/node";
 import TournamentEdit from "~/lib/components/tournaments/edit";
-import { newTournament, updateTournament } from "~/lib/persistence/tournaments.server";
+import { newTournament } from "~/lib/persistence/tournaments.server";
 import { requireUserLoggedIn } from "~/lib/session.server";
 import { Tournament } from "~/lib/types/tournaments";
+import { useLan } from "~/lib/components/contexts/LanContext";
 
+export const meta: MetaFunction = () => {
+    return [
+        { title: useLan().name + " - Nouveau tournoi" }
+    ]
+}
 
 export async function action({ request }: ActionFunctionArgs) {
     requireUserLoggedIn(request)

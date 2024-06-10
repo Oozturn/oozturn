@@ -3,12 +3,13 @@ import { Form, MetaFunction } from "@remix-run/react";
 import { updateLan } from "~/lib/persistence/lan.server";
 import { requireUserLoggedIn } from "~/lib/session.server";
 import { adminLogin } from "./queries.server";
+import { useLan } from "~/lib/components/contexts/LanContext";
 
 export const meta: MetaFunction = () => {
     return [
-        { title: "Admin login" },
-    ];
-};
+        { title: useLan().name + " - Connexion admin" }
+    ]
+}
 
 export async function loader({ request }: LoaderFunctionArgs) {
     await requireUserLoggedIn(request)

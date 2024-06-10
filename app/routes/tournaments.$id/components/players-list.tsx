@@ -13,7 +13,7 @@ import { CustomButton } from "~/lib/components/elements/custom-button";
 import { BalanceSVG, BinSVG, DistributeSVG, RandomSVG, SubsribedSVG } from "~/lib/components/data/svg-container";
 import { Draggable } from "~/lib/components/dnd/Draggable";
 import { useFetcher } from "@remix-run/react";
-import { TeamsManagementIntents, TournamentManagementIntents } from "./route";
+import { TeamsManagementIntents, TournamentManagementIntents } from "../route";
 
 
 

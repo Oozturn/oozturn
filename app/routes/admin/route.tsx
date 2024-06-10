@@ -1,5 +1,5 @@
-import { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import { Link, MetaFunction, useFetcher, useNavigate } from "@remix-run/react";
+import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
+import { Link, useFetcher, useNavigate } from "@remix-run/react";
 import useLocalStorageState from "use-local-storage-state";
 import { useGames } from "~/lib/components/contexts/GamesContext";
 import { useLan } from "~/lib/components/contexts/LanContext";
@@ -8,7 +8,7 @@ import { CustomButton } from "~/lib/components/elements/custom-button";
 import { CustomCheckbox } from "~/lib/components/elements/custom-checkbox";
 import { CustomSelect } from "~/lib/components/elements/custom-select";
 import { EditGlobalTournamentPoints } from "~/lib/components/elements/global-tournament-points";
-import { updateLan } from "~/lib/persistence/lan.server";
+import { getLan, updateLan } from "~/lib/persistence/lan.server";
 import { requireUserAdmin, requireUserLoggedIn } from "~/lib/session.server";
 import { Lan } from "~/lib/types/lan";
 import { autoSubmit } from "~/lib/utils/autosubmit";
@@ -19,13 +19,13 @@ import { renamePlayer, resetUserPassword } from "./queries.server";
 
 export const meta: MetaFunction = () => {
     return [
-        { title: "Admin" },
-    ];
-};
+        { title: useLan().name + " - Admin" }
+    ]
+}
 
 export async function loader({ request }: LoaderFunctionArgs) {
     await requireUserAdmin(request)
-    return null
+    return { lanName: getLan().name }
 }
 
 export enum AdminIntents {
@@ -95,10 +95,6 @@ export default function Admin() {
         fd.append("intent", AdminIntents.UPDATE_LAN)
         fetcher.submit(fd, { method: "POST" })
     }
-
-    async function updateTopRanks(value: string, index: number) { }
-
-    async function updateDefault(value: string) { }
 
     return (
         <>

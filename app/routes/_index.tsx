@@ -1,4 +1,4 @@
-import { LoaderFunctionArgs, type MetaFunction } from "@remix-run/node";
+import { MetaFunction } from "@remix-run/node";
 import { Link } from "@remix-run/react";
 import { useGames } from "~/lib/components/contexts/GamesContext";
 import { useLan } from "~/lib/components/contexts/LanContext";
@@ -6,20 +6,13 @@ import { useTournaments } from "~/lib/components/contexts/TournamentsContext";
 import { useUser } from "~/lib/components/contexts/UserContext";
 import { AddTournamentCrossSVG, SubsribedSVG } from "~/lib/components/data/svg-container";
 import { FormattedTextWithUrls } from "~/lib/components/elements/formatted-text-url";
-import { requireUserLoggedIn } from "~/lib/session.server";
 import { Game } from "~/lib/types/games";
-import { Tournament, TournamentInfo, TournamentStatus } from "~/lib/types/tournaments";
+import { TournamentInfo, TournamentStatus } from "~/lib/types/tournaments";
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "Oozturn" },
-    { name: "description", content: "Welcome to Remix!" },
-  ];
-};
-
-export async function loader({ request }: LoaderFunctionArgs) {
-  await requireUserLoggedIn(request)
-  return null
+    { title: useLan().name + " - Accueil" }
+  ]
 }
 
 export default function Index() {

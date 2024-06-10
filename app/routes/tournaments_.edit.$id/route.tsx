@@ -1,10 +1,16 @@
-import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from "@remix-run/node";
+import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction, redirect } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
+import { useLan } from "~/lib/components/contexts/LanContext";
 import TournamentEdit from "~/lib/components/tournaments/edit";
 import { getTournament, updateTournament } from "~/lib/persistence/tournaments.server";
 import { requireUserLoggedIn } from "~/lib/session.server";
 import { Tournament } from "~/lib/types/tournaments";
 
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+    return [
+        { title: useLan().name + " - Edition du tournoi " + data?.tournament.name }
+    ]
+}
 
 export async function loader({ params, request }: LoaderFunctionArgs): Promise<{ tournament: Tournament }> {
     requireUserLoggedIn(request)

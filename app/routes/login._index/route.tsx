@@ -1,8 +1,14 @@
-import { ActionFunctionArgs } from "@remix-run/node";
+import { ActionFunctionArgs, MetaFunction } from "@remix-run/node";
 import { Form } from "@remix-run/react";
 import { LogoUnfolded } from "~/lib/components/data/svg-container";
 import { doLogin } from "./queries.server";
 import { useLan } from "~/lib/components/contexts/LanContext";
+
+export const meta: MetaFunction = () => {
+  return [
+      { title: useLan().name + " - Connexion" }
+  ]
+}
 
 export async function action({ request, }: ActionFunctionArgs) {
   const body = await request.formData()

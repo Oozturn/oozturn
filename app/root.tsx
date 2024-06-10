@@ -33,7 +33,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<{
   tournaments: TournamentInfo[];
   games?: Game[];
 }> {
-  if(await isUserLoggedIn(request)){
+  if (await isUserLoggedIn(request)) {
     return {
       lan: getLan(),
       user: getUserById(String(await getUserId(request))),
@@ -45,16 +45,17 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<{
     return {
       lan: getLan(),
       tournaments: [],
-      users : []
+      users: []
     }
   }
 }
 
 export default function App() {
   const { lan, user, users, tournaments, games } = useLoaderData<typeof loader>()
-  
-    return (
-      <html lang="fr">
+
+  return (
+    <html lang="fr">
+      <LanContext.Provider value={lan}>
         <head>
           <meta charSet="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -65,21 +66,20 @@ export default function App() {
           <GamesContext.Provider value={games}>
             <UsersContext.Provider value={users}>
               <UserContext.Provider value={user}>
-                <LanContext.Provider value={lan}>
-                  <TournamentsContext.Provider value={tournaments}>
-                    <GetUserTheme />
-                    <Navbar />
-                    <main className="main is-clipped">
-                      <Outlet />
-                    </main>
-                  </TournamentsContext.Provider>
-                </LanContext.Provider>
+                <TournamentsContext.Provider value={tournaments}>
+                  <GetUserTheme />
+                  <Navbar />
+                  <main className="main is-clipped">
+                    <Outlet />
+                  </main>
+                </TournamentsContext.Provider>
               </UserContext.Provider>
             </UsersContext.Provider>
           </GamesContext.Provider>
           <ScrollRestoration />
           <Scripts />
         </body>
-      </html>
-    );
+      </LanContext.Provider>
+    </html>
+  );
 }

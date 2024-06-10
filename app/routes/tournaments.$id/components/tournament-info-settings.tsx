@@ -1,9 +1,9 @@
 import { TournamentType } from "~/lib/types/tournaments"
-import { useTournament } from "../../lib/components/contexts/TournamentsContext"
+import { useTournament } from "../../../lib/components/contexts/TournamentsContext"
 import { GetFFAMaxPlayers } from "~/lib/utils/tournaments"
 import { Days } from "~/lib/utils/ranges"
-import { FormattedTextWithUrls } from "../../lib/components/elements/formatted-text-url"
-import { ShowGlobalTournamentPoints } from "../../lib/components/elements/global-tournament-points"
+import { FormattedTextWithUrls } from "../../../lib/components/elements/formatted-text-url"
+import { ShowGlobalTournamentPoints } from "../../../lib/components/elements/global-tournament-points"
 
 
 export default function TournamentInfoSettings() {
