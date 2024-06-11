@@ -1,4 +1,4 @@
-import { MetaFunction } from "@remix-run/node";
+import { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import { Link } from "@remix-run/react";
 import { useGames } from "~/lib/components/contexts/GamesContext";
 import { useLan } from "~/lib/components/contexts/LanContext";
@@ -6,6 +6,7 @@ import { useTournaments } from "~/lib/components/contexts/TournamentsContext";
 import { useUser } from "~/lib/components/contexts/UserContext";
 import { AddTournamentCrossSVG, SubsribedSVG } from "~/lib/components/data/svg-container";
 import { FormattedTextWithUrls } from "~/lib/components/elements/formatted-text-url";
+import { requireUserLoggedIn } from "~/lib/session.server";
 import { Game } from "~/lib/types/games";
 import { TournamentInfo, TournamentStatus } from "~/lib/types/tournaments";
 
@@ -13,6 +14,11 @@ export const meta: MetaFunction = () => {
   return [
     { title: useLan().name + " - Accueil" }
   ]
+}
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  await requireUserLoggedIn(request)
+  return null
 }
 
 export default function Index() {

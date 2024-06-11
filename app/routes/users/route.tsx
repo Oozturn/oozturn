@@ -1,13 +1,19 @@
-import { MetaFunction } from "@remix-run/node";
+import { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import { useLan } from "~/lib/components/contexts/LanContext";
 import { useUsers } from "~/lib/components/contexts/UsersContext";
 import { UserTileUsersPage } from "~/lib/components/elements/user-tile";
+import { requireUserLoggedIn } from "~/lib/session.server";
 
 
 export const meta: MetaFunction = () => {
   return [
       { title: useLan().name + " - Users" }
   ]
+}
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  await requireUserLoggedIn(request)
+  return null
 }
 
 export default function Users() {

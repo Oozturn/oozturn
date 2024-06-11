@@ -25,7 +25,7 @@ export const meta: MetaFunction = () => {
 
 export async function loader({ request }: LoaderFunctionArgs) {
     await requireUserAdmin(request)
-    return { lanName: getLan().name }
+    return null
 }
 
 export enum AdminIntents {
