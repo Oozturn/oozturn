@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLan } from "../contexts/LanContext";
-import { Tournament, TournamentSettings, TournamentStatus, TournamentType, globalTournamentPoints } from "~/lib/types/tournaments";
+import { Tournament, TournamentStatus, TournamentType, globalTournamentPoints } from "~/lib/types/tournaments";
 import { CustomSelect } from "../elements/custom-select";
 import { useGames } from "../contexts/GamesContext";
 import { Days, range } from "~/lib/utils/ranges";
@@ -10,6 +10,7 @@ import { GetFFAMaxPlayers } from "~/lib/utils/tournaments";
 import { CustomButton } from "../elements/custom-button";
 import { useFetcher } from "@remix-run/react";
 import { EditGlobalTournamentPoints } from "../elements/global-tournament-points";
+import { Duel } from "~/lib/tournamentManager/tournament/duel";
 
 const enum tournamentEditSteps {
     PROPERTIES,
@@ -45,24 +46,22 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
     const [tName, set_tName, modified_tName] = useStateMonitored(existingTournament ? existingTournament.name : "")
     const [tGame, set_tGame, modified_tGame] = useStateMonitored(existingTournament ? existingTournament.game : undefined)
     const [tGlobalTournamentPoints, set_tGlobalTournamentPoints, modified_tGlobalTournamentPoints] = useStateMonitored<globalTournamentPoints>(existingTournament ? { leaders: existingTournament.settings.globalTournamentPoints.leaders.slice(), default: existingTournament.settings.globalTournamentPoints.default } : lan.globalTournamentDefaultPoints)
-    // const [tGlobalTournamentPointsLeaders, set_tGlobalTournamentPointsLeaders, modified_tGlobalTournamentPointsLeaders] = useStateMonitored(existingTournament ? existingTournament.settings.globalTournamentPoints.leaders : lan.globalTournamentDefaultPoints.leaders)
-    // const [tGlobalTournamentPointsDefault, set_tGlobalTournamentPointsDefault, modified_tGlobalTournamentPointsDefault] = useStateMonitored(existingTournament ? existingTournament.settings.globalTournamentPoints.default : lan.globalTournamentDefaultPoints.default)
     const [tStartTime, set_tStartTime, modified_tStartTime] = useStateMonitored(existingTournament ? existingTournament.settings.startTime : lan.startDate)
     const [tComments, set_tComments, modified_tComments] = useStateMonitored(existingTournament ? existingTournament.comments : "")
 
     const [tType, set_tType, modified_tType] = useStateMonitored(existingTournament ? existingTournament.settings.type : TournamentType.Duel)
     const [tUseTeams, set_tUseTeams, modified_tUseTeams] = useStateMonitored(existingTournament ? existingTournament.settings.useTeams : false)
-    const [tInvertedScore, set_tInvertedScore, modified_tInvertedScore] = useStateMonitored(existingTournament ? existingTournament.settings.invertedScore : false)
+    const [tLowerScoreIsBetter, set_tLowerScoreIsBetter, modified_tLowerScoreIsBetter] = useStateMonitored(existingTournament ? existingTournament.settings.lowerScoreIsBetter : false)
 
     // Duel options
-    const [tCatchUp, set_tCatchUp, modified_tCatchUp] = useStateMonitored(existingTournament ? existingTournament.bracket.options.last : undefined)
-    const [tShortBracket, set_tShortBracket, modified_tShortBracket] = useStateMonitored(existingTournament ? existingTournament.bracket.options.short : undefined)
+    const [tLast, set_tLast, modified_tLast] = useStateMonitored(existingTournament ? existingTournament.settings.last : undefined)
+    const [tShortBracket, set_tShortBracket, modified_tShortBracket] = useStateMonitored(existingTournament ? existingTournament.settings.short : undefined)
 
     // FFA options
-    const [tNbRounds, set_tNbRounds] = useState(existingTournament ? existingTournament.bracket.options.sizes.length : 2)
-    const [tSizes, set_tSizes, modified_tSizes] = useStateMonitored(existingTournament ? existingTournament.bracket.options.sizes : [6, 6])
-    const [tAdvancers, set_tAdvancers, modified_tAdvancers] = useStateMonitored(existingTournament ? existingTournament.bracket.options.advancers : [3])
-    const [tLimit, set_tLimit, modified_tLimit] = useStateMonitored(existingTournament ? existingTournament.bracket.options.limit : 1)
+    const [tNbRounds, set_tNbRounds] = useState(existingTournament ? existingTournament.settings.sizes?.length || 2 : 2)
+    const [tSizes, set_tSizes, modified_tSizes] = useStateMonitored(existingTournament ? existingTournament.settings.sizes || [6, 6] : [6, 6])
+    const [tAdvancers, set_tAdvancers, modified_tAdvancers] = useStateMonitored(existingTournament ? existingTournament.settings.advancers || [3] : [3])
+    const [tLimit, set_tLimit, modified_tLimit] = useStateMonitored(existingTournament ? existingTournament.settings.limit : 1)
 
     // Teams options
     const [tUsersCanCreateTeams, set_tUsersCanCreateTeams, modified_tUsersCanCreateTeams] = useStateMonitored(existingTournament ? existingTournament.settings.usersCanCreateTeams : false)
@@ -77,26 +76,20 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
             game: tGame,
             status: TournamentStatus.Open,
             settings: {
-                invertedScore: tInvertedScore,
+                lowerScoreIsBetter: tLowerScoreIsBetter,
                 type: tType,
                 startTime: tStartTime,
                 useTeams: tUseTeams,
                 globalTournamentPoints: tGlobalTournamentPoints,
                 usersCanCreateTeams: tUsersCanCreateTeams,
-                teamsMaxSize: tTeamsMaxSize
+                teamsMaxSize: tTeamsMaxSize,
+                last: tLast,
+                short: tShortBracket,
+                sizes: tSizes,
+                advancers: tAdvancers,
+                limit: tLimit
             },
             players: [],
-            bracket: {
-                options: {
-                    last: tCatchUp,
-                    short: tShortBracket,
-                    sizes: tSizes,
-                    advancers: tAdvancers,
-                    limit: tLimit,
-                    lowerScoreIsBetter: tInvertedScore
-                },
-                type: tType,
-            },
             comments: tComments,
         }
         fetcher.submit(
@@ -119,34 +112,27 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
             || modified_tUseTeams
             || modified_tUsersCanCreateTeams
             || modified_tTeamsMaxSize
-            || modified_tInvertedScore
-            || modified_tGlobalTournamentPoints) {
+            || modified_tLowerScoreIsBetter
+            || modified_tGlobalTournamentPoints
+            || modified_tLast
+            || modified_tShortBracket
+            || modified_tLowerScoreIsBetter
+            || modified_tSizes
+            || modified_tAdvancers
+            || modified_tLimit) {
             partialTournament.settings = {
                 type: tType,
                 startTime: tStartTime,
                 useTeams: tUseTeams,
                 usersCanCreateTeams: tUsersCanCreateTeams,
                 teamsMaxSize: tTeamsMaxSize,
-                invertedScore: tInvertedScore,
-                globalTournamentPoints: tGlobalTournamentPoints
-            }
-        }
-        if (modified_tCatchUp
-            || modified_tShortBracket
-            || modified_tInvertedScore
-            || modified_tSizes
-            || modified_tAdvancers
-            || modified_tLimit) {
-            partialTournament.bracket = {
-                type: tType,
-                options: {
-                    last: tCatchUp,
-                    short: tShortBracket,
-                    lowerScoreIsBetter: tInvertedScore,
-                    sizes: tSizes,
-                    advancers: tAdvancers,
-                    limit: tLimit
-                }
+                lowerScoreIsBetter: tLowerScoreIsBetter,
+                globalTournamentPoints: tGlobalTournamentPoints,
+                last: tLast,
+                short: tShortBracket,
+                sizes: tSizes,
+                advancers: tAdvancers,
+                limit: tLimit
             }
         }
         fetcher.submit(
@@ -278,20 +264,20 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                     Paramètres du tournoi
                 </div>
                 <div className="is-flex-col gap-5 grow px-4" style={{ maxHeight: editStep == tournamentEditSteps.PARAMETERS ? undefined : 0 }}>
-                            <div className='is-flex'>
-                                <div className='has-text-right is-one-fifth'>Type de score :</div>
-                                <div className='is-flex-col'>
-                                    <CustomRadio variable={tInvertedScore} setter={set_tInvertedScore} items={[{ label: 'Score classique', value: false }, { label: 'Score inversé', value: true }]} />
-                                    <div className='mx-3 is-size-7'>Sélectionne <i>score classique</i> si le camp gagnant est celui qui a le plus haut score en fin de partie. Dans le cas contraire, bien sûr, sélectionne <i>Score inversé</i>.</div>
-                                </div>
-                            </div>
+                    <div className='is-flex'>
+                        <div className='has-text-right is-one-fifth'>Type de score :</div>
+                        <div className='is-flex-col'>
+                            <CustomRadio variable={tLowerScoreIsBetter} setter={set_tLowerScoreIsBetter} items={[{ label: 'Score classique', value: false }, { label: 'Score inversé', value: true }]} />
+                            <div className='mx-3 is-size-7'>Sélectionne <i>score classique</i> si le camp gagnant est celui qui a le plus haut score en fin de partie. Dans le cas contraire, bien sûr, sélectionne <i>Score inversé</i>.</div>
+                        </div>
+                    </div>
                     {/* Si DUEL */}
                     {tType == TournamentType.Duel &&
                         <>
                             <div className='is-flex'>
                                 <div className='has-text-right is-one-fifth'>Rattrapage :</div>
                                 <div className='is-flex-col no-basis grow'>
-                                    <CustomRadio variable={tCatchUp} setter={set_tCatchUp} items={[{ label: 'non', value: false }, { label: 'oui', value: true }]} />
+                                    <CustomRadio variable={tLast} setter={set_tLast} items={[{ label: 'non', value: Duel.WB }, { label: 'oui', value: Duel.LB }]} />
                                     <div className='mx-3 is-size-7'>En sélectionnant <i>non</i>, le tounois sera à élimination directe, une défaite et zou, tu dégages ! En sélectionnant <i>oui</i>, les joueurs qui perdent une première fois restent en compétition. Au prix de sang et de larmes ils pourront revenir au sommet. Mais en cas de seconde défaite prends ton flambeau, la sentance sera irrévocable.</div>
                                 </div>
                             </div>
@@ -299,13 +285,13 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                                 <div className='has-text-right is-one-fifth'>Format court :</div>
                                 <div className='is-flex-col no-basis grow'>
                                     <CustomRadio variable={tShortBracket} setter={set_tShortBracket} items={[{ label: 'non', value: false }, { label: 'oui', value: true }]} />
-                                    {tCatchUp == true &&
+                                    {tLast == Duel.LB &&
                                         <div className='mx-3 is-size-7'>En sélectionnant <i>oui</i>, il n&apos;y aura pas de double finale. Le gagnant du rattrapage pourra voler la victoire contre le gagnant du tableau principal en une rencontre. C&apos;est pas juste, mais c&apos;est comme ça. En sélectionnant <i>non</i>, la justice reprend le dessus et le gagnant sera alors vraiment celui ayant le moins de défaites.</div>
                                     }
-                                    {tCatchUp == false &&
+                                    {tLast == Duel.WB &&
                                         <div className='mx-3 is-size-7'>En sélectionnant <i>oui</i>, il n&apos;y aura pas de petite finale. Premier, second, les autres sont des perdants. En sélectionnant <i>non</i>, on connaitra le vainqueur de la médaille en chocolat.</div>
                                     }
-                                    {tCatchUp == undefined &&
+                                    {tLast == undefined &&
                                         <div className='mx-3 is-size-7'>Sélectionne une option de rattrapage pour avoir des précisions sur ce paramètre</div>
                                     }
                                 </div>
@@ -333,8 +319,8 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                             <div className='is-flex gap-5'>
                                 <div className='has-text-right is-one-fifth'>Déroulement du tournoi :</div>
                                 <div className='is-flex-col align-end justify-end'>
-                                    <div style={{marginBottom:'.6rem'}}>{tUseTeams == true ? "Équipes" : tUseTeams == false ? "Joueurs" : "Opposants"} max par match :</div>
-                                    <div style={{marginBottom:'.6rem'}}>Qualifiés pour la manche suivante :</div>
+                                    <div style={{ marginBottom: '.6rem' }}>{tUseTeams == true ? "Équipes" : tUseTeams == false ? "Joueurs" : "Opposants"} max par match :</div>
+                                    <div style={{ marginBottom: '.6rem' }}>Qualifiés pour la manche suivante :</div>
                                     <div>Nombre {tUseTeams == true ? "d'équipes" : tUseTeams == false ? "de joueurs" : "d'opposants"} max dans le tournoi :</div>
                                 </div>
                                 <div className='is-flex-col'>
@@ -368,7 +354,7 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                                             </div>
                                         )}
                                     </div>
-                                    
+
                                 </div>
                             </div>
                         </>

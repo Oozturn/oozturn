@@ -1,31 +1,32 @@
 import { DateType } from "./lan"
+import { ManagerStates, TournamentManagerOptions } from "../tournamentManager/tournamentManager"
 
 export enum TournamentStatus {
     Open,
     Balancing,
     Running,
     Paused,
+    Validating,
     Done,
-    Validating
 }
 
 export enum TournamentType {
-    Duel = "DUEL",
-    FFA = "FFA"
+	Duel = "DUEL",
+	FFA = "FFA"
 }
+
 
 export interface globalTournamentPoints {
     leaders: number[]
     default: number
 }
 
-export interface TournamentSettings {
+export interface TournamentSettings extends TournamentManagerOptions {
     type: TournamentType
     startTime: DateType
     useTeams: boolean
     usersCanCreateTeams?: boolean
     teamsMaxSize?: number
-    invertedScore: boolean
     globalTournamentPoints: globalTournamentPoints
 }
 
@@ -65,7 +66,7 @@ export interface Tournament {
     players: Player[]
     teams?: TournamentTeam[]
     settings: TournamentSettings
-    bracket: TournamentBracket
+    managerStates?: ManagerStates[]
     comments: string
 }
 

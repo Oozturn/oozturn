@@ -2,13 +2,22 @@ import { logger } from "~/lib/logging/logging"
 import { dbFolderPath, subscribeObjectManager, writeSafe } from "./db.server"
 import * as fs from 'fs'
 import * as path from 'path'
-import { Tournament, TournamentInfo, TournamentTeam } from "../types/tournaments"
+import { Tournament, TournamentInfo, TournamentStatus, TournamentTeam } from "../types/tournaments"
+import { TournamentManager } from "../tournamentManager/tournamentManager"
 
 declare global {
     var tournaments: Tournament[]
+    var tournamentManagers: TournamentManager[]
 }
 
 const tournamentsFilePath = path.join(dbFolderPath, 'tournaments.json')
+
+
+export function getTournament(tournamentId: string): Tournament {
+    const tournament = global.tournaments.find(tournament => tournament.id == tournamentId)
+    if (!tournament) throw new Error(`Tournament ${tournamentId} not found`)
+    return tournament
+}
 
 subscribeObjectManager("tournaments", {
     onRestore: () => {
@@ -19,10 +28,13 @@ subscribeObjectManager("tournaments", {
         if (fs.existsSync(tournamentsFilePath)) {
             logger.info("Loading tournaments from persistence")
             global.tournaments = JSON.parse(fs.readFileSync(tournamentsFilePath, 'utf-8'))
+            // start tournaments in running state
         } else {
             logger.info("Initialize tournaments")
             global.tournaments = []
         }
+        global.tournamentManagers = []
+        global.tournaments.filter(t => t.status >= TournamentStatus.Running).forEach(t => startTournamentManager(t.id))
     },
     onStore: () => {
         writeSafe(tournamentsFilePath, JSON.stringify(global.tournaments, null, 2))
@@ -42,10 +54,11 @@ export function getTournaments(): TournamentInfo[] {
     })
 }
 
-export function getTournament(tournamentId: string): Tournament {
-    const tournament = global.tournaments.find(tournament => tournament.id == tournamentId)
-    if (!tournament) throw new Error(`Tournament ${tournamentId} not found`)
-    return tournament
+
+export function getTournamentManager(tournamentId: string): TournamentManager {
+    const tournamentManager = global.tournamentManagers.find(tm => tm.tournamentId == tournamentId)
+    if (!tournamentManager) throw new Error(`Tournament manager ${tournamentId} not found`)
+    return tournamentManager
 }
 
 export function getPlayerIndex(tournament: Tournament, userId: string): number {
@@ -79,8 +92,10 @@ export function updateTournament(tournamentId: string, partialTournament: Partia
     global.tournaments[tournamentIndex] = { ...global.tournaments[tournamentIndex], ...partialTournament }
 }
 
-export function cancelTournament(tournamentId: string) {
-    let tournamentIndex = global.tournaments.findIndex(tournament => tournament.id == tournamentId)
-    if (tournamentIndex == -1) throw new Error(`Tournament ${tournamentId} not found`)
-    global.tournaments.splice(tournamentIndex, 1)
+export function startTournamentManager(tournamentId: string) {
+    logger.info(`Starting manager for tournament ${tournamentId}`)
+    if (global.tournamentManagers.find(tm => tm.tournamentId == tournamentId))
+        throw new Error(`Tournament Manager ${tournamentId} already started`)
+    global.tournamentManagers.push(new TournamentManager(tournamentId))
 }
+

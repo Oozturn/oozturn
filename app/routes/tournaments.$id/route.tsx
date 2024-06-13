@@ -1,6 +1,6 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction, redirect } from "@remix-run/node";
 import { useFetcher, useLoaderData, useNavigate } from "@remix-run/react";
-import { TournamentContext } from "~/lib/components/contexts/TournamentsContext";
+import { TournamentContext, useTournament } from "~/lib/components/contexts/TournamentsContext";
 import { Tournament, TournamentStatus, TournamentType } from "~/lib/types/tournaments";
 import { getTournament } from "~/lib/persistence/tournaments.server";
 import TournamentInfoSettings from "./components/tournament-info-settings";
@@ -9,7 +9,7 @@ import { CustomButton } from "~/lib/components/elements/custom-button";
 import { CustomModalBinary } from "~/lib/components/elements/custom-modal";
 import { useState } from "react";
 import { BinSVG, LeaveSVG, ParticipateSVG, StartSVG, SubsribedSVG } from "~/lib/components/data/svg-container";
-import { addPlayerToTournament, addTeamToTournament, toggleBalanceTournament, removePlayerFromTournament, reorderPlayers, reorderTeams, addPlayerToTeam, removeTeamFromTournament, renameTeam, removePlayerFromTeams, distributePlayersOnTeams, balanceTeams, randomizePlayersOnTeams } from "./queries.server";
+import { addPlayerToTournament, addTeamToTournament, toggleBalanceTournament, removePlayerFromTournament, reorderPlayers, reorderTeams, addPlayerToTeam, removeTeamFromTournament, renameTeam, removePlayerFromTeams, distributePlayersOnTeams, balanceTeams, randomizePlayersOnTeams, cancelTournament, startTournament } from "./queries.server";
 import { useUsers } from "~/lib/components/contexts/UsersContext";
 import { PlayersListSolo, PlayersListTeam } from "./components/players-list";
 import { GetFFAMaxPlayers } from "~/lib/utils/tournaments";
@@ -38,6 +38,12 @@ export async function action({ request }: ActionFunctionArgs) {
     const intent = jsonData.intent as string
 
     switch (intent) {
+        case TournamentManagementIntents.START:
+            startTournament(jsonData.tournamentId as string)
+            break;
+        case TournamentManagementIntents.CANCEL:
+            cancelTournament(jsonData.tournamentId as string)
+            break;
         case TournamentManagementIntents.BALANCE:
             toggleBalanceTournament(jsonData.tournamentId as string)
             break;
@@ -109,12 +115,9 @@ export default function TournamentPage() {
     const user = useUser()
     const fetcher = useFetcher()
     const users = useUsers()
-    const navigate = useNavigate()
 
-    const [showConfirmStart, setShowConfirmStart] = useState(false)
-    const [showConfirmCancel, setShowConfirmCancel] = useState(false)
 
-    const canAddPlayers = tournament.settings.type == TournamentType.Duel || (tournament.players.length < GetFFAMaxPlayers(tournament.bracket.options.sizes, tournament.bracket.options.advancers) * (tournament.settings.useTeams ? tournament.settings.teamsMaxSize || 1 : 1))
+    const canAddPlayers = tournament.settings.type == TournamentType.Duel || (tournament.players.length < GetFFAMaxPlayers(tournament.settings.sizes || [], tournament.settings.advancers || []) * (tournament.settings.useTeams ? tournament.settings.teamsMaxSize || 1 : 1))
 
     const joinTournament = () => {
         fetcher.submit(
@@ -161,48 +164,6 @@ export default function TournamentPage() {
         )
     }
 
-    const startTournament = () => {
-        fetcher.submit(
-            {
-                intent: TournamentManagementIntents.START,
-                tournamentId: tournament?.id || "",
-            },
-            { method: "POST", encType: "application/json" }
-        )
-    }
-
-    const stopTournament = () => {
-        fetcher.submit(
-            {
-                intent: TournamentManagementIntents.STOP,
-                tournamentId: tournament?.id || "",
-            },
-            { method: "POST", encType: "application/json" }
-        )
-    }
-
-    const editTournament = () => {
-        navigate(`/tournaments/edit/${tournament.id}`)
-        return;
-        fetcher.submit(
-            {
-                intent: TournamentManagementIntents.EDIT,
-                tournamentId: tournament?.id || "",
-            },
-            { method: "POST", encType: "application/json" }
-        )
-    }
-
-    const cancelTournament = () => {
-        fetcher.submit(
-            {
-                intent: TournamentManagementIntents.CANCEL,
-                tournamentId: tournament?.id || "",
-            },
-            { method: "POST", encType: "application/json" }
-        )
-    }
-
     return <div className="is-flex-row grow gap-3 p-0 is-full-height">
         <TournamentContext.Provider value={tournament}>
             <div className="is-flex-col grow gap-3">
@@ -210,18 +171,9 @@ export default function TournamentPage() {
                     Tournoi {tournament.name}
                 </div>
                 <div className="has-background-secondary-level is-flex-row grow p-3 gap-6">
-                    <div className="is-flex-col is-one-third">
+                    <div className="is-flex-col is-one-third justify-space-between">
                         <TournamentInfoSettings />
-                        <div className='grow'></div>
-                        {user.isAdmin &&
-                            <div className='is-flex justify-end gap-3'>
-                                <CustomButton callback={editTournament} contentItems={[SubsribedSVG(), "Éditer"]} tooltip='Modifier les paramètres du tournoi' colorClass='has-background-primary-level' />
-                                <CustomButton callback={() => setShowConfirmCancel(true)} contentItems={[BinSVG(), "Annuler"]} colorClass='has-background-primary-level' />
-                                <CustomModalBinary show={showConfirmCancel} onHide={() => setShowConfirmCancel(false)} content={"Es-tu sûr de vouloir supprimer ce tournoi ?"} cancelButton={true} onConfirm={cancelTournament} />
-                                <CustomButton callback={() => setShowConfirmStart(true)} contentItems={[StartSVG(), "Démarrer"]} colorClass='has-background-primary-accent' />
-                                <CustomModalBinary show={showConfirmStart} onHide={() => setShowConfirmStart(false)} content={"Es-tu sûr de vouloir démarrer ce tournoi ?"} cancelButton={true} onConfirm={startTournament} />
-                            </div>
-                        }
+                        <TournamentCommands />
                     </div>
                     <div className="is-flex-col grow no-basis">
                         {tournament.settings.useTeams ?
@@ -251,5 +203,60 @@ export default function TournamentPage() {
                 </div>
             </div>
         </TournamentContext.Provider>
+    </div>
+}
+
+function TournamentCommands() {
+    const tournament = useTournament()
+    const user = useUser()
+    const fetcher = useFetcher()
+    const navigate = useNavigate()
+
+    const [showConfirmStart, setShowConfirmStart] = useState(false)
+    const [showConfirmCancel, setShowConfirmCancel] = useState(false)
+    
+    if (!user.isAdmin) return null
+
+    const startTournament = () => {
+        fetcher.submit(
+            {
+                intent: TournamentManagementIntents.START,
+                tournamentId: tournament?.id || "",
+            },
+            { method: "POST", encType: "application/json" }
+        )
+    }
+
+    const stopTournament = () => {
+        fetcher.submit(
+            {
+                intent: TournamentManagementIntents.STOP,
+                tournamentId: tournament?.id || "",
+            },
+            { method: "POST", encType: "application/json" }
+        )
+    }
+
+    const editTournament = () => {
+        navigate(`/tournaments/edit/${tournament.id}`)
+    }
+
+    const cancelTournament = () => {
+        fetcher.submit(
+            {
+                intent: TournamentManagementIntents.CANCEL,
+                tournamentId: tournament?.id || "",
+            },
+            { method: "POST", encType: "application/json" }
+        )
+        navigate("/")
+    }
+
+    return <div className='is-flex justify-end gap-3'>
+        <CustomButton callback={editTournament} contentItems={[SubsribedSVG(), "Éditer"]} tooltip='Modifier les paramètres du tournoi' colorClass='has-background-primary-level' />
+        <CustomButton callback={() => setShowConfirmCancel(true)} contentItems={[BinSVG(), "Annuler"]} colorClass='has-background-primary-level' />
+        <CustomModalBinary show={showConfirmCancel} onHide={() => setShowConfirmCancel(false)} content={"Es-tu sûr de vouloir supprimer ce tournoi ?"} cancelButton={true} onConfirm={cancelTournament} />
+        <CustomButton callback={() => setShowConfirmStart(true)} contentItems={[StartSVG(), "Démarrer"]} colorClass='has-background-primary-accent' />
+        <CustomModalBinary show={showConfirmStart} onHide={() => setShowConfirmStart(false)} content={"Es-tu sûr de vouloir démarrer ce tournoi ?"} cancelButton={true} onConfirm={startTournament} />
     </div>
 }

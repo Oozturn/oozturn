@@ -24,7 +24,6 @@ export function PlayersListSolo() {
     const fetcher = useFetcher()
     const [draggingPlayer, setDraggingPlayer] = useState<string | null>(null);
     const [sortablePlayers, setSortablePlayers] = useState<(Player & { id: string })[]>([]);
-    const [hooveredPlayer, setHooveredPlayer] = useState("")
 
     useEffect(() => {
         setSortablePlayers(tournament.players.map(player => {
@@ -58,17 +57,6 @@ export function PlayersListSolo() {
             )
         }
     }
-    async function removeUserFromTournament(userId: string) {
-        fetcher.submit(
-            {
-                intent: TournamentManagementIntents.REMOVE_PLAYER,
-                tournamentId: tournament?.id || "",
-                userId: userId
-            },
-            { method: "POST", encType: "application/json" }
-        )
-    }
-
 
     return (
         <div className='is-flex-col grow'>
@@ -126,7 +114,7 @@ export function PlayersListTeam() {
     }, [tournament])
 
     const notInTeamPlayers = tournament.players.filter(player => !(tournament.teams ? tournament.teams.flatMap(team => team?.members) : [] as string[]).includes(player.userId)).map(player => player.userId)
-    const canAddTeam = (tournament.settings.type == TournamentType.Duel) || (tournament.settings.type == TournamentType.FFA) && ((tournament.teams || []).length < GetFFAMaxPlayers(tournament.bracket.options.sizes as number[], tournament.bracket.options.advancers as number[]))
+    const canAddTeam = (tournament.settings.type == TournamentType.Duel) || (tournament.settings.type == TournamentType.FFA) && ((tournament.teams || []).length < GetFFAMaxPlayers(tournament.settings.sizes || [], tournament.settings.advancers || []))
 
     tournament.settings.type
 
