@@ -1,5 +1,6 @@
 import { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import { Link } from "@remix-run/react";
+import React from "react";
 import { useGames } from "~/lib/components/contexts/GamesContext";
 import { useLan } from "~/lib/components/contexts/LanContext";
 import { useTournaments } from "~/lib/components/contexts/TournamentsContext";
@@ -48,11 +49,13 @@ export default function Index() {
               </Link>
             }
             {tournaments.map(tournament =>
-              tournament && <IndexTournamentTile tournament={tournament} userId={me.id} game={games?.find(game => game.id == tournament.game)} />
+              <React.Fragment key={tournament.id}>
+                <IndexTournamentTile tournament={tournament} userId={me.id} game={games?.find(game => game.id == tournament.game)} />
+              </React.Fragment>
             )}
           </div>
         </div>
-      </div>
+      </div >
     </>
   );
 }
@@ -60,7 +63,8 @@ export default function Index() {
 function IndexTournamentTile({ tournament, userId, game }: { tournament: TournamentInfo, userId: string, game: Game | undefined }) {
   const backgroundImage = game?.id == undefined ? '' : 'url(/igdb/' + game?.picture + '.jpg)'
   return (
-    <Link to={`/tournaments/${tournament.id}`} key={tournament.id} className={`flat-box homeTournamentBox is-clickable p-0 ${game?.id == undefined ? 'has-generic-game-background-image' : ''}`} style={{ backgroundImage: backgroundImage }}>
+
+    <Link to={`/tournaments/${tournament.id}`} className={`flat-box homeTournamentBox is-clickable p-0 ${game?.id == undefined ? 'has-generic-game-background-image' : ''}`} style={{ backgroundImage: backgroundImage }}>
       <div className={`tournamentName ${tournament.status == TournamentStatus.Done && 'over'}`}>{tournament.name}</div>
       {tournament.players.find(player => player.userId == userId) &&
         <div className='subsribed is-flex is-align-items-center has-background-primary-accent'>
