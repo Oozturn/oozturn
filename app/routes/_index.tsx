@@ -9,7 +9,7 @@ import { AddTournamentCrossSVG, SubsribedSVG } from "~/lib/components/data/svg-c
 import { FormattedTextWithUrls } from "~/lib/components/elements/formatted-text-url";
 import { requireUserLoggedIn } from "~/lib/session.server";
 import { Game } from "~/lib/types/games";
-import { TournamentInfo, TournamentStatus } from "~/lib/types/tournaments";
+import { TournamentInfo, TournamentStatus } from "~/lib/tournamentEngine/types";
 
 export const meta: MetaFunction = () => {
   return [

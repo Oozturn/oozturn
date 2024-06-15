@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useTournament } from "~/lib/components/contexts/TournamentsContext";
 import { useUser } from "~/lib/components/contexts/UserContext";
 import { UserTileRectangle } from "~/lib/components/elements/user-tile";
-import { Player, TournamentStatus, TournamentTeam, TournamentType } from "~/lib/types/tournaments";
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, useDroppable, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, arrayMove } from "@dnd-kit/sortable";
 import { Sortable } from "~/lib/components/dnd/Sortable";
@@ -14,6 +13,7 @@ import { BalanceSVG, BinSVG, DistributeSVG, RandomSVG, SubsribedSVG } from "~/li
 import { Draggable } from "~/lib/components/dnd/Draggable";
 import { useFetcher } from "@remix-run/react";
 import { TeamsManagementIntents, TournamentManagementIntents } from "../route";
+import { BracketType, Player, Team, TournamentStatus } from "~/lib/tournamentEngine/types";
 
 
 
@@ -103,7 +103,7 @@ export function PlayersListTeam() {
 
     const [draggingPlayer, setDraggingPlayer] = useState<string | null>(null);
     const [draggingTeam, setDraggingTeam] = useState<string | null>(null);
-    const [sortableTeams, setSortableTeams] = useState<(TournamentTeam & { id: string })[]>(tournament.teams?.map(team => {
+    const [sortableTeams, setSortableTeams] = useState<(Team & { id: string })[]>(tournament.teams?.map(team => {
         return { ...team, id: 'team_' + team.name }
     }) || []);
 
@@ -114,9 +114,9 @@ export function PlayersListTeam() {
     }, [tournament])
 
     const notInTeamPlayers = tournament.players.filter(player => !(tournament.teams ? tournament.teams.flatMap(team => team?.members) : [] as string[]).includes(player.userId)).map(player => player.userId)
-    const canAddTeam = (tournament.settings.type == TournamentType.Duel) || (tournament.settings.type == TournamentType.FFA) && ((tournament.teams || []).length < GetFFAMaxPlayers(tournament.settings.sizes || [], tournament.settings.advancers || []))
+    const canAddTeam = (tournament.settings[0].type == BracketType.Duel) || (tournament.settings[0].type == BracketType.FFA) && ((tournament.teams || []).length < GetFFAMaxPlayers(tournament.settings[0].sizes || [], tournament.settings[0].advancers || []))
 
-    tournament.settings.type
+    tournament.settings[0].type
 
     async function newTeam(team: string = newTeamName) {
         fetcher.submit(
@@ -169,7 +169,7 @@ export function PlayersListTeam() {
                 over.id = (over.id as string).replace('team_', '')
                 if (active.data.current && (over.id != active.data.current.team)) {
                     const targetTeam = tournament.teams?.find(t => t.name == over.id)
-                    if (targetTeam && tournament.settings.teamsMaxSize && targetTeam.members.length < tournament.settings.teamsMaxSize) {
+                    if (targetTeam && tournament.settings[0].teamsMaxSize && targetTeam.members.length < tournament.settings[0].teamsMaxSize) {
                         await removePlayerFromTeams(playerName)
                         await addPlayerToTeam(playerName, targetTeam.name)
                     }
@@ -237,7 +237,7 @@ export function PlayersListTeam() {
             <div className='is-flex-col p-3 grow'>
                 <div className='is-flex justify-space-between pb-2'>
                     <div className='is-title medium is-uppercase'>équipes</div>
-                    {(user.isAdmin || (tournament.settings.usersCanCreateTeams && notInTeamPlayers.includes(user.id) && tournament.status == TournamentStatus.Open)) && canAddTeam &&
+                    {(user.isAdmin || (tournament.settings[0].usersCanCreateTeams && notInTeamPlayers.includes(user.id) && tournament.status == TournamentStatus.Open)) && canAddTeam &&
                         <CustomButton callback={() => setShowNewTeam(true)} tooltip='Répartir les joueurs sans équipe' contentItems={[SubsribedSVG(), "New team"]} customClasses='small-button' colorClass='has-background-primary-accent' />
                     }
                 </div>
@@ -274,7 +274,7 @@ export function PlayersListTeam() {
 
 
 interface TeamTileProps {
-    team: TournamentTeam
+    team: Team
     draggedPlayer: string | null
     addPlayerToTeam: (player: string, teamName: string) => void
     removePlayerFromTeams: (player: string) => void
@@ -290,7 +290,7 @@ function TeamTile({ team, draggedPlayer, addPlayerToTeam, removePlayerFromTeams 
         id: "team_" + team.name,
     });
 
-    const isFull = !(tournament.settings.useTeams && tournament.settings.teamsMaxSize && team.members.length < tournament.settings.teamsMaxSize)
+    const isFull = !(tournament.settings[0].useTeams && tournament.settings[0].teamsMaxSize && team.members.length < tournament.settings[0].teamsMaxSize)
     const couldJoin = !team.members.includes(user.id)
 
     async function renameTeam(oldTeamName: string, newTeamName: string) {
@@ -387,7 +387,7 @@ function TeamTile({ team, draggedPlayer, addPlayerToTeam, removePlayerFromTeams 
 }
 
 interface OverlayTeamTileProps {
-    team?: TournamentTeam
+    team?: Team
 }
 function OverlayTeamTile({ team }: OverlayTeamTileProps) {
     if (!team) return null

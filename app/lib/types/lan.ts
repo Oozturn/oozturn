@@ -1,5 +1,3 @@
-import { globalTournamentPoints } from "./tournaments"
-
 export interface Lan {
     name: string
     motd: string
@@ -17,4 +15,9 @@ export interface DateType {
     day: number
     hour: number
     min: number
+}
+
+export interface globalTournamentPoints {
+    leaders: number[]
+    default: number
 }

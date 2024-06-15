@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useLan } from "../contexts/LanContext";
-import { Tournament, TournamentStatus, TournamentType, globalTournamentPoints } from "~/lib/types/tournaments";
 import { CustomSelect } from "../elements/custom-select";
 import { useGames } from "../contexts/GamesContext";
 import { Days, range } from "~/lib/utils/ranges";
@@ -10,7 +9,9 @@ import { GetFFAMaxPlayers } from "~/lib/utils/tournaments";
 import { CustomButton } from "../elements/custom-button";
 import { useFetcher } from "@remix-run/react";
 import { EditGlobalTournamentPoints } from "../elements/global-tournament-points";
-import { Duel } from "~/lib/tournamentManager/tournament/duel";
+import { Duel } from "~/lib/tournamentEngine/tournament/duel";
+import { BracketSettings, BracketType, TournamentFullData, TournamentProperties } from "~/lib/tournamentEngine/types";
+import { globalTournamentPoints } from "~/lib/types/lan";
 
 const enum tournamentEditSteps {
     PROPERTIES,
@@ -18,7 +19,6 @@ const enum tournamentEditSteps {
     PARAMETERS,
     COMMENTS,
 }
-
 
 export function useStateMonitored<T>(defaultValue: T): [value: T, setValue: (newValue: T) => void, modified: boolean] {
     const [value, _setValue] = useState(defaultValue)
@@ -32,7 +32,7 @@ export function useStateMonitored<T>(defaultValue: T): [value: T, setValue: (new
 }
 
 interface TournamentEditProps {
-    existingTournament?: Tournament
+    existingTournament?: TournamentFullData
 }
 export default function TournamentEdit({ existingTournament }: TournamentEditProps) {
 
@@ -43,102 +43,91 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
 
     const tId = existingTournament ? existingTournament.id : Date.now().toString()
 
-    const [tName, set_tName, modified_tName] = useStateMonitored(existingTournament ? existingTournament.name : "")
-    const [tGame, set_tGame, modified_tGame] = useStateMonitored(existingTournament ? existingTournament.game : undefined)
-    const [tGlobalTournamentPoints, set_tGlobalTournamentPoints, modified_tGlobalTournamentPoints] = useStateMonitored<globalTournamentPoints>(existingTournament ? { leaders: existingTournament.settings.globalTournamentPoints.leaders.slice(), default: existingTournament.settings.globalTournamentPoints.default } : lan.globalTournamentDefaultPoints)
-    const [tStartTime, set_tStartTime, modified_tStartTime] = useStateMonitored(existingTournament ? existingTournament.settings.startTime : lan.startDate)
-    const [tComments, set_tComments, modified_tComments] = useStateMonitored(existingTournament ? existingTournament.comments : "")
+    const [tName, set_tName, modified_tName] = useStateMonitored(existingTournament ? existingTournament.properties.name : "")
+    const [tGame, set_tGame, modified_tGame] = useStateMonitored(existingTournament ? existingTournament.properties.game : undefined)
+    const [tGlobalTournamentPoints, set_tGlobalTournamentPoints, modified_tGlobalTournamentPoints] = useStateMonitored<globalTournamentPoints>(existingTournament ? { leaders: existingTournament.properties.globalTournamentPoints.leaders.slice(), default: existingTournament.properties.globalTournamentPoints.default } : lan.globalTournamentDefaultPoints)
+    const [tStartTime, set_tStartTime, modified_tStartTime] = useStateMonitored(existingTournament ? existingTournament.properties.startTime : lan.startDate)
+    const [tComments, set_tComments, modified_tComments] = useStateMonitored(existingTournament ? existingTournament.properties.comments : "")
 
-    const [tType, set_tType, modified_tType] = useStateMonitored(existingTournament ? existingTournament.settings.type : TournamentType.Duel)
-    const [tUseTeams, set_tUseTeams, modified_tUseTeams] = useStateMonitored(existingTournament ? existingTournament.settings.useTeams : false)
-    const [tLowerScoreIsBetter, set_tLowerScoreIsBetter, modified_tLowerScoreIsBetter] = useStateMonitored(existingTournament ? existingTournament.settings.lowerScoreIsBetter : false)
+    const [tType, set_tType, modified_tType] = useStateMonitored(existingTournament ? existingTournament.settings[0].type : BracketType.Duel)
+    const [tUseTeams, set_tUseTeams, modified_tUseTeams] = useStateMonitored(existingTournament ? existingTournament.settings[0].useTeams : false)
+    const [tLowerScoreIsBetter, set_tLowerScoreIsBetter, modified_tLowerScoreIsBetter] = useStateMonitored(existingTournament ? existingTournament.settings[0].lowerScoreIsBetter : false)
 
     // Duel options
-    const [tLast, set_tLast, modified_tLast] = useStateMonitored(existingTournament ? existingTournament.settings.last : undefined)
-    const [tShortBracket, set_tShortBracket, modified_tShortBracket] = useStateMonitored(existingTournament ? existingTournament.settings.short : undefined)
+    const [tLast, set_tLast, modified_tLast] = useStateMonitored(existingTournament ? existingTournament.settings[0].last : undefined)
+    const [tShortBracket, set_tShortBracket, modified_tShortBracket] = useStateMonitored(existingTournament ? existingTournament.settings[0].short : undefined)
 
     // FFA options
-    const [tNbRounds, set_tNbRounds] = useState(existingTournament ? existingTournament.settings.sizes?.length || 2 : 2)
-    const [tSizes, set_tSizes, modified_tSizes] = useStateMonitored(existingTournament ? existingTournament.settings.sizes || [6, 6] : [6, 6])
-    const [tAdvancers, set_tAdvancers, modified_tAdvancers] = useStateMonitored(existingTournament ? existingTournament.settings.advancers || [3] : [3])
-    const [tLimit, set_tLimit, modified_tLimit] = useStateMonitored(existingTournament ? existingTournament.settings.limit : 1)
+    const [tNbRounds, set_tNbRounds] = useState(existingTournament ? existingTournament.settings[0].sizes?.length || 2 : 2)
+    const [tSizes, set_tSizes, modified_tSizes] = useStateMonitored(existingTournament ? existingTournament.settings[0].sizes || [6, 6] : [6, 6])
+    const [tAdvancers, set_tAdvancers, modified_tAdvancers] = useStateMonitored(existingTournament ? existingTournament.settings[0].advancers || [3] : [3])
+    const [tLimit, set_tLimit, modified_tLimit] = useStateMonitored(existingTournament ? existingTournament.settings[0].limit : 1)
 
     // Teams options
-    const [tUsersCanCreateTeams, set_tUsersCanCreateTeams, modified_tUsersCanCreateTeams] = useStateMonitored(existingTournament ? existingTournament.settings.usersCanCreateTeams : false)
-    const [tTeamsMaxSize, set_tTeamsMaxSize, modified_tTeamsMaxSize] = useStateMonitored(existingTournament ? existingTournament.settings.teamsMaxSize : 8)
+    const [tUsersCanCreateTeams, set_tUsersCanCreateTeams, modified_tUsersCanCreateTeams] = useStateMonitored(existingTournament ? existingTournament.settings[0].usersCanCreateTeams : false)
+    const [tTeamsMaxSize, set_tTeamsMaxSize, modified_tTeamsMaxSize] = useStateMonitored(existingTournament ? existingTournament.settings[0].teamsMaxSize : 8)
 
 
     const fetcher = useFetcher();
     function PublishTournament() {
-        const tournament: Tournament = {
-            id: tId,
+        const id: string = tId
+        const properties: TournamentProperties = {
             name: tName,
             game: tGame,
-            status: TournamentStatus.Open,
-            settings: {
-                lowerScoreIsBetter: tLowerScoreIsBetter,
-                type: tType,
-                startTime: tStartTime,
-                useTeams: tUseTeams,
-                globalTournamentPoints: tGlobalTournamentPoints,
-                usersCanCreateTeams: tUsersCanCreateTeams,
-                teamsMaxSize: tTeamsMaxSize,
-                last: tLast,
-                short: tShortBracket,
-                sizes: tSizes,
-                advancers: tAdvancers,
-                limit: tLimit
-            },
-            players: [],
+            startTime: tStartTime,
+            globalTournamentPoints: tGlobalTournamentPoints,
             comments: tComments,
+        }
+        const settings: BracketSettings = {
+            // Common
+            type: tType,
+            useTeams: tUseTeams,
+            usersCanCreateTeams: tUsersCanCreateTeams,
+            teamsMaxSize: tTeamsMaxSize,
+            lowerScoreIsBetter: tLowerScoreIsBetter,
+            // Duel
+            short: tShortBracket,
+            last: tLast,
+            // FFA
+            limit: tLimit,
+            sizes: tSizes,
+            advancers: tAdvancers,
         }
         fetcher.submit(
             {
-                tournamentId: tournament.id,
-                tournament: JSON.stringify(tournament)
+                tournamentId: id,
+                tournamentProperties: JSON.stringify(properties),
+                tournamentSettings: JSON.stringify([settings])
             },
             { method: "POST", encType: "application/json" }
         )
-
     }
     function UpdateTournament() {
         if (!existingTournament) return;
-        const partialTournament: Partial<Tournament> = {}
-        if (modified_tName) partialTournament.name = tName
-        if (modified_tGame) partialTournament.game = tGame
-        if (modified_tComments) partialTournament.comments = tComments
-        if (modified_tType
-            || modified_tStartTime
-            || modified_tUseTeams
-            || modified_tUsersCanCreateTeams
-            || modified_tTeamsMaxSize
-            || modified_tLowerScoreIsBetter
-            || modified_tGlobalTournamentPoints
-            || modified_tLast
-            || modified_tShortBracket
-            || modified_tLowerScoreIsBetter
-            || modified_tSizes
-            || modified_tAdvancers
-            || modified_tLimit) {
-            partialTournament.settings = {
-                type: tType,
-                startTime: tStartTime,
-                useTeams: tUseTeams,
-                usersCanCreateTeams: tUsersCanCreateTeams,
-                teamsMaxSize: tTeamsMaxSize,
-                lowerScoreIsBetter: tLowerScoreIsBetter,
-                globalTournamentPoints: tGlobalTournamentPoints,
-                last: tLast,
-                short: tShortBracket,
-                sizes: tSizes,
-                advancers: tAdvancers,
-                limit: tLimit
-            }
+        const partialProperties: Partial<TournamentProperties> = {
+            name: modified_tName ? tName : undefined,
+            game: modified_tGame ? tGame : undefined,
+            startTime: modified_tStartTime ? tStartTime : undefined,
+            globalTournamentPoints: modified_tGlobalTournamentPoints ? tGlobalTournamentPoints : undefined,
+            comments: modified_tComments ? tComments : undefined
+        }
+        const partialSettings: Partial<BracketSettings> = {
+            type: modified_tType ? tType : undefined,
+            useTeams: modified_tUseTeams ? tUseTeams : undefined,
+            usersCanCreateTeams: modified_tUsersCanCreateTeams ? tUsersCanCreateTeams : undefined,
+            teamsMaxSize: modified_tTeamsMaxSize ? tTeamsMaxSize : undefined,
+            lowerScoreIsBetter: modified_tLowerScoreIsBetter ? tLowerScoreIsBetter : undefined,
+            last: modified_tLast ? tLast : undefined,
+            short: modified_tShortBracket ? tShortBracket : undefined,
+            sizes: modified_tSizes ? tSizes : undefined,
+            advancers: modified_tAdvancers ? tAdvancers : undefined,
+            limit: modified_tLimit ? tLimit : undefined
         }
         fetcher.submit(
             {
                 tournamentId: tId,
-                tournament: JSON.stringify(partialTournament)
+                tournamentProperties: JSON.stringify(partialProperties),
+                tournamentSettings: JSON.stringify([partialSettings])
             },
             { method: "POST", encType: "application/json" }
         )
@@ -213,14 +202,14 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                     <div className='is-flex gap-3'>
                         {/* <div className='has-text-right is-one-fifth'>Type de match :</div> */}
                         <div className='is-flex-col align-center gap-1 grow no-basis'>
-                            <div className={`svgSelection is-clickable ${tType == TournamentType.Duel ? 'is-active' : ''}`} onClick={() => set_tType(TournamentType.Duel)}>
+                            <div className={`svgSelection is-clickable ${tType == BracketType.Duel ? 'is-active' : ''}`} onClick={() => set_tType(BracketType.Duel)}>
                                 <DuelSVG />
                             </div>
                             <div className='is-title medium'>DUEL</div>
                             <div className='px-4 is-size-7 has-text-centered'>Sélectionne le mode Duel si le jeu fait s’opposer 2 camps lors d’un duel qui fera ressortir un gagnant et un perdant.</div>
                         </div>
                         <div className='is-flex-col align-center gap-1 grow no-basis'>
-                            <div className={`svgSelection is-clickable ${tType == TournamentType.FFA ? 'is-active' : ''}`} onClick={() => set_tType(TournamentType.FFA)}>
+                            <div className={`svgSelection is-clickable ${tType == BracketType.FFA ? 'is-active' : ''}`} onClick={() => set_tType(BracketType.FFA)}>
                                 <FFASVG />
 
                             </div>
@@ -233,13 +222,13 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                         {/* <div className='has-text-right is-one-fifth'>Type d’opposants :</div> */}
                         <div className='is-flex-col align-center gap-1 grow no-basis'>
                             <div className={`svgSelection is-clickable ${tUseTeams == false ? 'is-active' : ''}`} onClick={() => set_tUseTeams(false)}>
-                                {tType == TournamentType.Duel ? <DuelSoloSVG /> : <FFASoloSVG />}
+                                {tType == BracketType.Duel ? <DuelSoloSVG /> : <FFASoloSVG />}
                             </div>
                             <div className='is-title medium'>SOLO</div>
                         </div>
                         <div className='is-flex-col align-center gap-1 grow no-basis'>
                             <div className={`svgSelection is-clickable ${tUseTeams == true ? 'is-active' : ''}`} onClick={() => set_tUseTeams(true)}>
-                                {tType == TournamentType.Duel ? <DuelTeamSVG /> : <FFATeamSVG />}
+                                {tType == BracketType.Duel ? <DuelTeamSVG /> : <FFATeamSVG />}
                             </div>
                             <div className='is-title medium'>ÉQUIPES</div>
                         </div>
@@ -272,7 +261,7 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                         </div>
                     </div>
                     {/* Si DUEL */}
-                    {tType == TournamentType.Duel &&
+                    {tType == BracketType.Duel &&
                         <>
                             <div className='is-flex'>
                                 <div className='has-text-right is-one-fifth'>Rattrapage :</div>
@@ -299,7 +288,7 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                         </>
                     }
                     {/* Si FFA */}
-                    {tType == TournamentType.FFA &&
+                    {tType == BracketType.FFA &&
                         <>
                             <div className='is-flex gap-3'>
                                 <div className='has-text-right is-one-fifth'>Nombre de manches :</div>

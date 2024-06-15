@@ -143,7 +143,7 @@ class Id implements TournamentId {
   };
 }
 
-interface DuelOpts {
+export interface DuelOpts {
   short?: boolean,
   last?: number,
   downMix?: boolean,

@@ -1,9 +1,9 @@
 import { createContext, useContext } from "react";
-import { Tournament, TournamentInfo } from "~/lib/types/tournaments";
+import { TournamentFullData, TournamentInfo } from "~/lib/tournamentEngine/types";
 
 
 export const TournamentsContext = createContext<TournamentInfo[]>([])
-export const TournamentContext = createContext<Tournament | undefined>(undefined)
+export const TournamentContext = createContext<TournamentFullData | undefined>(undefined)
 
 export function useTournaments() {
     const tournaments = useContext(TournamentsContext)

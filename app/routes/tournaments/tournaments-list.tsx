@@ -2,7 +2,7 @@ import { NavLink } from "@remix-run/react";
 import { useTournaments } from "~/lib/components/contexts/TournamentsContext";
 import { useUser } from "~/lib/components/contexts/UserContext";
 import { useGames } from "~/lib/components/contexts/GamesContext";
-import { TournamentStatus } from "~/lib/types/tournaments";
+import { TournamentStatus } from "~/lib/tournamentEngine/types";
 
 
 export default function TournamentsList() {

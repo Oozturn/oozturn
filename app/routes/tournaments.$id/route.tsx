@@ -1,7 +1,5 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction, redirect } from "@remix-run/node";
 import { useFetcher, useLoaderData, useNavigate } from "@remix-run/react";
-import { TournamentContext, useTournament } from "~/lib/components/contexts/TournamentsContext";
-import { Tournament, TournamentStatus, TournamentType } from "~/lib/types/tournaments";
 import { getTournament } from "~/lib/persistence/tournaments.server";
 import TournamentInfoSettings from "./components/tournament-info-settings";
 import { useUser } from "~/lib/components/contexts/UserContext";
@@ -14,19 +12,21 @@ import { useUsers } from "~/lib/components/contexts/UsersContext";
 import { PlayersListSolo, PlayersListTeam } from "./components/players-list";
 import { GetFFAMaxPlayers } from "~/lib/utils/tournaments";
 import { useLan } from "~/lib/components/contexts/LanContext";
+import { BracketType, TournamentFullData, TournamentStatus } from "~/lib/tournamentEngine/types";
+import { TournamentContext, useTournament } from "~/lib/components/contexts/TournamentsContext";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
-        { title: useLan().name + " - Tournoi " + data?.tournament.name }
+        { title: useLan().name + " - Tournoi " + data?.tournament.properties.name }
     ]
 }
 
 export async function loader({
     params,
 }: LoaderFunctionArgs): Promise<{
-    tournament: Tournament
+    tournament: TournamentFullData
 }> {
-    let tournament: Tournament | undefined = undefined
+    let tournament: TournamentFullData | undefined = undefined
     try {
         tournament = getTournament(params.id || "")
     } catch { throw redirect('/tournaments/404') }
@@ -117,7 +117,7 @@ export default function TournamentPage() {
     const users = useUsers()
 
 
-    const canAddPlayers = tournament.settings.type == TournamentType.Duel || (tournament.players.length < GetFFAMaxPlayers(tournament.settings.sizes || [], tournament.settings.advancers || []) * (tournament.settings.useTeams ? tournament.settings.teamsMaxSize || 1 : 1))
+    const canAddPlayers = tournament.settings[0].type == BracketType.Duel || (tournament.players.length < GetFFAMaxPlayers(tournament.settings[0].sizes || [], tournament.settings[0].advancers || []) * (tournament.settings[0].useTeams ? tournament.settings[0].teamsMaxSize || 1 : 1))
 
     const joinTournament = () => {
         fetcher.submit(
@@ -168,7 +168,7 @@ export default function TournamentPage() {
         <TournamentContext.Provider value={tournament}>
             <div className="is-flex-col grow gap-3">
                 <div className="is-title big is-uppercase has-background-secondary-level p-2 px-4">
-                    Tournoi {tournament.name}
+                    Tournoi {tournament.properties.name}
                 </div>
                 <div className="has-background-secondary-level is-flex-row grow p-3 gap-6">
                     <div className="is-flex-col is-one-third justify-space-between">
@@ -176,7 +176,7 @@ export default function TournamentPage() {
                         <TournamentCommands />
                     </div>
                     <div className="is-flex-col grow no-basis">
-                        {tournament.settings.useTeams ?
+                        {tournament.settings[0].useTeams ?
                             <PlayersListTeam />
                             :
                             <PlayersListSolo />

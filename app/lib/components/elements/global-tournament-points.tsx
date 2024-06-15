@@ -1,5 +1,5 @@
 import { useFetcher } from "@remix-run/react";
-import { globalTournamentPoints } from "~/lib/types/tournaments";
+import { globalTournamentPoints } from "~/lib/types/lan";
 import { AdminIntents } from "~/routes/admin/route";
 
 interface ShowGlobalTournamentPointsProps {

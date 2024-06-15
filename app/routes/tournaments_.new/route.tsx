@@ -2,8 +2,8 @@ import { ActionFunctionArgs, MetaFunction, redirect } from "@remix-run/node";
 import TournamentEdit from "~/lib/components/tournaments/edit";
 import { newTournament } from "~/lib/persistence/tournaments.server";
 import { requireUserLoggedIn } from "~/lib/session.server";
-import { Tournament } from "~/lib/types/tournaments";
 import { useLan } from "~/lib/components/contexts/LanContext";
+import { BracketSettings, TournamentProperties } from "~/lib/tournamentEngine/types";
 
 export const meta: MetaFunction = () => {
     return [
@@ -14,10 +14,11 @@ export const meta: MetaFunction = () => {
 export async function action({ request }: ActionFunctionArgs) {
     requireUserLoggedIn(request)
     const jsonData = await request.json()
-    const tournament = JSON.parse(jsonData.tournament) as Tournament
-    newTournament(tournament)
-
-    return redirect("/tournaments/" + tournament.id);
+    const tournamentId = jsonData.tournamentId as string
+    const tournamentSettings = JSON.parse(jsonData.tournamentSettings) as BracketSettings[]
+    const tournamentProperties = JSON.parse(jsonData.tournamentProperties) as TournamentProperties
+    newTournament(tournamentId, tournamentProperties, tournamentSettings)
+    return redirect("/tournaments/" + tournamentId);
 }
 
 export default function NewTournament() {

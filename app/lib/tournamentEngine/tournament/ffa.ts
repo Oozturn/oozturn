@@ -1,4 +1,3 @@
-import next from "next/types";
 import { compare, firstBy, flatten, gt, insert, maximum, replicate, zip } from "./interlude/interlude";
 import { Match } from "./match";
 import { group, minimalGroupSize } from "./scheduling/group";
@@ -151,7 +150,7 @@ class Id implements TournamentId {
   };
 }
 
-interface FFAOpts {
+export interface FFAOpts {
   limit?: number;
   advancers?: number[];
   sizes?: number[];

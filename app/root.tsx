@@ -21,7 +21,7 @@ import { getUserById, getUsers } from "./lib/persistence/users.server";
 import { getUserId, isUserLoggedIn } from "./lib/session.server";
 import { Game } from "./lib/types/games";
 import { Lan } from "./lib/types/lan";
-import { TournamentInfo } from "./lib/types/tournaments";
+import { TournamentInfo } from "./lib/tournamentEngine/types";
 import { User } from "./lib/types/user";
 import "./styles/globals.scss";
 import 'react-contexify/ReactContexify.css';

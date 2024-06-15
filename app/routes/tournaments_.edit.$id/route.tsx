@@ -2,19 +2,19 @@ import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction, redirect } from "
 import { useLoaderData } from "@remix-run/react";
 import { useLan } from "~/lib/components/contexts/LanContext";
 import TournamentEdit from "~/lib/components/tournaments/edit";
-import { getTournament, updateTournament } from "~/lib/persistence/tournaments.server";
+import { getTournament, updateTournamentProperties, updateTournamentSettings } from "~/lib/persistence/tournaments.server";
 import { requireUserLoggedIn } from "~/lib/session.server";
-import { Tournament } from "~/lib/types/tournaments";
+import { BracketSettings, TournamentFullData, TournamentProperties } from "~/lib/tournamentEngine/types";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
-        { title: useLan().name + " - Edition du tournoi " + data?.tournament.name }
+        { title: useLan().name + " - Edition du tournoi " + data?.tournament.properties.name }
     ]
 }
 
-export async function loader({ params, request }: LoaderFunctionArgs): Promise<{ tournament: Tournament }> {
+export async function loader({ params, request }: LoaderFunctionArgs): Promise<{ tournament: TournamentFullData }> {
     requireUserLoggedIn(request)
-    let tournament: Tournament | undefined = undefined
+    let tournament: TournamentFullData | undefined = undefined
     try {
         tournament = getTournament(params.id || "")
     } catch { throw redirect('/tournaments/404') }
@@ -25,8 +25,10 @@ export async function action({ request }: ActionFunctionArgs) {
     requireUserLoggedIn(request)
     const jsonData = await request.json()
     const tournamentId = jsonData.tournamentId as string
-    const partialTournament = JSON.parse(jsonData.tournament) as Partial<Tournament>
-    updateTournament(tournamentId, partialTournament)
+    const partialTournamentSettings = JSON.parse(jsonData.tournamentSettings) as Partial<BracketSettings>
+    const partialTournamentProperties = JSON.parse(jsonData.tournamentProperties) as Partial<TournamentProperties>
+    updateTournamentSettings(tournamentId, partialTournamentSettings)
+    updateTournamentProperties(tournamentId, partialTournamentProperties)
     return redirect("/tournaments/" + tournamentId);
 }
 
