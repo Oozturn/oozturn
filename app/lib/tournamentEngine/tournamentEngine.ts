@@ -38,6 +38,9 @@ interface TournamentSpecification {
 	addPlayerToTeam(teamName: string, userId: string): void
 	removePlayerFromTeams(userId: string): void
 	reorderTeams(oldIndex: number, newIndex: number): void
+	distributePlayersOnTeams(): void
+	balanceTeams(): void
+	randomizePlayersOnTeams(): void
 
 	getStatus(): TournamentStatus
 	toggleBalanceTournament(): void
@@ -199,7 +202,7 @@ export class TournamentEngine implements TournamentSpecification {
 	}
 	public addPlayerToTeam(teamName: string, userId: string): void {
 		if (!this.players.find(player => player.userId == userId))
-			throw new Error(`Player ${userId} not found in tournament ${this.id}`)
+			this.addPlayer(userId)
 		const team = this.teams.find(team => team.name == teamName)
 		if (!team)
 			throw new Error(`Team ${teamName} not found in tournament ${this.id}`)
@@ -221,6 +224,32 @@ export class TournamentEngine implements TournamentSpecification {
 		const team = this.teams.splice(oldIndex, 1)[0]
 		this.teams.splice(newIndex, 0, team)
 		this.reSeedOpponents(this.teams)
+	}
+	public distributePlayersOnTeams(): void {
+		if (!this.teams.length)
+			throw new Error(`No team in tournament ${this.id}`);
+		const notInTeamPlayers = this.players.filter(player => !this.teams.flatMap(team => team.members).includes(player.userId))
+		while (notInTeamPlayers.length) {
+			const teams = this.teams.map(t => t).sort((a, b) => a.members.length - b.members.length)
+            if (this.settings[0].teamsMaxSize && teams[0].members.length >= this.settings[0].teamsMaxSize) break
+            notInTeamPlayers.splice(0, Math.max(1, teams[1].members.length - teams[0].members.length)).forEach(p => this.addPlayerToTeam(teams[0].name, p.userId))
+        }
+	}
+	public balanceTeams(): void {
+        if (!this.teams.length)
+			throw new Error(`No team in tournament ${this.id}`)
+        const targetMembers = Math.ceil(this.teams.flatMap(team => team?.members).length / this.teams.length)
+        while (Math.max(...this.teams.map(t => t.members.length)) > targetMembers) {
+            const teams = this.teams.map(t => t).sort((a, b) => b.members.length - a.members.length)
+            teams[teams.length - 1].members.push(teams[0].members.splice(0, 1)[0])
+        }
+	}
+	public randomizePlayersOnTeams(): void {
+		if (!this.teams.length)
+			throw new Error(`No team in tournament ${this.id}`)
+		this.teams.forEach(t => t.members.splice(0))
+		this.players.sort((a, b) => Math.random() - .5)
+		this.distributePlayersOnTeams()
 	}
 
 	public getStatus(): TournamentStatus {

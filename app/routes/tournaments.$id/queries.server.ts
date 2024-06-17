@@ -13,6 +13,15 @@ export function startTournament(tournamentId: string) {
         logger.error(`Error while trying to start tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }
 }
+export function stopTournament(tournamentId: string) {
+    try {
+        const tournament = getTournament(tournamentId)
+        logger.info(`Stoping tournament ${tournamentId}`)
+        tournament.stopTournament()
+    } catch (error) {
+        logger.error(`Error while trying to stop tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
+    }
+}
 export function cancelTournament(tournamentId: string) {
     try {
         logger.warn(`Deleting tournament ${tournamentId}`)
@@ -108,14 +117,8 @@ export function removePlayerFromTeams(tournamentId: string, userId: string) {
 export function distributePlayersOnTeams(tournamentId: string) {
     // Push all 'not in team' players to a team, trying to balance the teams
     try {
-        const tournament = getTournament(tournamentId).getFullData()
-        if (!tournament.teams) throw new Error(`No team found in tournament ${tournament.id}`)
-        const notInTeamPlayers = tournament.players.filter(player => !(tournament.teams ? tournament.teams.flatMap(team => team?.members) : [] as string[]).includes(player.userId))
-        while (notInTeamPlayers.length) {
-            const teams = tournament.teams.map(t => t).sort((a, b) => a.members.length - b.members.length)
-            if (tournament.settings[0].teamsMaxSize && teams[0].members.length >= tournament.settings[0].teamsMaxSize) break
-            notInTeamPlayers.splice(0, Math.max(1, teams[1].members.length - teams[0].members.length)).forEach(p => addPlayerToTeam(tournamentId, teams[0].name, p.userId))
-        }
+        const tournament = getTournament(tournamentId)
+        tournament.distributePlayersOnTeams()
     } catch (error) {
         logger.error(`Error while trying to distribute players in tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }
@@ -123,13 +126,8 @@ export function distributePlayersOnTeams(tournamentId: string) {
 export function balanceTeams(tournamentId: string) {
     // Spread evenly players already in teams to balance them
     try {
-        const tournament = getTournament(tournamentId).getFullData()
-        if (!tournament.teams) throw new Error(`No team found in tournament ${tournament.id}`)
-        const targetMembers = Math.ceil(tournament.teams.flatMap(team => team?.members).length / tournament.teams.length)
-        while (Math.max(...tournament.teams.map(t => t.members.length)) > targetMembers) {
-            const teams = tournament.teams.map(t => t).sort((a, b) => b.members.length - a.members.length)
-            teams[teams.length - 1].members.push(teams[0].members.splice(0, 1)[0])
-        }
+        const tournament = getTournament(tournamentId)
+        tournament.balanceTeams()
     } catch (error) {
         logger.error(`Error while trying to balance teams in tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }
@@ -137,11 +135,8 @@ export function balanceTeams(tournamentId: string) {
 export function randomizePlayersOnTeams(tournamentId: string) {
     // Remove all players from teams then spread them evenly
     try {
-        const tournament = getTournament(tournamentId).getFullData()
-        if (!tournament.teams) throw new Error(`No team found in tournament ${tournament.id}`)
-        tournament.teams.forEach(t => t.members.splice(0))
-        tournament.players.sort((a, b) => Math.random() * 2 - 1)
-        distributePlayersOnTeams(tournamentId)
+        const tournament = getTournament(tournamentId)
+        tournament.randomizePlayersOnTeams()
     } catch (error) {
         logger.error(`Error while trying to distribute players in tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }
