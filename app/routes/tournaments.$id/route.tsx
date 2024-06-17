@@ -28,7 +28,7 @@ export async function loader({
 }> {
     let tournament: TournamentFullData | undefined = undefined
     try {
-        tournament = getTournament(params.id || "")
+        tournament = getTournament(params.id || "").getFullData()
     } catch { throw redirect('/tournaments/404') }
     return { tournament: tournament }
 }

@@ -3,7 +3,7 @@ import { dbFolderPath, subscribeObjectManager, writeSafe } from "./db.server"
 import * as fs from 'fs'
 import * as path from 'path'
 import { TournamentEngine, TournamentStorage } from "../tournamentEngine/tournamentEngine"
-import { BracketSettings, TournamentFullData, TournamentInfo, TournamentProperties } from "../tournamentEngine/types"
+import { BracketSettings, TournamentInfo, TournamentProperties } from "../tournamentEngine/types"
 
 declare global {
     var tournaments: TournamentEngine[]
@@ -31,20 +31,14 @@ subscribeObjectManager("tournaments", {
     }
 })
 
-export function getTournament(tournamentId: string): TournamentFullData {
+export function getTournament(tournamentId: string): TournamentEngine {
     const tournament = global.tournaments.find(tournament => tournament.getId() == tournamentId)
     if (!tournament) throw new Error(`Tournament ${tournamentId} not found`)
-    return tournament.getFullData()
+    return tournament
 }
 
 export function getTournaments(): TournamentInfo[] {
     return global.tournaments.map(t => t.getInfo())
-}
-
-export function getTournamentEngine(tournamentId: string): TournamentEngine {
-    const tournament = global.tournaments.find(tournament => tournament.getId() == tournamentId)
-    if (!tournament) throw new Error(`Tournament ${tournamentId} not found`)
-    return tournament
 }
 
 export function newTournament(tournamentId: string, properties: TournamentProperties, settings: BracketSettings[]) {
