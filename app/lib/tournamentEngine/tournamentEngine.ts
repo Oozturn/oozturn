@@ -87,7 +87,7 @@ export class TournamentEngine implements TournamentSpecification {
 	public getStorage(): TournamentStorage {
 		return {
 			info: this.getInfo(),
-			settings: this.brackets.map((b, i) => this.getSettings(i)),
+			settings: [this.getSettings()],
 			states: this.bracketsStates
 		}
 	}
@@ -240,6 +240,7 @@ export class TournamentEngine implements TournamentSpecification {
 			this.brackets.push(new Duel(opponentsLength, this.settings[0]))
 		else
 			this.brackets.push(new FFA(opponentsLength, this.settings[0]))
+		this.status = TournamentStatus.Running
 		this.bracketsStates.forEach(bs => this.applyState(bs))
 	}
 	public togglePauseTournament(): void {

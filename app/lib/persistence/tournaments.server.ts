@@ -41,26 +41,6 @@ export function getTournaments(): TournamentInfo[] {
     return global.tournaments.map(t => t.getInfo())
 }
 
-// export function getPlayerIndex(tournamentId: string, userId: string): number {
-//     const index = tournament.players.findIndex(p => p.userId == userId)
-//     if (index == -1) throw new Error(`Player ${userId} not found in tournament ${tournament.id}`)
-//     return index
-// }
-
-// export function getTeamIndex(tournamentId: string, teamName: string): number {
-//     if (!tournament.teams) throw new Error(`No teams in tournament ${tournament.id}`)
-//     const index = tournament.teams?.findIndex(t => t.name == teamName)
-//     if (index == -1) throw new Error(`Team ${teamName} not found in tournament ${tournament.id}`)
-//     return index
-// }
-
-// export function getTeam(tournamentId: string, teamName: string): TournamentTeam {
-//     if (!tournament.teams) throw new Error(`No teams in tournament ${tournament.id}`)
-//     const team = tournament.teams?.find(p => p.name == teamName)
-//     if (!team) throw new Error(`Team ${teamName} not found in tournament ${tournament.id}`)
-//     return team
-// }
-
 export function getTournamentEngine(tournamentId: string): TournamentEngine {
     const tournament = global.tournaments.find(tournament => tournament.getId() == tournamentId)
     if (!tournament) throw new Error(`Tournament ${tournamentId} not found`)
