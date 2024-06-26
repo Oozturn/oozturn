@@ -25,7 +25,7 @@ export default function TournamentsList() {
                     key={tournament.id}
                     className={({ isActive }) => `tournamentTile is-clickable ${isActive ? 'is-active' : ''}
                     ${tournament.game == undefined ? 'has-generic-game-background-image' : ''}`}
-                    style={{ backgroundImage: tournament.game == undefined ? "" : 'url(/igdb/' + gamesList.find(game => game.id == tournament.game)?.picture + '.jpg)' }}>
+                    style={{ backgroundImage: (tournament.game == undefined || !gamesList.find(game => game.id == tournament.game)) ? "" : 'url(/igdb/' + gamesList.find(game => game.id == tournament.game)?.picture + '.jpg)' }}>
                     <div className='tournamentName'>{tournament.name}</div>
                     {tournament.players.find(p => p.userId == user.id) && <div className='subscribedIndicator' title='inscrit'></div>}
                     {tournament.status == TournamentStatus.Balancing && <div className='tournamentState'>En préparation</div>}

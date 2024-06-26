@@ -5,15 +5,17 @@ import TournamentInfoSettings from "./components/tournament-info-settings";
 import { useUser } from "~/lib/components/contexts/UserContext";
 import { CustomButton } from "~/lib/components/elements/custom-button";
 import { CustomModalBinary } from "~/lib/components/elements/custom-modal";
-import { useState } from "react";
-import { BinSVG, LeaveSVG, ParticipateSVG, StartSVG, SubsribedSVG } from "~/lib/components/data/svg-container";
-import { addPlayerToTournament, addTeamToTournament, toggleBalanceTournament, removePlayerFromTournament, reorderPlayers, reorderTeams, addPlayerToTeam, removeTeamFromTournament, renameTeam, removePlayerFromTeams, distributePlayersOnTeams, balanceTeams, randomizePlayersOnTeams, cancelTournament, startTournament } from "./queries.server";
+import React, { useState } from "react";
+import { BinSVG, LeaveSVG, ParticipateSVG, RollBackSVG, StartSVG, SubsribedSVG } from "~/lib/components/data/svg-container";
+import { addPlayerToTournament, addTeamToTournament, toggleBalanceTournament, removePlayerFromTournament, reorderPlayers, reorderTeams, addPlayerToTeam, removeTeamFromTournament, renameTeam, removePlayerFromTeams, distributePlayersOnTeams, balanceTeams, randomizePlayersOnTeams, cancelTournament, startTournament, scoreMatch, stopTournament } from "./queries.server";
 import { useUsers } from "~/lib/components/contexts/UsersContext";
 import { PlayersListSolo, PlayersListTeam } from "./components/players-list";
-import { GetFFAMaxPlayers } from "~/lib/utils/tournaments";
+import { GetFFAMaxPlayers, IdToString } from "~/lib/utils/tournaments";
 import { useLan } from "~/lib/components/contexts/LanContext";
 import { BracketType, TournamentFullData, TournamentStatus } from "~/lib/tournamentEngine/types";
 import { TournamentContext, useTournament } from "~/lib/components/contexts/TournamentsContext";
+import { Id } from "~/lib/tournamentEngine/tournament/match";
+import { MatchTile } from "~/lib/components/elements/bracket-elements";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
@@ -40,6 +42,9 @@ export async function action({ request }: ActionFunctionArgs) {
     switch (intent) {
         case TournamentManagementIntents.START:
             startTournament(jsonData.tournamentId as string)
+            break;
+        case TournamentManagementIntents.STOP:
+            stopTournament(jsonData.tournamentId as string)
             break;
         case TournamentManagementIntents.CANCEL:
             cancelTournament(jsonData.tournamentId as string)
@@ -83,6 +88,8 @@ export async function action({ request }: ActionFunctionArgs) {
         case TeamsManagementIntents.RANDOMIZE:
             randomizePlayersOnTeams(jsonData.tournamentId as string)
             break;
+        case MatchesIntents.SCORE:
+            scoreMatch(jsonData.tournamentId as string, jsonData.matchID as string, jsonData.opponent as string, jsonData.score as number)
     }
 
     return null
@@ -108,6 +115,9 @@ export enum TeamsManagementIntents {
     DISTRIBUTE = "distributePlayers",
     BALANCE = "balanceTeams",
     RANDOMIZE = "randomizePlayers",
+}
+export enum MatchesIntents {
+    SCORE = "score",
 }
 
 export default function TournamentPage() {
@@ -173,33 +183,43 @@ export default function TournamentPage() {
                 <div className="has-background-secondary-level is-flex-row grow p-3 gap-6">
                     <div className="is-flex-col is-one-third justify-space-between">
                         <TournamentInfoSettings />
-                        <TournamentCommands />
+                        {user.isAdmin && <TournamentCommands />}
                     </div>
-                    <div className="is-flex-col grow no-basis">
-                        {tournament.settings[0].useTeams ?
-                            <PlayersListTeam />
-                            :
-                            <PlayersListSolo />
-                        }
-                        <div className="mb-3"></div>
-                        <div className="is-flex-row justify-space-between gap-3">
-                            {user.isAdmin ?
-                                <>
-                                    <CustomButton callback={toggleBalanceTournament} tooltip={tournament.status == TournamentStatus.Open ? "Empêcher les joueurs d'interragir avec le tournoi, pour pouvoir les re-seeder" : "Réouvrir le tournoi aux joueurs"} contentItems={tournament.status == TournamentStatus.Open ? [StartSVG(), "Verrouiller"] : [StartSVG(), "Déverrouiller"]} colorClass='has-background-primary-level' />
-                                    {/**  DEV ONLY  */}
-                                    {process.env.NODE_ENV === "development" && canAddPlayers && <CustomButton callback={addFakePlayer} contentItems={["Add player"]} colorClass='has-background-primary' />}
-                                    {/**  DEV ONLY  */}
-                                </>
+                    {[TournamentStatus.Open, TournamentStatus.Balancing].includes(tournament.status) ?
+                        <div className="is-flex-col grow no-basis">
+                            {tournament.settings[0].useTeams ?
+                                <PlayersListTeam />
                                 :
-                                <></>
+                                <PlayersListSolo />
                             }
-                            {tournament.players.find(player => player.userId == user.id) ?
-                                <CustomButton callback={leaveTournament} contentItems={[LeaveSVG(), "Quitter"]} colorClass='has-background-secondary-accent' />
-                                :
-                                <CustomButton callback={joinTournament} active={canAddPlayers} contentItems={[ParticipateSVG(), "Participer"]} colorClass='has-background-primary-accent' />
-                            }
+                            <div className="mb-3"></div>
+                            <div className="is-flex-row justify-space-between gap-3">
+                                {user.isAdmin ?
+                                    <>
+                                        <CustomButton callback={toggleBalanceTournament} tooltip={tournament.status == TournamentStatus.Open ? "Empêcher les joueurs d'interragir avec le tournoi, pour pouvoir les re-seeder" : "Réouvrir le tournoi aux joueurs"} contentItems={tournament.status == TournamentStatus.Open ? [StartSVG(), "Verrouiller"] : [StartSVG(), "Déverrouiller"]} colorClass='has-background-primary-level' />
+                                        {/**  DEV ONLY  */}
+                                        {process.env.NODE_ENV === "development" && canAddPlayers && <CustomButton callback={addFakePlayer} contentItems={["Add player"]} colorClass='has-background-primary' />}
+                                        {/**  DEV ONLY  */}
+                                    </>
+                                    :
+                                    <></>
+                                }
+                                {tournament.players.find(player => player.userId == user.id) ?
+                                    <CustomButton callback={leaveTournament} contentItems={[LeaveSVG(), "Quitter"]} colorClass='has-background-secondary-accent' />
+                                    :
+                                    <CustomButton callback={joinTournament} active={canAddPlayers} contentItems={[ParticipateSVG(), "Participer"]} colorClass='has-background-primary-accent' />
+                                }
+                            </div>
                         </div>
-                    </div>
+                        :
+                        <div className="grow no-basis has-background-primary-level p-3">
+                            {tournament.matches.map(match =>
+                                <React.Fragment key={IdToString(match.id)}>
+                                    <MatchTile matchId={match.id} />
+                                </React.Fragment>
+                            )}
+                        </div>
+                    }
                 </div>
             </div>
         </TournamentContext.Provider>
@@ -213,8 +233,9 @@ function TournamentCommands() {
     const navigate = useNavigate()
 
     const [showConfirmStart, setShowConfirmStart] = useState(false)
+    const [showConfirmStop, setShowConfirmStop] = useState(false)
     const [showConfirmCancel, setShowConfirmCancel] = useState(false)
-    
+
     if (!user.isAdmin) return null
 
     const startTournament = () => {
@@ -254,9 +275,17 @@ function TournamentCommands() {
 
     return <div className='is-flex justify-end gap-3'>
         <CustomButton callback={editTournament} contentItems={[SubsribedSVG(), "Éditer"]} tooltip='Modifier les paramètres du tournoi' colorClass='has-background-primary-level' />
-        <CustomButton callback={() => setShowConfirmCancel(true)} contentItems={[BinSVG(), "Annuler"]} colorClass='has-background-primary-level' />
-        <CustomModalBinary show={showConfirmCancel} onHide={() => setShowConfirmCancel(false)} content={"Es-tu sûr de vouloir supprimer ce tournoi ?"} cancelButton={true} onConfirm={cancelTournament} />
-        <CustomButton callback={() => setShowConfirmStart(true)} contentItems={[StartSVG(), "Démarrer"]} colorClass='has-background-primary-accent' />
+        {[TournamentStatus.Open, TournamentStatus.Balancing].includes(tournament.status) &&
+            <>
+                <CustomButton callback={() => setShowConfirmCancel(true)} contentItems={[BinSVG(), "Annuler"]} colorClass='has-background-primary-level' />
+                <CustomButton callback={() => setShowConfirmStart(true)} contentItems={[StartSVG(), "Démarrer"]} colorClass='has-background-primary-accent' />
+            </>
+        }
+        {![TournamentStatus.Open, TournamentStatus.Balancing, TournamentStatus.Done].includes(tournament.status) &&
+            <CustomButton callback={() => setShowConfirmStop(true)} contentItems={[RollBackSVG(), "Redémarrer"]} colorClass='has-background-primary-accent' />
+        }
+        <CustomModalBinary show={showConfirmCancel} onHide={() => setShowConfirmCancel(false)} content={"Es-tu sûr de vouloir annuler ce tournoi ?"} cancelButton={true} onConfirm={cancelTournament} />
         <CustomModalBinary show={showConfirmStart} onHide={() => setShowConfirmStart(false)} content={"Es-tu sûr de vouloir démarrer ce tournoi ?"} cancelButton={true} onConfirm={startTournament} />
+        <CustomModalBinary show={showConfirmStop} onHide={() => setShowConfirmStop(false)} content={`Es-tu sûr de vouloir redémarrer ce tournoi ? Tu pourras éditer ${tournament.settings[0].useTeams ? "les équipes et " : ""}les inscriptions, mais toute sa progression sera perdue !`} cancelButton={true} onConfirm={stopTournament} />
     </div>
 }

@@ -1,5 +1,6 @@
 import { logger } from "~/lib/logging/logging"
 import { getTournament, cancelTournament as cancelTournamentOnPersistance } from "~/lib/persistence/tournaments.server"
+import { StringToId } from "~/lib/utils/tournaments"
 
 /** 
  * Tournament Management
@@ -139,5 +140,15 @@ export function randomizePlayersOnTeams(tournamentId: string) {
         tournament.randomizePlayersOnTeams()
     } catch (error) {
         logger.error(`Error while trying to distribute players in tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
+    }
+}
+
+export function scoreMatch(tournamentId: string, matchID: string, opponent: string, score: number) {
+    // Scores a 
+    try {
+        const tournament = getTournament(tournamentId)
+        tournament.score(StringToId(matchID), opponent, score)
+    } catch (error) {
+        logger.error(`Error while trying to score in match ${matchID} of tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }
 }

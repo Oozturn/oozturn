@@ -1,15 +1,15 @@
 import { DateType, globalTournamentPoints } from "../types/lan"
 import { DuelOpts } from "./tournament/duel"
 import { FFAOpts } from "./tournament/ffa"
-import { Match } from "./tournament/match"
+import { Id } from "./tournament/match"
 
 export enum TournamentStatus {
-	Open,
-	Balancing,
-	Running,
-	Paused,
-	Validating,
-	Done,
+	Open = "OPEN",
+	Balancing = "BALANCING",
+	Running = "RUNNING",
+	Paused = "PAUSED",
+	Validating = "VALIDATING",
+	Done = "DONE",
 }
 
 /** List of supported bracket types */
@@ -55,6 +55,14 @@ export interface Player {
 	isForfeit: boolean
 	result?: number
 	points?: number
+}
+
+export interface Match {
+	bracket: number
+	id: Id,
+	opponents: (string | undefined)[]
+	score: (number | undefined)[]
+	scorable: boolean
 }
 
 export interface TournamentFullData {
