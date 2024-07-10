@@ -5,21 +5,21 @@ import TournamentInfoSettings from "./components/tournament-info-settings";
 import { useUser } from "~/lib/components/contexts/UserContext";
 import { CustomButton } from "~/lib/components/elements/custom-button";
 import { CustomModalBinary } from "~/lib/components/elements/custom-modal";
-import React, { useState } from "react";
+import { useState } from "react";
 import { BinSVG, LeaveSVG, ParticipateSVG, RollBackSVG, StartSVG, SubsribedSVG } from "~/lib/components/data/svg-container";
 import { addPlayerToTournament, addTeamToTournament, toggleBalanceTournament, removePlayerFromTournament, reorderPlayers, reorderTeams, addPlayerToTeam, removeTeamFromTournament, renameTeam, removePlayerFromTeams, distributePlayersOnTeams, balanceTeams, randomizePlayersOnTeams, cancelTournament, startTournament, scoreMatch, stopTournament } from "./queries.server";
 import { useUsers } from "~/lib/components/contexts/UsersContext";
 import { PlayersListSolo, PlayersListTeam } from "./components/players-list";
-import { GetFFAMaxPlayers, IdToString } from "~/lib/utils/tournaments";
-import { useLan } from "~/lib/components/contexts/LanContext";
+import { GetFFAMaxPlayers } from "~/lib/utils/tournaments";
 import { BracketType, TournamentFullData, TournamentStatus } from "~/lib/tournamentEngine/types";
 import { TournamentContext, useTournament } from "~/lib/components/contexts/TournamentsContext";
-import { Id } from "~/lib/tournamentEngine/tournament/match";
-import { MatchTile } from "~/lib/components/elements/bracket-elements";
+import { BracketViewer } from "~/lib/components/layout/tournamentViewer";
+import { getLan } from "~/lib/persistence/lan.server";
+import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
-        { title: useLan().name + " - Tournoi " + data?.tournament.properties.name }
+        { title: data?.lanName + " - Tournoi " + data?.tournament.properties.name }
     ]
 }
 
@@ -27,12 +27,14 @@ export async function loader({
     params,
 }: LoaderFunctionArgs): Promise<{
     tournament: TournamentFullData
+    lanName: string
 }> {
     let tournament: TournamentFullData | undefined = undefined
     try {
         tournament = getTournament(params.id || "").getFullData()
+
     } catch { throw redirect('/tournaments/404') }
-    return { tournament: tournament }
+    return { tournament: tournament, lanName: getLan().name }
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -180,8 +182,8 @@ export default function TournamentPage() {
                 <div className="is-title big is-uppercase has-background-secondary-level p-2 px-4">
                     Tournoi {tournament.properties.name}
                 </div>
-                <div className="has-background-secondary-level is-flex-row grow p-3 gap-6">
-                    <div className="is-flex-col is-one-third justify-space-between">
+                <div className="has-background-secondary-level is-flex-row grow p-3 gap-6 is-relative">
+                    <div className="is-flex-col justify-space-between" style={{ width: "30%", minWidth: "30%", maxWidth: "30%" }}>
                         <TournamentInfoSettings />
                         {user.isAdmin && <TournamentCommands />}
                     </div>
@@ -212,12 +214,17 @@ export default function TournamentPage() {
                             </div>
                         </div>
                         :
-                        <div className="grow no-basis has-background-primary-level p-3">
-                            {tournament.matches.map(match =>
-                                <React.Fragment key={IdToString(match.id)}>
-                                    <MatchTile matchId={match.id} />
-                                </React.Fragment>
-                            )}
+                        <div className="grow no-basis has-background-primary-level p-3 is-clipped is-relative">
+                            <TransformWrapper centerOnInit={true} minScale={.3} maxScale={.7}>
+                                <TransformComponent
+                                    // wrapperStyle={{width: "1001px !important"}}
+                                    wrapperClass="is-full-width is-full-height is-relative"
+                                    contentClass="has-background-danger"
+                                    contentStyle={{width: "2000px !important"}}
+                                >
+                                    <BracketViewer bracket={0} />
+                                </TransformComponent>
+                            </TransformWrapper>
                         </div>
                     }
                 </div>
@@ -281,9 +288,9 @@ function TournamentCommands() {
                 <CustomButton callback={() => setShowConfirmStart(true)} contentItems={[StartSVG(), "Démarrer"]} colorClass='has-background-primary-accent' />
             </>
         }
-        {![TournamentStatus.Open, TournamentStatus.Balancing, TournamentStatus.Done].includes(tournament.status) &&
+        {/* {![TournamentStatus.Open, TournamentStatus.Balancing, TournamentStatus.Done].includes(tournament.status) &&
             <CustomButton callback={() => setShowConfirmStop(true)} contentItems={[RollBackSVG(), "Redémarrer"]} colorClass='has-background-primary-accent' />
-        }
+        } */}
         <CustomModalBinary show={showConfirmCancel} onHide={() => setShowConfirmCancel(false)} content={"Es-tu sûr de vouloir annuler ce tournoi ?"} cancelButton={true} onConfirm={cancelTournament} />
         <CustomModalBinary show={showConfirmStart} onHide={() => setShowConfirmStart(false)} content={"Es-tu sûr de vouloir démarrer ce tournoi ?"} cancelButton={true} onConfirm={startTournament} />
         <CustomModalBinary show={showConfirmStop} onHide={() => setShowConfirmStop(false)} content={`Es-tu sûr de vouloir redémarrer ce tournoi ? Tu pourras éditer ${tournament.settings[0].useTeams ? "les équipes et " : ""}les inscriptions, mais toute sa progression sera perdue !`} cancelButton={true} onConfirm={stopTournament} />

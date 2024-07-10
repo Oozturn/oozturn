@@ -7,24 +7,26 @@ interface UserTileProps {
     customClass?: string
     height?: number
     maxLength?: number
+    showTeam?: boolean
 }
-export function UserTileRectangle({ userId, colorClass, height, maxLength }: UserTileProps) {
+export function UserTileRectangle({ userId, colorClass, height, maxLength, showTeam }: UserTileProps) {
     const user = useUsers().find(user => (user.id == userId) || (user.username == userId))
     if (!user) {
         return null
     }
+    showTeam = showTeam == false ? false : true
     height = height || 32
     maxLength = maxLength || 320
     if (maxLength < height)
         maxLength = 2 * height
-    const maxTeamLenght = (maxLength - height) * 1 / 3
-    const maxUsernameLenght = (maxLength - height) * 2 / 3
+    const maxTeamLength = (maxLength - height) * 1 / 3
+    const maxUsernameLength = showTeam ? (maxLength - height) * 2 / 3 : maxLength - height
     return <div key={user.id} className={`is-flex grow gap-1 pr-3 align-center is-unselectable ${colorClass ? colorClass : ''}`} style={{ maxWidth: maxLength }}>
         <div className='is-flex'>
             <UserAvatar username={user.username} avatar={user.avatar} size={height} />
         </div>
-        <div style={{ maxWidth: maxUsernameLenght + "px", overflow: "hidden", textOverflow: "ellipsis" }}>{user.username}</div>
-        {user.team && <div className='fade-text' style={{ maxWidth: maxTeamLenght + "px", overflow: "hidden", textOverflow: "ellipsis" }}>[{user.team}]</div>}
+        <div style={{ maxWidth: maxUsernameLength + "px", overflow: "hidden", textOverflow: "ellipsis" }}>{user.username}</div>
+        {showTeam && user.team && <div className='fade-text' style={{ maxWidth: maxTeamLength + "px", overflow: "hidden", textOverflow: "ellipsis" }}>[{user.team}]</div>}
     </div>
 }
 interface FakeUserTileProps {
@@ -41,14 +43,14 @@ export function FakeUserTileRectangle({ userName, initial, teamName, colorClass,
     maxLength = maxLength || 320
     if (maxLength < height)
         maxLength = 2 * height
-    const maxTeamLenght = (maxLength - height) * 1 / 3
-    const maxUsernameLenght = (maxLength - height) * 2 / 3
+    const maxTeamLength = (maxLength - height) * 1 / 3
+    const maxUsernameLength = teamName ? (maxLength - height) * 2 / 3 : maxLength - height
     return <div className={`is-flex grow gap-1 pr-3 align-center is-unselectable ${colorClass ? colorClass : ''}`} style={{ maxWidth: maxLength }}>
         <div className='is-flex'>
             <UserAvatar username={initial || userName} avatar={""} size={height} />
         </div>
-        <div style={{ maxWidth: maxUsernameLenght + "px", overflow: "hidden", textOverflow: "ellipsis" }}>{userName}</div>
-        {teamName && <div className='fade-text' style={{ maxWidth: maxTeamLenght + "px", overflow: "hidden", textOverflow: "ellipsis" }}>[{teamName}]</div>}
+        <div style={{ maxWidth: maxUsernameLength + "px", overflow: "hidden", textOverflow: "ellipsis" }}>{userName}</div>
+        {teamName && <div className='fade-text' style={{ maxWidth: maxTeamLength + "px", overflow: "hidden", textOverflow: "ellipsis" }}>[{teamName}]</div>}
     </div>
 }
 

@@ -12,9 +12,9 @@ export default function TournamentsList() {
     const gamesList = useGames()
 
     return (
-        <div className="tournamentsList flat-box is-flex is-flex-direction-column is-scrollable has-background-secondary-level">
+        <div className="tournamentsList is-flex is-flex-direction-column is-scrollable">
             {user.isAdmin &&
-                <NavLink to="/tournaments/new" className={({ isActive }) => `tournamentTile has-background-primary-level is-clickable ${isActive ? 'is-active' : ''}`}>
+                <NavLink to="/tournaments/new" className={({ isActive }) => `tournamentTile has-background-secondary-level is-clickable ${isActive ? 'is-active' : ''}`}>
                     <div className='tournamentName' >NOUVEAU TOURNOI</div>
                 </NavLink>
             }
@@ -23,7 +23,7 @@ export default function TournamentsList() {
                 <NavLink
                     to={`/tournaments/${tournament.id}`}
                     key={tournament.id}
-                    className={({ isActive }) => `tournamentTile is-clickable ${isActive ? 'is-active' : ''}
+                    className={({ isActive }) => `tournamentTile has-background-secondary-level is-clickable ${isActive ? 'is-active' : ''}
                     ${tournament.game == undefined ? 'has-generic-game-background-image' : ''}`}
                     style={{ backgroundImage: (tournament.game == undefined || !gamesList.find(game => game.id == tournament.game)) ? "" : 'url(/igdb/' + gamesList.find(game => game.id == tournament.game)?.picture + '.jpg)' }}>
                     <div className='tournamentName'>{tournament.name}</div>
