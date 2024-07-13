@@ -25,6 +25,7 @@ import { TournamentInfo } from "./lib/tournamentEngine/types";
 import { User } from "./lib/types/user";
 import "./styles/globals.scss";
 import 'react-contexify/ReactContexify.css';
+import { Notification } from "./lib/components/notification";
 
 export async function loader({ request }: LoaderFunctionArgs): Promise<{
   lan: Lan;
@@ -72,6 +73,7 @@ export default function App() {
                   <main className="main is-clipped">
                     <Outlet />
                   </main>
+                  <Notification/>
                 </TournamentsContext.Provider>
               </UserContext.Provider>
             </UsersContext.Provider>
