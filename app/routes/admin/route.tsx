@@ -8,14 +8,16 @@ import { CustomButton } from "~/lib/components/elements/custom-button";
 import { CustomCheckbox } from "~/lib/components/elements/custom-checkbox";
 import { CustomSelect } from "~/lib/components/elements/custom-select";
 import { EditGlobalTournamentPoints } from "~/lib/components/elements/global-tournament-points";
-import { getLan, updateLan } from "~/lib/persistence/lan.server";
+import { updateLan } from "~/lib/persistence/lan.server";
 import { requireUserAdmin, requireUserLoggedIn } from "~/lib/session.server";
 import { Lan } from "~/lib/types/lan";
 import { autoSubmit } from "~/lib/utils/autosubmit";
 import { Days, range } from "~/lib/utils/ranges";
 import { AdminSectionContext, Section, useAdminSection } from "./components/AdminSectionContext";
 import { PlayerList } from "./components/player-list";
-import { renamePlayer, resetUserPassword } from "./queries.server";
+import { addUsers, renamePlayer, resetUserPassword } from "./queries.server";
+import { useState } from "react";
+import { CustomModalBinary } from "~/lib/components/elements/custom-modal";
 
 export const meta: MetaFunction = () => {
     return [
@@ -77,6 +79,8 @@ export async function action({ request }: ActionFunctionArgs) {
         case AdminIntents.RENAME_PLAYER:
             await renamePlayer(request, String(formData.get("userId")), String(formData.get("newUsername")))
             break;
+        case AdminIntents.ADD_PLAYERS:
+            await addUsers(JSON.parse(String(formData.get("players"))))
         default:
             break;
     }
@@ -118,6 +122,15 @@ export function SectionLanSettings({ isActive }: { isActive: boolean }) {
     const { setActiveSection, updateLan } = useAdminSection()
     const fetcher = useFetcher()
     const lan = useLan()
+
+    const [showAddPlayers, setShowAddPlayers] = useState(false)
+    const [newPlayers, setNewPlayers] = useState("")
+    function addPlayers() {
+        let fd = new FormData()
+        fd.append("players", JSON.stringify(newPlayers.split(/\n/)))
+        fd.append("intent", AdminIntents.ADD_PLAYERS)
+        fetcher.submit(fd, { method: "POST" })
+    }
 
     return <div className={`is-clipped has-background-secondary-level px-4 is-flex-col ${isActive ? "grow no-basis" : ""}`}>
         <div className="is-title medium is-uppercase py-2 px-1 is-clickable" onClick={() => setActiveSection("lanSettings")}>
@@ -195,7 +208,19 @@ export function SectionLanSettings({ isActive }: { isActive: boolean }) {
             <div className="is-flex gap-3 align-center">
                 <CustomCheckbox variable={lan.newUsersByAdminOnly} customClass='justify-flex-end is-one-fifth' setter={(value: boolean) => updateLan("lan_newUsersByAdminOnly", JSON.stringify(value))} />
                 <div className='lanSubscriptiontByAdmins'>Seuls les admins peuvent inscrire les nouveaux joueurs </div>
-                <CustomButton callback={() => { }} contentItems={["New players"]} colorClass="has-background-primary-level" />
+                <CustomButton callback={() => setShowAddPlayers(true)} contentItems={["New players"]} colorClass="has-background-primary-level" />
+                <CustomModalBinary
+                    show={showAddPlayers}
+                    onHide={() => setShowAddPlayers(false)}
+                    content={
+                        <div className="grow is-flex-col align-stretch">
+                            <div className="">Liste ici les noms des utilisateurs à ajouter (un par ligne) :</div>
+                            <textarea autoFocus rows={10} onChange={e => setNewPlayers(e.target.value)} />
+                        </div>
+                    }
+                    cancelButton={true}
+                    onConfirm={addPlayers} />
+
             </div>
             {/* Authentication */}
             <div className="is-flex gap-3 align-center">
