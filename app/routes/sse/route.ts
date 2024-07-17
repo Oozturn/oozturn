@@ -7,7 +7,7 @@ export const SSE_TOURNAMENT_UPDATE_EVENT = "globalTournamentUpdate"
 export const SSE_NOTIFICATION_MESSAGE_EVENT = "notificationMessage"
 
 export async function loader({ request }: LoaderFunctionArgs) {
-    requireUserLoggedIn(request)
+    await requireUserLoggedIn(request)
     const userId = await getUserId(request)
     return eventStream(request.signal, function setup(send, abort) {
         function handleGlobalTournamentUpdate(message: any) {
