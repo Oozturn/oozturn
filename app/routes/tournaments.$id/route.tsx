@@ -13,7 +13,7 @@ import { PlayersListSolo, PlayersListTeam } from "./components/players-list";
 import { GetFFAMaxPlayers } from "~/lib/utils/tournaments";
 import { BracketType, TournamentFullData, TournamentStatus } from "~/lib/tournamentEngine/types";
 import { TournamentContext, useTournament } from "~/lib/components/contexts/TournamentsContext";
-import { BracketViewer } from "~/lib/components/layout/tournamentViewer";
+import { TournamentViewer } from "~/lib/components/layout/tournamentViewer";
 import { getLan } from "~/lib/persistence/lan.server";
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 
@@ -214,18 +214,7 @@ export default function TournamentPage() {
                             </div>
                         </div>
                         :
-                        <div className="grow no-basis has-background-primary-level p-3 is-clipped is-relative">
-                            <TransformWrapper centerOnInit={true} minScale={.3} maxScale={.7}>
-                                <TransformComponent
-                                    // wrapperStyle={{width: "1001px !important"}}
-                                    wrapperClass="is-full-width is-full-height is-relative"
-                                    contentClass="has-background-danger"
-                                    contentStyle={{width: "2000px !important"}}
-                                >
-                                    <BracketViewer bracket={0} />
-                                </TransformComponent>
-                            </TransformWrapper>
-                        </div>
+                        <TournamentViewer />
                     }
                 </div>
             </div>

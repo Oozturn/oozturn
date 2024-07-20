@@ -30,29 +30,31 @@ export default function Index() {
 
   return (
     <>
-      <div className='is-full-height is-flex is-flex-direction-column p-3'>
+      <div className='is-full-height is-flex-col p-3 gap-3'>
         {lan?.motd &&
-          <div className='flat-box has-background-secondary-level px-5 pb-5 mb-3'>
-            <div className='is-title big'>MOT DU JOUR</div>
+          <div className='is-flex-col gap-3 has-background-secondary-level p-5'>
+            <div className='is-title big pb-3'>MOT DU JOUR</div>
             <p className='enable-line-break'>
               <FormattedTextWithUrls text={lan?.motd} />
             </p>
           </div>
         }
-        <div className='is-title big has-background-secondary-level px-5 p-3'>TOURNOIS</div>
-        <div className="flat-box has-background-secondary-level is-scrollable is-flex-grow-1 px-5 pt-0">
-          <div className='homeTournamentsGrid'>
-            {me?.isAdmin &&
-              <Link to="/tournaments/new" className="flat-box homeTournamentBoxNew has-background-primary-accent is-flex is-justify-content-center is-align-items-center is-flex-direction-column is-clickable fade-on-mouse-out" data-id="editTournament">
-                <AddTournamentCrossSVG />
-                <div className='has-text-weight-semibold'>Créer un tournoi</div>
-              </Link>
-            }
-            {tournaments.map(tournament =>
-              <React.Fragment key={tournament.id}>
-                <IndexTournamentTile tournament={tournament} userId={me.id} game={games?.find(game => game.id == tournament.game)} />
-              </React.Fragment>
-            )}
+        <div className="grow has-background-secondary-level p-5 is-flex-col gap-5">
+          <div className='is-title big'>TOURNOIS</div>
+          <div className="is-scrollable grow">
+            <div className='homeTournamentsGrid'>
+              {me?.isAdmin &&
+                <Link to="/tournaments/new" className="homeTournamentBoxNew has-background-primary-accent is-flex-col justify-center align-center is-clickable fade-on-mouse-out" data-id="editTournament">
+                  <AddTournamentCrossSVG />
+                  <div className='has-text-weight-semibold'>Créer un tournoi</div>
+                </Link>
+              }
+              {tournaments.map(tournament =>
+                <React.Fragment key={tournament.id}>
+                  <IndexTournamentTile tournament={tournament} userId={me.id} game={games?.find(game => game.id == tournament.game)} />
+                </React.Fragment>
+              )}
+            </div>
           </div>
         </div>
       </div >
@@ -64,10 +66,10 @@ function IndexTournamentTile({ tournament, userId, game }: { tournament: Tournam
   const backgroundImage = [game?.id, game?.picture].includes(undefined) ? '' : 'url(/igdb/' + game?.picture + '.jpg)'
   return (
 
-    <Link to={`/tournaments/${tournament.id}`} className={`flat-box homeTournamentBox is-clickable p-0 ${game?.id == undefined ? 'has-generic-game-background-image' : ''}`} style={{ backgroundImage: backgroundImage }}>
+    <Link to={`/tournaments/${tournament.id}`} className={`homeTournamentBox is-clickable p-0 ${game?.id == undefined ? 'has-generic-game-background-image' : ''}`} style={{ backgroundImage: backgroundImage }}>
       <div className={`tournamentName ${tournament.status == TournamentStatus.Done && 'over'}`}>{tournament.name}</div>
       {tournament.players.find(player => player.userId == userId) &&
-        <div className='subsribed is-flex is-align-items-center has-background-primary-accent'>
+        <div className='subscribed is-flex is-align-items-center has-background-primary-accent'>
           <SubsribedSVG />
           <div className='ml-2'>Inscrit</div>
         </div>

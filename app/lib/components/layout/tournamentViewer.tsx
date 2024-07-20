@@ -1,12 +1,38 @@
 import { IdToString } from "~/lib/utils/tournaments";
 import { useTournament } from "../contexts/TournamentsContext";
 import { MatchTile } from "../elements/bracket-elements";
-import { Fragment, useEffect } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { BracketType } from "~/lib/tournamentEngine/types";
 import { Duel } from "~/lib/tournamentEngine/tournament/duel";
-import { useTransformContext } from "react-zoom-pan-pinch";
+import { TransformComponent, TransformWrapper, useTransformContext } from "react-zoom-pan-pinch";
 
-export function BracketViewer({ bracket }: { bracket: number }) {
+export function TournamentViewer() {
+    const tournament = useTournament()
+    const [width, setWidth] = useState(0)
+    const [height, setHeight] = useState(0)
+    const containerRef = useRef(null)
+
+    useEffect(() => {
+        const ref = containerRef.current as unknown as HTMLDivElement
+        setWidth(ref?.clientWidth)
+        setHeight(ref?.clientHeight)
+    }, [containerRef.current])
+
+    return <div ref={containerRef} className="grow no-basis has-background-secondary-level">
+        <TransformWrapper centerOnInit={true} minScale={.3} maxScale={1} >
+            <TransformComponent
+                wrapperStyle={{ width: width ? width : "100%", height: height ? height : "100%" }}
+                wrapperClass="p-4 has-background-primary-level"
+                contentClass="has-background-success"
+                contentStyle={{ whiteSpace: "nowrap" }}
+            >
+                {width ? <BracketViewer bracket={0} /> : null}
+            </TransformComponent>
+        </TransformWrapper>
+    </div>
+}
+
+function BracketViewer({ bracket }: { bracket: number }) {
     const tournament = useTournament()
     const matches = tournament.matches
     const sections = Array.from(new Set(matches.filter(match => match.bracket == bracket).map(match => match.id.s)))
@@ -14,11 +40,11 @@ export function BracketViewer({ bracket }: { bracket: number }) {
 
     const wrapperContext = useTransformContext()
 
-    useEffect(() =>{
-        if(wrapperContext.wrapperComponent && wrapperContext.contentComponent){
+    useEffect(() => {
+        if (wrapperContext.wrapperComponent && wrapperContext.contentComponent) {
             wrapperContext.init(wrapperContext.wrapperComponent, wrapperContext.contentComponent)
         }
-        }, [tournament, wrapperContext])
+    }, [tournament, wrapperContext])
 
     return (
         <div className="is-flex-col gap-5 no-basis has-background-secondar-level">
@@ -66,7 +92,7 @@ function SectionViewer({ bracket, section }: { bracket: number, section: number 
 
 function RoundViewer({ bracket, section, round }: { bracket: number, section: number, round: number }) {
     const matches = useTournament().matches.filter(match => match.bracket == bracket && !match.isFinale && match.id.s == section && match.id.r == round)
-    if(!matches.length) return null
+    if (!matches.length) return null
     return (
         <div className="is-flex-col gap-5 justify-space-around">
             {matches.map(match =>
@@ -83,13 +109,13 @@ function FinaleViewer({ bracket }: { bracket: number }) {
 
     return (
         <div className="is-flex-col gap-1">
-        <div className="is-flex-row gap-3 justify-space-around is-relative">
-            <div className="pr-5 is-title medium" style={{position: "absolute", left: "2rem", top: "-2.5rem"}}>Finale</div>
-            {matches.map(match =>
-                <Fragment key={bracket + '.' + IdToString(match.id)}>
-                    <MatchTile matchId={match.id} />
-                </Fragment>
-            )}
-        </div></div>
+            <div className="is-flex-row gap-3 justify-space-around is-relative">
+                <div className="pr-5 is-title medium" style={{ position: "absolute", left: "2rem", top: "-2.5rem" }}>Finale</div>
+                {matches.map(match =>
+                    <Fragment key={bracket + '.' + IdToString(match.id)}>
+                        <MatchTile matchId={match.id} />
+                    </Fragment>
+                )}
+            </div></div>
     )
 }

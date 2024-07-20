@@ -43,7 +43,7 @@ export default function Navbar() {
                         <div className="navbar-item m-4"></div>
                         {loading ? "" :
                             user ?
-                                <PlayerProfile />
+                                <UserProfile />
                                 :
                                 <></>
                         }
@@ -54,7 +54,7 @@ export default function Navbar() {
     )
 }
 
-export function PlayerProfile() {
+export function UserProfile() {
 
     const submit = useSubmit()
     const me = useContext(UserContext);
@@ -84,7 +84,7 @@ export function PlayerProfile() {
                         <UserAvatar username={me.username} avatar={me.avatar} />
                     </div>
                 </div>
-                <div className="flat-box navbarPlayerInfoTopBox has-background-secondary-level is-flex is-flex-direction-column is-align-items-center p-0">
+                <div className="navbarUserInfoTopBox has-background-secondary-level is-flex is-flex-direction-column is-align-items-center p-0">
                     <div className="settings is-clickable fade-on-mouse-out" onClick={() => setShowEdit(true)}>
                         <EditGearSVG />
                     </div>

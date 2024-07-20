@@ -6,38 +6,38 @@ import { requireUserAdmin } from "~/lib/session.server"
 
 export async function resetUserPassword(request: Request, userId: string) {
     await requireUserAdmin(request)
-    if (!userId) {
-        logger.error("[resetUserPassword] Missing userId")
-    }
-    if (hasPassword(userId)) {
-        logger.error(`[resetUserPassword] Reseting password of ${userId}`)
-        resetPassword(userId)
-    } else {
-        logger.error(`[resetUserPassword] ${userId} without password`)
-    }
-}
-
-export async function renamePlayer(request:Request, userId:string, newUsername:string) {
-    await requireUserAdmin(request)
-    if (!userId) {
-        logger.error("[renamePlayer] Missing userId")
+    const user = getUserById(userId)
+    if (!user) {
+        logger.error(`Impossible to reset password: unknown userId ${userId}`)
         return
     }
-    if (!newUsername) {
-        logger.error("[renamePlayer] Missing newUsername")
+    if (hasPassword(userId)) {
+        resetPassword(userId)
+    }
+    logger.info(`Password reset for user ${userId}`)
+}
+
+export async function renameUser(request:Request, userId:string, newUsername:string) {
+    await requireUserAdmin(request)
+    const user = getUserById(userId)
+    if (!user) {
+        logger.error(`Impossible to rename: unknown userId ${userId}`)
+        return
+    }
+    if (!newUsername || newUsername.length > 15) {
+        logger.error("Impossible to rename: invalid new username")
         return
     }
 
     const existingUser = getUserByUsername(newUsername)
     if(existingUser && existingUser.id != userId) {
-        logger.error("[renamePlayer] Username taken")
+        logger.error(`Impossible to remane: username ${newUsername} is already used`)
         return
     }
 
-    const user = getUserById(userId)
-    user!.username = newUsername
+    user.username = newUsername
 
-    logger.error(`[renamePlayer] Renaming ${userId} to ${newUsername}`)
+    logger.info(`Renamed ${userId} to ${newUsername}`)
 }
 
 export async function addUsers(rawUsernames: string[]) {
@@ -45,14 +45,14 @@ export async function addUsers(rawUsernames: string[]) {
         if (!rawUsername) return
         const username = rawUsername.trim()
         if (username.length > 15) {
-            logger.error(`[AddUsers] username ${username} is too long`)
+            logger.error(`Impossible to add ${username}: username is too long`)
             return
         }
         if (getUserByUsername(username)) {
-            logger.error(`[AddUsers] username ${username} already exists`)
+            logger.error(`Impossible to add ${username}: username already exists`)
             return
         }
         registerNewUser(username)
-        logger.info(`[AddUsers] New user ${username} created`)
+        logger.info(`New user ${username} created`)
     })
 }

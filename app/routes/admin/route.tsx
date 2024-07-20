@@ -14,8 +14,8 @@ import { Lan } from "~/lib/types/lan";
 import { autoSubmit } from "~/lib/utils/autosubmit";
 import { Days, range } from "~/lib/utils/ranges";
 import { AdminSectionContext, Section, useAdminSection } from "./components/AdminSectionContext";
-import { PlayerList } from "./components/player-list";
-import { addUsers, renamePlayer, resetUserPassword } from "./queries.server";
+import { UsersList } from "./components/users-list";
+import { addUsers, renameUser, resetUserPassword } from "./queries.server";
 import { useState } from "react";
 import { CustomModalBinary } from "~/lib/components/elements/custom-modal";
 
@@ -34,10 +34,10 @@ export enum AdminIntents {
     UPDATE_LAN = "update_lan",
     END_LAN = "end_lan",
 
-    ADD_PLAYERS = "add_players",
-    // REMOVE_PLAYERS,
-    RENAME_PLAYER = "rename_player",
-    // MERGE_PLAYERS,
+    ADD_USERS = "add_users",
+    // REMOVE_USERS,
+    RENAME_USER = "rename_user",
+    // MERGE_USERS,
     RESET_USER_PASSWORD = "reset_user_password",
 
     // REMOVE_GAME,
@@ -76,11 +76,11 @@ export async function action({ request }: ActionFunctionArgs) {
         case AdminIntents.RESET_USER_PASSWORD:
             await resetUserPassword(request, String(formData.get("userId")))
             break;
-        case AdminIntents.RENAME_PLAYER:
-            await renamePlayer(request, String(formData.get("userId")), String(formData.get("newUsername")))
+        case AdminIntents.RENAME_USER:
+            await renameUser(request, String(formData.get("userId")), String(formData.get("newUsername")))
             break;
-        case AdminIntents.ADD_PLAYERS:
-            await addUsers(JSON.parse(String(formData.get("players"))))
+        case AdminIntents.ADD_USERS:
+            await addUsers(JSON.parse(String(formData.get("users"))))
         default:
             break;
     }
@@ -112,7 +112,7 @@ export default function Admin() {
                     </AdminSectionContext.Provider>
                 </div>
 
-                <PlayerList />
+                <UsersList />
             </div>
         </>
     )
@@ -123,12 +123,12 @@ export function SectionLanSettings({ isActive }: { isActive: boolean }) {
     const fetcher = useFetcher()
     const lan = useLan()
 
-    const [showAddPlayers, setShowAddPlayers] = useState(false)
-    const [newPlayers, setNewPlayers] = useState("")
-    function addPlayers() {
+    const [showAddUsers, setShowAddUsers] = useState(false)
+    const [newUsers, setNewUsers] = useState("")
+    function addUsers() {
         let fd = new FormData()
-        fd.append("players", JSON.stringify(newPlayers.split(/\n/)))
-        fd.append("intent", AdminIntents.ADD_PLAYERS)
+        fd.append("users", JSON.stringify(newUsers.split(/\n/)))
+        fd.append("intent", AdminIntents.ADD_USERS)
         fetcher.submit(fd, { method: "POST" })
     }
 
@@ -207,19 +207,19 @@ export function SectionLanSettings({ isActive }: { isActive: boolean }) {
             {/* User creation */}
             <div className="is-flex gap-3 align-center">
                 <CustomCheckbox variable={lan.newUsersByAdminOnly} customClass='justify-flex-end is-one-fifth' setter={(value: boolean) => updateLan("lan_newUsersByAdminOnly", JSON.stringify(value))} />
-                <div className='lanSubscriptiontByAdmins'>Seuls les admins peuvent inscrire les nouveaux joueurs </div>
-                <CustomButton callback={() => setShowAddPlayers(true)} contentItems={["New players"]} colorClass="has-background-primary-level" />
+                <div className='lanSubscriptiontByAdmins'>Seuls les admins peuvent inscrire les nouveaux participants </div>
+                <CustomButton callback={() => setShowAddUsers(true)} contentItems={["New users"]} colorClass="has-background-primary-level" />
                 <CustomModalBinary
-                    show={showAddPlayers}
-                    onHide={() => setShowAddPlayers(false)}
+                    show={showAddUsers}
+                    onHide={() => setShowAddUsers(false)}
                     content={
                         <div className="grow is-flex-col align-stretch">
                             <div className="">Liste ici les noms des utilisateurs à ajouter (un par ligne) :</div>
-                            <textarea autoFocus rows={10} onChange={e => setNewPlayers(e.target.value)} />
+                            <textarea autoFocus rows={10} onChange={e => setNewUsers(e.target.value)} />
                         </div>
                     }
                     cancelButton={true}
-                    onConfirm={addPlayers} />
+                    onConfirm={addUsers} />
 
             </div>
             {/* Authentication */}

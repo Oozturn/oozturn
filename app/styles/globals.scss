@@ -26,7 +26,6 @@
     --text-color-70: #FFFFFFB3;
     --toastify-icon-color-info: white !important;
     --toastify-icon-color-error: white !important;
-    --contexify-zIndex: 666;
 }
 
 $main-color: #be0000;
@@ -144,10 +143,6 @@ a, a:hover {
     background-image: var(--generic-game-image) !important;
 }
 
-.flat-box {
-    padding: 1rem;
-}
-
 .is-title {
     font-family: 'Karla';
     font-style: italic;
@@ -155,9 +150,11 @@ a, a:hover {
     text-transform: uppercase;
     &.big {
         font-size: 32px;
+        line-height: 32px;
     }
     &.medium {
         font-size: 24px;
+        line-height: 24px;
     }
 }
 
@@ -504,7 +501,21 @@ input.threeDigitsWidth {
     }
 }
 
-
+// Contextual menu
+:root {
+    --contexify-menu-minWidth: 150px !important;
+    --contexify-menu-radius: 0px !important;
+    --contexify-menu-bgColor: var(--background-primary-level) !important;
+    --contexify-itemContent-padding: 0px !important;
+    --contexify-item-color: var(--text-color) !important;
+    --contexify-activeItem-color: var(--accent-secondary-color) !important;
+    --contexify-activeItem-bgColor: var(--background-primary-level) !important;
+}
+.contexify {
+    border: none !important;
+    border-left: solid 2px var(--accent-secondary-color) !important;
+    box-shadow: 0px 0px 33px 19px rgba(0, 0, 0, 0.25) !important;
+}
 
 
 
@@ -572,7 +583,7 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
 		-ms-transform: skewX(-27.5deg);
 		transform: skewX(-27.5deg);
 	}
-    &:hover .navbarPlayerInfoTopBox {
+    &:hover .navbarUserInfoTopBox {
         max-height: unset;
         opacity: 100%;
         transition: opacity .2s;
@@ -586,7 +597,7 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
     }
 }
 
-.navbarPlayerInfoTopBox {
+.navbarUserInfoTopBox {
     z-index: -2;
     max-height: 0;
     opacity: 0;
@@ -638,7 +649,7 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
     }
 }
 
-.navbarPlayerCustomisationModal {
+.navbarUserCustomisationModal {
     .accentPicker {
         border-radius: 50%;
         width: 20px;
@@ -843,7 +854,7 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
     position: relative;
     background-size: cover;
     overflow: hidden;
-    .subsribed {
+    .subscribed {
         z-index: 1;
         position: absolute;
         top: 134px;
@@ -925,12 +936,12 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
     }
 }
 
-.adminPlayersList {
+.adminUsersList {
     flex: 2;
-    .playerTilesContainer {
+    .UserTilesContainer {
         gap: .5rem;
     }
-    .playerTile {
+    .userTile {
         flex: 0 0 40px;
         z-index: 2;
         width: 100%;
@@ -948,7 +959,7 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
             background-color: var(--accent-secondary-color);
             transition: ease-out .125s;
         }
-        .playerTooltip {
+        .userTooltip {
             margin-top: 5px;
             margin-left: 35px;
             border-left: 5px solid var(--accent-primary-color);
@@ -1615,10 +1626,6 @@ input[type=number] {
     }
 }
 
-.playerList {
-    width: 25%;
-}
-
 .is-scrollable {
     overflow: auto;
 }
@@ -1633,10 +1640,6 @@ input[type=number] {
 
 .is-flex-basis-0 {
     flex-basis: 0;
-}
-
-.PlayerInfoPlaceholder {
-    height: 32px;
 }
 
 // .round-viewer {
@@ -1677,37 +1680,6 @@ input[type=number] {
 
 // Tounaments
 
-.tournamentCards {
-    height: 83%;
-}
-
-.editTournament {
-    background-color: $primary !important;
-    color: $grey-lightest;
-}
-
-// .tournamentTile {
-//     background-color: #ffffff7e;
-//     overflow: hidden;
-//     transition: .2s;
-// }
-
-// .tournamentTile:hover, .tournamentTile.is-active {
-//     background-color: #ffffff1c;
-//     transition: .2s;
-// }
-
-.tournamentTileImage {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 100%;
-    height: 100%;
-    background-size: 100%;
-    background-position: center center;
-    filter: opacity(50%);
-    z-index: -1;
-}
 
 .tournament-state-indicator, .tournament-player-indicator {
     position: absolute;
@@ -1731,6 +1703,3 @@ input[type=number] {
     transition: .2s;
 }
 
-.bracketPreview {
-    height: 300px;
-}

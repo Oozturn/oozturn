@@ -322,6 +322,8 @@ export class TournamentEngine implements TournamentSpecification {
 
 	public getMatches(bracket: number = 0): Match[] {
 
+		if ([TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status)) return []
+
 		const WBR1matches = this.brackets[bracket].matches.filter(m => m.id.s == 1 && m.id.r == 1)
 		const bracket_power = Math.log(2 * WBR1matches.length) / Math.log(2)
 		const finalsList: string[] = []
