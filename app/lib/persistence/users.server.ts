@@ -38,7 +38,7 @@ export function getUserById(userId: string): User | undefined {
 }
 
 export function getUserByUsername(username: string): User | undefined {
-    return global.users.find(user => user.username === username)
+    return global.users.find(user => normalize(user.username) === normalize(username))
 }
 
 export function getUserOrThrow(userId: string) {
@@ -62,11 +62,15 @@ export function updateUser(userId: string, partialUser: Partial<User>) {
     }
 }
 
+function normalize(text: string) {
+    return text.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '')
+}
+
 function generateUniqueId(username: string) {
     let postfix = 0
     let id;
     while (true) {
-        id = username.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '') + (postfix ? postfix : "")
+        id = normalize(username) + (postfix ? postfix : "")
         if (!getUserById(id)) {
             break;
         }

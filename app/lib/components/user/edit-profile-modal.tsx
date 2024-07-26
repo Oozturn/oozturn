@@ -55,7 +55,7 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
     <div className="modal is-active">
       <div className="modal-background" onClick={onHide}></div>
       <div className="modal-content">
-          <div className="flat-box navbarPlayerCustomisationModal customModal is-flex is-align-items-stretch has-background-secondary-level pt-6 pl-6 pb-5">
+          <div className="navbarUserCustomisationModal customModal is-flex is-align-items-stretch has-background-secondary-level pt-6 pl-6 pb-5">
             <div className="close is-clickable fade-on-mouse-out" onClick={onHide}>
               <CloseCrossSVG />
             </div>

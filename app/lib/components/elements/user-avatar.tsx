@@ -2,7 +2,6 @@
 
 import useLocalStorageState from "use-local-storage-state"
 import { BaseAvatar } from "../tools/base-avatar"
-import { useState } from "react"
 import { accentsList } from "../data/themes"
 
 interface UserAvatarProps {
@@ -12,7 +11,7 @@ interface UserAvatarProps {
 }
 
 export function UserAvatar({ username, avatar, size }: UserAvatarProps) {
-	const [accentLocalStorage, setAccentLocalStorage] = useLocalStorageState("accent", { defaultValue: "Switch" })
+	const [accentLocalStorage, ] = useLocalStorageState("accent", { defaultValue: "Switch" })
 	return <>
 		{avatar ?
 			<img className="is-rounded" src={`/avatar/${avatar}`} alt="Avatar" width={size ? size : 128} />

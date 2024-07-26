@@ -18,6 +18,9 @@ export async function doLogin(rawUsername: string) {
     // If user exists, recover it from global. Else, register it
     if (user) {
         logger.info({ username: username }, `${username} logged in`)
+    }
+    else if(getLan().newUsersByAdminOnly)  {
+        return json({ error: "Utilisateur inconnu." })
     } else {
         logger.info({ username: username }, `New user ${username} logged in`)
         user = registerNewUser(rawUsername)

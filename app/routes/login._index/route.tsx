@@ -26,7 +26,7 @@ function LoginForm() {
   return (
     <div className="is-flex is-flex-direction-column is-align-items-center">
       <div className="loginLogo" style={{ width: "50vw" }}><LogoUnfolded animate={animateLogo} /></div>
-      <div className="flat-box has-background-secondary-level is-full-width">
+      <div className="p-4 has-background-secondary-level is-full-width">
         <div className="has-text-centered mb-4 is-size-3">Bienvenue à la LAN <i style={{ color: "var(--accent-primary-color)" }}>{lan.name}</i> ! </div>
         <Form method="post">
           <div className="field">

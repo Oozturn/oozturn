@@ -54,7 +54,7 @@ export default function LoginStepPassword() {
   let actionResult = useActionData<typeof action>();
 
   return <div className="is-flex is-flex-direction-column is-align-items-center">
-    <div className="flat-box has-background-secondary-level is-full-width">
+    <div className="p-4 has-background-secondary-level is-full-width">
       <div className="has-text-centered mb-4 is-size-3">Bienvenue <i style={{ color: "var(--accent-primary-color)" }}>{username}</i> ! </div>
       <Form method="post">
         <div className="field">

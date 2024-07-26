@@ -63,6 +63,7 @@ export interface Match {
 	opponents: (string | undefined)[]
 	score: (number | undefined)[]
 	scorable: boolean
+	isFinale: boolean
 }
 
 export interface TournamentFullData {

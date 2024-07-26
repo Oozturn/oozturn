@@ -261,7 +261,7 @@ export class TournamentEngine implements TournamentSpecification {
 		if (!this.teams.length)
 			throw new Error(`No team in tournament ${this.id}`)
 		this.teams.forEach(t => t.members.splice(0))
-		this.players.sort((a, b) => Math.random() - .5)
+		this.players.sort(() => Math.random() - .5)
 		this.distributePlayersOnTeams()
 	}
 
@@ -321,8 +321,30 @@ export class TournamentEngine implements TournamentSpecification {
 	}
 
 	public getMatches(bracket: number = 0): Match[] {
+
 		if ([TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status)) return []
-		return this.brackets[bracket].matches.map(match =>
+
+		const WBR1matches = this.brackets[bracket].matches.filter(m => m.id.s == 1 && m.id.r == 1)
+		const bracket_power = Math.log(2 * WBR1matches.length) / Math.log(2)
+		const finalsList: string[] = []
+		if (this.settings[bracket].type == BracketType.Duel) {
+			if (this.settings[bracket].last == Duel.WB) {
+				finalsList.push(IdToString({ s: Duel.WB, r: bracket_power, m: 1 }))
+			}
+			else {
+				finalsList.push(IdToString({ s: Duel.LB, r: 2 * bracket_power - 1, m: 1 }))
+				if (!this.settings[bracket].short)
+					finalsList.push(IdToString({ s: Duel.LB, r: 2 * bracket_power, m: 1 }))
+			}
+		}
+		if (this.settings[bracket].type == BracketType.FFA) {
+			finalsList.push(IdToString({ s: 1, r: Math.max(...this.brackets[bracket].matches.map(m => m.id.r)), m: 1 }))
+		}
+
+		const notUsedFinale = this.brackets[bracket].isDone() && this.brackets[bracket].matches.find(match => !match.m)?.id || undefined
+
+		if ([TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status)) return []
+		return this.brackets[bracket].matches.filter(match => !notUsedFinale || (notUsedFinale && IdToString(notUsedFinale) != IdToString(match.id))).map(match =>
 			<Match>{
 				bracket: bracket,
 				id: match.id,
@@ -332,8 +354,9 @@ export class TournamentEngine implements TournamentSpecification {
 						:
 						this.players.find(player => player.seed + 1 == p)?.userId
 				),
-				score: match.m || this.bracketsStates.find(bs => IdToString(bs.id) == IdToString(match.id) && (bracket) == bs.bracket)?.score || match.p.map(_ => undefined),
-				scorable: this.brackets[bracket].unscorable(match.id, match.p.map((_, i) => i), false) == null
+				score: match.m || this.bracketsStates.find(bs => IdToString(bs.id) == IdToString(match.id) && (bracket) == bs.bracket)?.score || match.p.map(() => undefined),
+				scorable: this.brackets[bracket].unscorable(match.id, match.p.map((_, i) => i), false) == null,
+				isFinale: finalsList.includes(IdToString(match.id))
 			}
 		)
 	}
@@ -350,7 +373,7 @@ export class TournamentEngine implements TournamentSpecification {
 					:
 					this.players.find(player => player.seed + 1 == p)?.userId
 			),
-			score: match.m || this.bracketsStates.find(bs => bs.id == match.id)?.score || match.p.map(_ => undefined),
+			score: match.m || this.bracketsStates.find(bs => bs.id == match.id)?.score || match.p.map(() => undefined),
 			scorable: this.brackets[bracket].unscorable(match.id, match.p.map((_, i) => i), false) == null
 		}
 	}
