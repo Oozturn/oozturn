@@ -1,17 +1,18 @@
-import { useState } from "react";
-import { useLan } from "../contexts/LanContext";
-import { CustomSelect } from "../elements/custom-select";
-import { useGames } from "../contexts/GamesContext";
-import { Days, range } from "~/lib/utils/ranges";
-import { DuelSVG, DuelSoloSVG, DuelTeamSVG, FFASVG, FFASoloSVG, FFATeamSVG } from "../data/svg-container";
-import { CustomRadio } from "../elements/custom-radio";
-import { GetFFAMaxPlayers } from "~/lib/utils/tournaments";
-import { CustomButton } from "../elements/custom-button";
-import { useFetcher } from "@remix-run/react";
-import { EditGlobalTournamentPoints } from "../elements/global-tournament-points";
-import { Duel } from "~/lib/tournamentEngine/tournament/duel";
-import { BracketSettings, BracketType, TournamentFullData, TournamentProperties } from "~/lib/tournamentEngine/types";
-import { globalTournamentPoints } from "~/lib/types/lan";
+import { useState } from "react"
+import { useLan } from "../contexts/LanContext"
+import { CustomSelect } from "../elements/custom-select"
+import { useGames } from "../contexts/GamesContext"
+import { Days, range } from "~/lib/utils/ranges"
+import { DuelSVG, DuelSoloSVG, DuelTeamSVG, FFASVG, FFASoloSVG, FFATeamSVG } from "../data/svg-container"
+import { CustomRadio } from "../elements/custom-radio"
+import { GetFFAMaxPlayers } from "~/lib/utils/tournaments"
+import { CustomButton } from "../elements/custom-button"
+import { useFetcher } from "@remix-run/react"
+import { EditGlobalTournamentPoints } from "../elements/global-tournament-points"
+import { Duel } from "~/lib/tournamentEngine/tournament/duel"
+import { BracketSettings, BracketType, TournamentFullData, TournamentProperties } from "~/lib/tournamentEngine/types"
+import { globalTournamentPoints } from "~/lib/types/lan"
+import { clickorkey } from "~/lib/utils/clickorkey"
 
 const enum tournamentEditSteps {
     PROPERTIES,
@@ -36,8 +37,8 @@ interface TournamentEditProps {
 }
 export default function TournamentEdit({ existingTournament }: TournamentEditProps) {
 
-    const lan = useLan();
-    const games = useGames();
+    const lan = useLan()
+    const games = useGames()
 
     const [editStep, set_editStep] = useState<tournamentEditSteps>(tournamentEditSteps.PROPERTIES)
 
@@ -61,14 +62,14 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
     const [tNbRounds, set_tNbRounds] = useState(existingTournament ? existingTournament.settings[0].sizes?.length || 2 : 2)
     const [tSizes, set_tSizes, modified_tSizes] = useStateMonitored(existingTournament ? existingTournament.settings[0].sizes || [6, 6] : [6, 6])
     const [tAdvancers, set_tAdvancers, modified_tAdvancers] = useStateMonitored(existingTournament ? existingTournament.settings[0].advancers || [3] : [3])
-    const [tLimit, set_tLimit, modified_tLimit] = useStateMonitored(existingTournament ? existingTournament.settings[0].limit : 1)
+    const [tLimit, , modified_tLimit] = useStateMonitored(existingTournament ? existingTournament.settings[0].limit : 1)
 
     // Teams options
     const [tUsersCanCreateTeams, set_tUsersCanCreateTeams, modified_tUsersCanCreateTeams] = useStateMonitored(existingTournament ? existingTournament.settings[0].usersCanCreateTeams : false)
     const [tTeamsMaxSize, set_tTeamsMaxSize, modified_tTeamsMaxSize] = useStateMonitored(existingTournament ? existingTournament.settings[0].teamsMaxSize : 8)
 
 
-    const fetcher = useFetcher();
+    const fetcher = useFetcher()
     function PublishTournament() {
         const id: string = tId
         const properties: TournamentProperties = {
@@ -103,7 +104,7 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
         )
     }
     function UpdateTournament() {
-        if (!existingTournament) return;
+        if (!existingTournament) return
         const partialProperties: Partial<TournamentProperties> = {
             name: modified_tName ? tName : undefined,
             game: modified_tGame ? tGame : undefined,
@@ -135,11 +136,11 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
 
     return (
         <div className="is-flex-col grow gap-3 p-0 is-full-height">
-            <div className="is-title big is-uppercase has-background-secondary-level p-2 px-4" onClick={() => set_editStep(tournamentEditSteps.PROPERTIES)}>
+            <div className="is-title big is-uppercase has-background-secondary-level p-2 px-4" {...clickorkey(() => set_editStep(tournamentEditSteps.PROPERTIES))}>
                 {existingTournament ? "Édition de " + tName : "Nouveau tournoi"}
             </div>
             <div className={`is-clipped has-background-secondary-level is-flex-col ${editStep == tournamentEditSteps.PROPERTIES ? "grow no-basis" : ""}`}>
-                <div className={`is-title medium is-uppercase py-2 px-4 ${editStep > tournamentEditSteps.PROPERTIES ? "is-clickable" : ""}`} onClick={() => set_editStep(tournamentEditSteps.PROPERTIES)}>
+                <div className={`is-title medium is-uppercase py-2 px-4 ${editStep > tournamentEditSteps.PROPERTIES ? "is-clickable" : ""}`} {...clickorkey(() => set_editStep(tournamentEditSteps.PROPERTIES))}>
                     Propriétés du tournoi
                 </div>
                 <div className="is-flex-col gap-5 grow px-4" style={{ maxHeight: editStep == tournamentEditSteps.PROPERTIES ? undefined : 0 }}>
@@ -195,21 +196,21 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
             </div>
 
             <div className={`is-clipped has-background-secondary-level is-flex-col ${editStep == tournamentEditSteps.TYPE ? "grow no-basis" : ""}`}>
-                <div className={`is-title medium is-uppercase py-2 px-4 ${editStep > tournamentEditSteps.TYPE ? "is-clickable" : ""}`} onClick={() => { if (editStep > tournamentEditSteps.TYPE) set_editStep(tournamentEditSteps.TYPE) }}>
+                <div className={`is-title medium is-uppercase py-2 px-4 ${editStep > tournamentEditSteps.TYPE ? "is-clickable" : ""}`} {...clickorkey(() => { if (editStep > tournamentEditSteps.TYPE) set_editStep(tournamentEditSteps.TYPE) })}>
                     Type de tournoi
                 </div>
                 <div className="is-flex-col gap-6 grow is-scrollable px-4" style={{ maxHeight: editStep == tournamentEditSteps.TYPE ? undefined : 0 }}>
                     <div className='is-flex gap-3'>
                         {/* <div className='has-text-right is-one-fifth'>Type de match :</div> */}
                         <div className='is-flex-col align-center gap-1 grow no-basis'>
-                            <div className={`svgSelection is-clickable ${tType == BracketType.Duel ? 'is-active' : ''}`} onClick={() => set_tType(BracketType.Duel)}>
+                            <div className={`svgSelection is-clickable ${tType == BracketType.Duel ? 'is-active' : ''}`} {...clickorkey(() => set_tType(BracketType.Duel))}>
                                 <DuelSVG />
                             </div>
                             <div className='is-title medium'>DUEL</div>
                             <div className='px-4 is-size-7 has-text-centered'>Sélectionne le mode Duel si le jeu fait s’opposer 2 camps lors d’un duel qui fera ressortir un gagnant et un perdant.</div>
                         </div>
                         <div className='is-flex-col align-center gap-1 grow no-basis'>
-                            <div className={`svgSelection is-clickable ${tType == BracketType.FFA ? 'is-active' : ''}`} onClick={() => set_tType(BracketType.FFA)}>
+                            <div className={`svgSelection is-clickable ${tType == BracketType.FFA ? 'is-active' : ''}`} {...clickorkey(() => set_tType(BracketType.FFA))}>
                                 <FFASVG />
 
                             </div>
@@ -221,13 +222,13 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                     <div className='is-flex gap-3'>
                         {/* <div className='has-text-right is-one-fifth'>Type d’opposants :</div> */}
                         <div className='is-flex-col align-center gap-1 grow no-basis'>
-                            <div className={`svgSelection is-clickable ${tUseTeams == false ? 'is-active' : ''}`} onClick={() => set_tUseTeams(false)}>
+                            <div className={`svgSelection is-clickable ${tUseTeams == false ? 'is-active' : ''}`} {...clickorkey(() => set_tUseTeams(false))}>
                                 {tType == BracketType.Duel ? <DuelSoloSVG /> : <FFASoloSVG />}
                             </div>
                             <div className='is-title medium'>SOLO</div>
                         </div>
                         <div className='is-flex-col align-center gap-1 grow no-basis'>
-                            <div className={`svgSelection is-clickable ${tUseTeams == true ? 'is-active' : ''}`} onClick={() => set_tUseTeams(true)}>
+                            <div className={`svgSelection is-clickable ${tUseTeams == true ? 'is-active' : ''}`} {...clickorkey(() => set_tUseTeams(true))}>
                                 {tType == BracketType.Duel ? <DuelTeamSVG /> : <FFATeamSVG />}
                             </div>
                             <div className='is-title medium'>ÉQUIPES</div>
@@ -249,7 +250,7 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
             </div>
 
             <div className={`is-clipped has-background-secondary-level is-flex-col ${editStep == tournamentEditSteps.PARAMETERS ? "grow no-basis" : ""}`}>
-                <div className={`is-title medium is-uppercase py-2 px-4 ${editStep > tournamentEditSteps.PARAMETERS ? "is-clickable" : ""}`} onClick={() => { if (editStep > tournamentEditSteps.PARAMETERS) set_editStep(tournamentEditSteps.PARAMETERS) }}>
+                <div className={`is-title medium is-uppercase py-2 px-4 ${editStep > tournamentEditSteps.PARAMETERS ? "is-clickable" : ""}`} {...clickorkey(() => { if (editStep > tournamentEditSteps.PARAMETERS) set_editStep(tournamentEditSteps.PARAMETERS) })}>
                     Paramètres du tournoi
                 </div>
                 <div className="is-flex-col gap-5 grow px-4" style={{ maxHeight: editStep == tournamentEditSteps.PARAMETERS ? undefined : 0 }}>

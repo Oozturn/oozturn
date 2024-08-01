@@ -1,22 +1,23 @@
-import { Link, useSubmit } from "@remix-run/react";
-import { useContext, useState } from "react";
-import { useLan } from "../contexts/LanContext";
-import { UserContext } from "../contexts/UserContext";
-import { DropDownArrowSVG, EditGearSVG, LogoFolded, LogoSideSVG } from "../data/svg-container";
-import { UserAvatar } from "../elements/user-avatar";
-import EditProfileModal from "../user/edit-profile-modal";
+import { Link, useSubmit } from "@remix-run/react"
+import { useContext, useState } from "react"
+import { useLan } from "../contexts/LanContext"
+import { UserContext } from "../contexts/UserContext"
+import { DropDownArrowSVG, EditGearSVG, LogoFolded, LogoSideSVG } from "../data/svg-container"
+import { UserAvatar } from "../elements/user-avatar"
+import EditProfileModal from "../user/edit-profile-modal"
+import { clickorkey } from "~/lib/utils/clickorkey"
 
 
 export default function Navbar() {
 
-    const lan = useLan();
-    const user = useContext(UserContext);
-    const [showMobileNav, setShowMobileNav] = useState(false)
+    const lan = useLan()
+    const user = useContext(UserContext)
+    const [showMobileNav] = useState(false)
     const [animateLogo, setAnimateLogo] = useState(false)
     const current_page: string = "/admin"
     const loading = false
 
-    const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+    const delay = (ms: number) => new Promise(res => setTimeout(res, ms))
     async function animateLogoFunc() {
         setAnimateLogo(true)
         await delay(2300)
@@ -57,7 +58,8 @@ export default function Navbar() {
 export function UserProfile() {
 
     const submit = useSubmit()
-    const me = useContext(UserContext);
+    const me = useContext(UserContext)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const leaderboard: any[] = []
     const [showEdit, setShowEdit] = useState(false)
 
@@ -65,7 +67,7 @@ export function UserProfile() {
         return null
     }
 
-    function handleLogout(event: React.MouseEvent<HTMLElement>) {
+    function handleLogout() {
         submit(null, {
             action: "/logout",
             method: "POST"
@@ -85,7 +87,7 @@ export function UserProfile() {
                     </div>
                 </div>
                 <div className="navbarUserInfoTopBox has-background-secondary-level is-flex is-flex-direction-column is-align-items-center p-0">
-                    <div className="settings is-clickable fade-on-mouse-out" onClick={() => setShowEdit(true)}>
+                    <div className="settings is-clickable fade-on-mouse-out" {...clickorkey(() => setShowEdit(true))}>
                         <EditGearSVG />
                     </div>
                     <div className="avatar mt-6">
@@ -95,7 +97,7 @@ export function UserProfile() {
                     {me.team && <div className="userteam fade-text">{'[' + me.team + ']'}</div>}
                     {leaderboard &&
                         <div className="is-flex is-full-width mt-5 is-align-items-end">
-                            <div className="logout is-size-7 px-1 is-underlined is-clickable fade-on-mouse-out" onClick={handleLogout}>Se déconnecter</div>
+                            <div className="logout is-size-7 px-1 is-underlined is-clickable fade-on-mouse-out" {...clickorkey(handleLogout)}>Se déconnecter</div>
                             <div className="is-flex-grow-1"></div>
                             <div className="is-flex points is-align-items-start">
                                 <div>{leaderboard.find(p => p.player.username == me.username)?.points || 0}</div>

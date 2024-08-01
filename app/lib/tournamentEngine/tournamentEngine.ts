@@ -1,9 +1,9 @@
-import { IdToString } from "../utils/tournaments";
+import { IdToString } from "../utils/tournaments"
 import { Duel } from "./tournament/duel"
 import { FFA } from "./tournament/ffa"
-import { Id } from "./tournament/match";
+import { Id } from "./tournament/match"
 import { Result } from "./tournament/tournament"
-import { BracketSettings, BracketType, Match, Player, Team, TournamentFullData, TournamentInfo, TournamentProperties, TournamentStatus } from "./types";
+import { BracketSettings, BracketType, Match, Player, Team, TournamentFullData, TournamentInfo, TournamentProperties, TournamentStatus } from "./types"
 
 /** States used to save brackets progression */
 interface BracketState {
@@ -240,7 +240,7 @@ export class TournamentEngine implements TournamentSpecification {
 	}
 	public distributePlayersOnTeams(): void {
 		if (!this.teams.length)
-			throw new Error(`No team in tournament ${this.id}`);
+			throw new Error(`No team in tournament ${this.id}`)
 		const notInTeamPlayers = this.players.filter(player => !this.teams.flatMap(team => team.members).includes(player.userId))
 		while (notInTeamPlayers.length) {
 			const teams = this.teams.map(t => t).sort((a, b) => a.members.length - b.members.length)

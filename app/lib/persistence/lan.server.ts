@@ -5,6 +5,7 @@ import * as path from 'path'
 import { Lan } from "../types/lan"
 
 declare global {
+    // eslint-disable-next-line no-var
     var lan: Lan
 }
 
@@ -26,12 +27,12 @@ const defaultLan: Lan = {
 subscribeObjectManager("lan", {
     onRestore: () => {
         if (global.lan) {
-            return;
+            return
         }
 
         if (fs.existsSync(lanFilePath)) {
             logger.info("Loading lan from persistence")
-            global.lan = {...defaultLan,  ...JSON.parse(fs.readFileSync(lanFilePath, 'utf-8'))}
+            global.lan = { ...defaultLan, ...JSON.parse(fs.readFileSync(lanFilePath, 'utf-8')) }
         } else {
             logger.info("Initialize lan with default")
             global.lan = defaultLan

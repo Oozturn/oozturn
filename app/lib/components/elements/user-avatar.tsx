@@ -11,7 +11,7 @@ interface UserAvatarProps {
 }
 
 export function UserAvatar({ username, avatar, size }: UserAvatarProps) {
-	const [accentLocalStorage, ] = useLocalStorageState("accent", { defaultValue: "Switch" })
+	const [accentLocalStorage,] = useLocalStorageState("accent", { defaultValue: "Switch" })
 	return <>
 		{avatar ?
 			<img className="is-rounded" src={`/avatar/${avatar}`} alt="Avatar" width={size ? size : 128} />

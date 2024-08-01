@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext } from "react"
 
 export type Section = "lanSettings" | "tournamentsSettings" | "globalTournamentSettings" | "communicationSettings"
 
@@ -8,7 +8,7 @@ export const AdminSectionContext = createContext<{
 }>({
     setActiveSection: () => { },
     updateLan: () => { }
-});
+})
 
 export function useAdminSection() {
     return useContext(AdminSectionContext)

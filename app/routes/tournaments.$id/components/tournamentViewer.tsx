@@ -1,34 +1,51 @@
-import { IdToString } from "~/lib/utils/tournaments";
-import { useTournament } from "../contexts/TournamentsContext";
-import { MatchTile } from "../elements/bracket-elements";
-import { Fragment, useEffect, useRef, useState } from "react";
-import { BracketType } from "~/lib/tournamentEngine/types";
-import { Duel } from "~/lib/tournamentEngine/tournament/duel";
-import { TransformComponent, TransformWrapper, useTransformContext } from "react-zoom-pan-pinch";
+import { IdToString } from "~/lib/utils/tournaments"
+import { useTournament } from "../../../lib/components/contexts/TournamentsContext"
+import { MatchTile } from "../../../lib/components/elements/bracket-elements"
+import { Fragment, useEffect, useRef, useState } from "react"
+import { BracketType } from "~/lib/tournamentEngine/types"
+import { Duel } from "~/lib/tournamentEngine/tournament/duel"
+import { TransformComponent, TransformWrapper, useTransformContext } from "react-zoom-pan-pinch"
 
 export function TournamentViewer() {
     const tournament = useTournament()
     const [width, setWidth] = useState(0)
     const [height, setHeight] = useState(0)
+    const [minScale, setMinScale] = useState(0)
     const containerRef = useRef(null)
+    const bracketRef = useRef(null)
 
     useEffect(() => {
         const ref = containerRef.current as unknown as HTMLDivElement
+        const bref = bracketRef.current as unknown as HTMLDivElement
         setWidth(ref?.clientWidth)
         setHeight(ref?.clientHeight)
-    }, [containerRef.current])
+        setMinScale(
+            Math.min(
+                ref?.clientHeight / bref?.clientHeight,
+                ref?.clientWidth / bref?.clientWidth,
+                1
+            ))
+    }, [containerRef, bracketRef, minScale, tournament.id])
 
-    return <div ref={containerRef} className="grow no-basis has-background-secondary-level">
-        <TransformWrapper centerOnInit={true} minScale={.3} maxScale={1} >
-            <TransformComponent
-                wrapperStyle={{ width: width ? width : "100%", height: height ? height : "100%" }}
-                wrapperClass="p-4 has-background-primary-level"
-                contentClass="has-background-success"
-                contentStyle={{ whiteSpace: "nowrap" }}
-            >
-                {width ? <BracketViewer bracket={0} /> : null}
-            </TransformComponent>
-        </TransformWrapper>
+    return <div className="is-flex grow no-basis has-background-primary-level p-4">
+        <div ref={containerRef} className="is-flex grow no-basis">
+            <TransformWrapper centerOnInit={true} initialScale={minScale ? minScale : 1} minScale={minScale ? minScale : .3} maxScale={1} panning={{ excluded: ["input"] }} doubleClick={{ disabled: true }} disablePadding={true}>
+                <TransformComponent
+                    wrapperStyle={{ width: width ? width : "100%", height: height ? height : "100%" }}
+                    wrapperClass="has-background-primary-level"
+                    contentClass=""
+                    contentStyle={{ whiteSpace: "nowrap" }}
+                >
+                    {width ?
+                        <div ref={bracketRef}>
+                            <BracketViewer bracket={0} />
+                        </div>
+                        :
+                        null
+                    }
+                </TransformComponent>
+            </TransformWrapper>
+        </div>
     </div>
 }
 
@@ -44,7 +61,7 @@ function BracketViewer({ bracket }: { bracket: number }) {
         if (wrapperContext.wrapperComponent && wrapperContext.contentComponent) {
             wrapperContext.init(wrapperContext.wrapperComponent, wrapperContext.contentComponent)
         }
-    }, [tournament, wrapperContext])
+    }, [wrapperContext, tournament.id])
 
     return (
         <div className="is-flex-col gap-5 no-basis has-background-secondar-level">

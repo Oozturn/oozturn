@@ -1,13 +1,20 @@
-import { ActionFunctionArgs, MetaFunction } from "@remix-run/node";
-import { Form } from "@remix-run/react";
-import { LogoUnfolded } from "~/lib/components/data/svg-container";
-import { doLogin } from "./queries.server";
-import { useLan } from "~/lib/components/contexts/LanContext";
+import { ActionFunctionArgs, MetaFunction } from "@remix-run/node"
+import { Form } from "@remix-run/react"
+import { LogoUnfolded } from "~/lib/components/data/svg-container"
+import { doLogin } from "./queries.server"
+import { useLan } from "~/lib/components/contexts/LanContext"
+import { getLan } from "~/lib/persistence/lan.server"
 
-export const meta: MetaFunction = () => {
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
-      { title: useLan().name + " - Connexion" }
+    { title: data?.lanName + " - AcConnexioncueil" }
   ]
+}
+
+export async function loader(): Promise<{
+  lanName: string
+}> {
+  return { lanName: getLan().name }
 }
 
 export async function action({ request, }: ActionFunctionArgs) {
@@ -39,6 +46,7 @@ function LoginForm() {
                 type="text"
                 placeholder="Pseudo"
                 required
+                // eslint-disable-next-line jsx-a11y/no-autofocus
                 autoFocus
                 maxLength={15}
                 title="15 caractères max. N'ajoute pas ton tag d'équipe, ce sera fait plus tard"
@@ -53,5 +61,5 @@ function LoginForm() {
         </Form>
       </div>
     </div>
-  );
+  )
 }

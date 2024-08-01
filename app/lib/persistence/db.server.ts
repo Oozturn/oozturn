@@ -1,5 +1,5 @@
-import * as fs from 'fs';
-import { logger } from "~/lib/logging/logging";
+import * as fs from 'fs'
+import { logger } from "~/lib/logging/logging"
 
 interface DbObjectManager {
     onStore: () => void,
@@ -7,8 +7,10 @@ interface DbObjectManager {
 }
 
 declare global {
+    // eslint-disable-next-line no-var
     var diskPersistenceInterval: NodeJS.Timer
-    var objectManagers: Map<string, DbObjectManager>;
+    // eslint-disable-next-line no-var
+    var objectManagers: Map<string, DbObjectManager>
 }
 
 export const dbFolderPath = 'db'
@@ -24,13 +26,13 @@ function initialiseDiskPersistence() {
     logger.info(`Persistence initialization`)
     if (!global.objectManagers) {
         logger.info(`Persistence initialization - Loading objects managers`)
-        global.objectManagers = new Map<string, DbObjectManager>();
+        global.objectManagers = new Map<string, DbObjectManager>()
     }
     if (!fs.existsSync(dbFolderPath)) {
         logger.info(`Persistence initialization - Creating DB folder ${dbFolderPath}`)
         fs.mkdir(dbFolderPath, { recursive: true }, (err) => {
-            if (err) throw err;
-        });
+            if (err) throw err
+        })
     }
     logger.info(`Persistence initialization - interval set to ${intervalPersistenceSeconds} seconds.`)
     global.diskPersistenceInterval = setInterval(fireStore, intervalPersistenceSeconds * 1000)
@@ -55,7 +57,7 @@ export function subscribeObjectManager(id: string, objectManager: DbObjectManage
 }
 
 export function writeSafe(filepath: string, content: string) {
-    const tmpPath = filepath+'.tmp'
-    fs.writeFileSync(tmpPath,  content, 'utf-8')
+    const tmpPath = filepath + '.tmp'
+    fs.writeFileSync(tmpPath, content, 'utf-8')
     fs.renameSync(tmpPath, filepath)
 }

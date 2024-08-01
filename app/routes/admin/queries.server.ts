@@ -17,7 +17,7 @@ export async function resetUserPassword(request: Request, userId: string) {
     logger.info(`Password reset for user ${userId}`)
 }
 
-export async function renameUser(request:Request, userId:string, newUsername:string) {
+export async function renameUser(request: Request, userId: string, newUsername: string) {
     await requireUserAdmin(request)
     const user = getUserById(userId)
     if (!user) {
@@ -30,7 +30,7 @@ export async function renameUser(request:Request, userId:string, newUsername:str
     }
 
     const existingUser = getUserByUsername(newUsername)
-    if(existingUser && existingUser.id != userId) {
+    if (existingUser && existingUser.id != userId) {
         logger.error(`Impossible to remane: username ${newUsername} is already used`)
         return
     }

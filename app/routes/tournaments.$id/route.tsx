@@ -1,21 +1,20 @@
-import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction, redirect } from "@remix-run/node";
-import { useFetcher, useLoaderData, useNavigate } from "@remix-run/react";
-import { getTournament } from "~/lib/persistence/tournaments.server";
-import TournamentInfoSettings from "./components/tournament-info-settings";
-import { useUser } from "~/lib/components/contexts/UserContext";
-import { CustomButton } from "~/lib/components/elements/custom-button";
-import { CustomModalBinary } from "~/lib/components/elements/custom-modal";
-import { useState } from "react";
-import { BinSVG, LeaveSVG, ParticipateSVG, RollBackSVG, StartSVG, SubsribedSVG } from "~/lib/components/data/svg-container";
-import { addPlayerToTournament, addTeamToTournament, toggleBalanceTournament, removePlayerFromTournament, reorderPlayers, reorderTeams, addPlayerToTeam, removeTeamFromTournament, renameTeam, removePlayerFromTeams, distributePlayersOnTeams, balanceTeams, randomizePlayersOnTeams, cancelTournament, startTournament, scoreMatch, stopTournament } from "./queries.server";
-import { useUsers } from "~/lib/components/contexts/UsersContext";
-import { PlayersListSolo, PlayersListTeam } from "./components/players-list";
-import { GetFFAMaxPlayers } from "~/lib/utils/tournaments";
-import { BracketType, TournamentFullData, TournamentStatus } from "~/lib/tournamentEngine/types";
-import { TournamentContext, useTournament } from "~/lib/components/contexts/TournamentsContext";
-import { TournamentViewer } from "~/lib/components/layout/tournamentViewer";
-import { getLan } from "~/lib/persistence/lan.server";
-import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
+import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction, redirect } from "@remix-run/node"
+import { useFetcher, useLoaderData, useNavigate } from "@remix-run/react"
+import { getTournament } from "~/lib/persistence/tournaments.server"
+import TournamentInfoSettings from "./components/tournament-info-settings"
+import { useUser } from "~/lib/components/contexts/UserContext"
+import { CustomButton } from "~/lib/components/elements/custom-button"
+import { CustomModalBinary } from "~/lib/components/elements/custom-modal"
+import { useState } from "react"
+import { BinSVG, LeaveSVG, ParticipateSVG, StartSVG, SubsribedSVG } from "~/lib/components/data/svg-container"
+import { addPlayerToTournament, addTeamToTournament, toggleBalanceTournament, removePlayerFromTournament, reorderPlayers, reorderTeams, addPlayerToTeam, removeTeamFromTournament, renameTeam, removePlayerFromTeams, distributePlayersOnTeams, balanceTeams, randomizePlayersOnTeams, cancelTournament, startTournament, scoreMatch, stopTournament } from "./queries.server"
+import { useUsers } from "~/lib/components/contexts/UsersContext"
+import { OpponentsListSolo, OpponentsListTeam } from "./components/players-list"
+import { GetFFAMaxPlayers } from "~/lib/utils/tournaments"
+import { BracketType, TournamentFullData, TournamentStatus } from "~/lib/tournamentEngine/types"
+import { TournamentContext, useTournament } from "~/lib/components/contexts/TournamentsContext"
+import { TournamentViewer } from "./components/tournamentViewer"
+import { getLan } from "~/lib/persistence/lan.server"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
@@ -44,22 +43,22 @@ export async function action({ request }: ActionFunctionArgs) {
     switch (intent) {
         case TournamentManagementIntents.START:
             startTournament(jsonData.tournamentId as string)
-            break;
+            break
         case TournamentManagementIntents.STOP:
             stopTournament(jsonData.tournamentId as string)
-            break;
+            break
         case TournamentManagementIntents.CANCEL:
             cancelTournament(jsonData.tournamentId as string)
-            break;
+            break
         case TournamentManagementIntents.BALANCE:
             toggleBalanceTournament(jsonData.tournamentId as string)
-            break;
+            break
         case TournamentManagementIntents.ADD_PLAYER:
             addPlayerToTournament(jsonData.tournamentId as string, jsonData.userId as string)
-            break;
+            break
         case TournamentManagementIntents.REMOVE_PLAYER:
             removePlayerFromTournament(jsonData.tournamentId as string, jsonData.userId as string)
-            break;
+            break
         case TournamentManagementIntents.REORDER_PLAYERS:
             reorderPlayers(jsonData.tournamentId as string, jsonData.oldIndex as number, jsonData.newIndex as number)
             break
@@ -77,19 +76,19 @@ export async function action({ request }: ActionFunctionArgs) {
             break
         case TeamsManagementIntents.ADD_PLAYER:
             addPlayerToTeam(jsonData.tournamentId as string, jsonData.teamName as string, jsonData.userId as string)
-            break;
+            break
         case TeamsManagementIntents.REMOVE_PLAYER:
             removePlayerFromTeams(jsonData.tournamentId as string, jsonData.userId as string)
-            break;
+            break
         case TeamsManagementIntents.DISTRIBUTE:
             distributePlayersOnTeams(jsonData.tournamentId as string)
-            break;
+            break
         case TeamsManagementIntents.BALANCE:
             balanceTeams(jsonData.tournamentId as string)
-            break;
+            break
         case TeamsManagementIntents.RANDOMIZE:
             randomizePlayersOnTeams(jsonData.tournamentId as string)
-            break;
+            break
         case MatchesIntents.SCORE:
             scoreMatch(jsonData.tournamentId as string, jsonData.matchID as string, jsonData.opponent as string, jsonData.score as number)
     }
@@ -123,7 +122,7 @@ export enum MatchesIntents {
 }
 
 export default function TournamentPage() {
-    const { tournament } = useLoaderData<typeof loader>();
+    const { tournament } = useLoaderData<typeof loader>()
     const user = useUser()
     const fetcher = useFetcher()
     const users = useUsers()
@@ -190,9 +189,9 @@ export default function TournamentPage() {
                     {[TournamentStatus.Open, TournamentStatus.Balancing].includes(tournament.status) ?
                         <div className="is-flex-col grow no-basis">
                             {tournament.settings[0].useTeams ?
-                                <PlayersListTeam />
+                                <OpponentsListTeam />
                                 :
-                                <PlayersListSolo />
+                                <OpponentsListSolo />
                             }
                             <div className="mb-3"></div>
                             <div className="is-flex-row justify-space-between gap-3">

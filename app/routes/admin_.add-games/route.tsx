@@ -1,12 +1,13 @@
-import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction, json, redirect } from "@remix-run/node";
-import { Form, useFetcher, useLoaderData, useNavigate } from "@remix-run/react";
+import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction, json, redirect } from "@remix-run/node"
+import { Form, useFetcher, useLoaderData } from "@remix-run/react"
 import { SearchSVG } from "~/lib/components/data/svg-container"
-import { AddOrUpdateGameRepresentation, addOrUpdateGame, searchGames } from "./queries.server";
-import { useEffect, useState } from "react";
-import { useGames } from "~/lib/components/contexts/GamesContext";
-import { CustomButton } from "~/lib/components/elements/custom-button";
-import { CustomModalBinary } from "~/lib/components/elements/custom-modal";
-import { useLan } from "~/lib/components/contexts/LanContext";
+import { AddOrUpdateGameRepresentation, addOrUpdateGame, searchGames } from "./queries.server"
+import { useEffect, useState } from "react"
+import { useGames } from "~/lib/components/contexts/GamesContext"
+import { CustomButton } from "~/lib/components/elements/custom-button"
+import { CustomModalBinary } from "~/lib/components/elements/custom-modal"
+import { getLan } from "~/lib/persistence/lan.server"
+import { clickorkey } from "~/lib/utils/clickorkey"
 
 interface GameInfo {
     id: number,
@@ -22,38 +23,38 @@ enum GameManagementIntents {
     REMOVE_GAME = "removeGame",
 }
 
-export const meta: MetaFunction = () => {
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
-        { title: useLan().name + " - Ajout de jeu" }
+        { title: data?.lanName + " - Ajout de jeu" }
     ]
 }
 
 export async function action({ request }: ActionFunctionArgs) {
     const jsonData = await request.json()
     const intent = jsonData.intent as string
-
+    let partialGame: AddOrUpdateGameRepresentation
     switch (intent) {
         case GameManagementIntents.ADD_GAME:
-            let partialGame = jsonData.data as AddOrUpdateGameRepresentation
+            partialGame = jsonData.data
             addOrUpdateGame(partialGame)
             return redirect("/admin")
         case GameManagementIntents.REMOVE_GAME:
-            break;
+            break
     }
 
     return null
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-    const url = new URL(request.url);
-    const query = url.searchParams.get("query");
+    const url = new URL(request.url)
+    const query = url.searchParams.get("query")
 
     const games = await searchGames(query)
-    return json({ gameSearchResults: games, query });
-};
+    return json({ lanName: getLan().name, gameSearchResults: games, query })
+}
 
 export default function AddGames() {
-    const { gameSearchResults, query } = useLoaderData<typeof loader>();
+    const { gameSearchResults, query } = useLoaderData<typeof loader>()
     const [gameToConfigure, setGameToConfigure] = useState<GameInfo | undefined>(undefined)
     const [selectedImage, setSelectedImage] = useState("")
     const [showDeleteGame, setShowDeleteGame] = useState(false)
@@ -68,12 +69,6 @@ export default function AddGames() {
             setGameToConfigure(undefined)
         }
     }, [gameSearchResults])
-
-    const navigate = useNavigate()
-
-    const handleClose = () => {
-        navigate(-1);
-    };
 
     const handleRemoveGame = () => {
         if (!gameToConfigure) return
@@ -120,7 +115,7 @@ export default function AddGames() {
                     </Form>
                     <div className='gamesList is-flex-grow-1 has-background-primary-level is-scrollable is-relative'>
                         {gameSearchResults.map(game =>
-                            <div key={game.id} className={`gameTile ${game.id == gameToConfigure?.id && 'is-active'} px-1 py-2 m-0 is-clickable is-flex is-align-items-center`} onClick={() => { setGameToConfigure(game) }}>
+                            <div key={game.id} className={`gameTile ${game.id == gameToConfigure?.id && 'is-active'} px-1 py-2 m-0 is-clickable is-flex is-align-items-center`} {...clickorkey(() => setGameToConfigure(game))}>
                                 <img className='is-full-height' src={`/igdb_image/t_cover_small/${game.cover}.jpg`} alt="" />
                                 <div className='is-flex is-flex-direction-column'>
                                     <div className='ml-2' style={{ lineHeight: "1.5rem" }}>{game.name}</div>
@@ -153,7 +148,7 @@ export default function AddGames() {
                         <div className='mt-4'>Sélectionne l&apos;image à utiliser pour ce jeu</div>
                         <div className='picturesList is-flex is-flex-wrap-wrap is-scrollable is-justify-content-center'>
                             {gameToConfigure.pictures.map(pictureURL =>
-                                <img key={pictureURL} className={`imageToSelect m-0 p-0 is-clickable ${pictureURL == selectedImage ? 'is-active' : ''}`} src={`/igdb_image/t_720p/${pictureURL}.jpg`} alt="" onClick={() => { setSelectedImage(selectedImage == pictureURL ? '' : pictureURL) }} />
+                                <img key={pictureURL} className={`imageToSelect m-0 p-0 is-clickable ${pictureURL == selectedImage ? 'is-active' : ''}`} src={`/igdb_image/t_720p/${pictureURL}.jpg`} alt="" {...clickorkey(() => setSelectedImage(selectedImage == pictureURL ? '' : pictureURL))} />
                             )}
                         </div>
                         <div className='mt-4 is-full-width is-flex is-justify-content-end'>

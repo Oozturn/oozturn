@@ -1,4 +1,4 @@
-import type { LoaderFunctionArgs } from "@remix-run/node";
+import type { LoaderFunctionArgs } from "@remix-run/node"
 import {
   Links,
   Meta,
@@ -6,33 +6,33 @@ import {
   Scripts,
   ScrollRestoration,
   useLoaderData
-} from "@remix-run/react";
-import { GamesContext } from "./lib/components/contexts/GamesContext";
-import { LanContext } from "./lib/components/contexts/LanContext";
-import { TournamentsContext } from "./lib/components/contexts/TournamentsContext";
-import { UserContext } from "./lib/components/contexts/UserContext";
-import { UsersContext } from "./lib/components/contexts/UsersContext";
-import Navbar from "./lib/components/layout/navbar";
-import { GetUserTheme } from "./lib/components/tools/user-theme";
-import { getGames } from "./lib/persistence/games.server";
-import { getLan } from "./lib/persistence/lan.server";
-import { getTournaments } from "./lib/persistence/tournaments.server";
-import { getUserById, getUsers } from "./lib/persistence/users.server";
-import { getUserId, isUserLoggedIn } from "./lib/session.server";
-import { Game } from "./lib/types/games";
-import { Lan } from "./lib/types/lan";
-import { TournamentInfo } from "./lib/tournamentEngine/types";
-import { User } from "./lib/types/user";
-import "./styles/globals.scss";
-import 'react-contexify/ReactContexify.css';
-import { Notification } from "./lib/components/notification";
+} from "@remix-run/react"
+import { GamesContext } from "./lib/components/contexts/GamesContext"
+import { LanContext } from "./lib/components/contexts/LanContext"
+import { TournamentsContext } from "./lib/components/contexts/TournamentsContext"
+import { UserContext } from "./lib/components/contexts/UserContext"
+import { UsersContext } from "./lib/components/contexts/UsersContext"
+import Navbar from "./lib/components/layout/navbar"
+import { GetUserTheme } from "./lib/components/tools/user-theme"
+import { getGames } from "./lib/persistence/games.server"
+import { getLan } from "./lib/persistence/lan.server"
+import { getTournaments } from "./lib/persistence/tournaments.server"
+import { getUserById, getUsers } from "./lib/persistence/users.server"
+import { getUserId, isUserLoggedIn } from "./lib/session.server"
+import { Game } from "./lib/types/games"
+import { Lan } from "./lib/types/lan"
+import { TournamentInfo } from "./lib/tournamentEngine/types"
+import { User } from "./lib/types/user"
+import "./styles/globals.scss"
+import 'react-contexify/ReactContexify.css'
+import { Notification } from "./lib/components/notification"
 
 export async function loader({ request }: LoaderFunctionArgs): Promise<{
-  lan: Lan;
-  user?: User;
-  users: User[];
-  tournaments: TournamentInfo[];
-  games?: Game[];
+  lan: Lan
+  user?: User
+  users: User[]
+  tournaments: TournamentInfo[]
+  games?: Game[]
 }> {
   if (await isUserLoggedIn(request)) {
     return {
@@ -83,5 +83,5 @@ export default function App() {
         </body>
       </LanContext.Provider>
     </html>
-  );
+  )
 }

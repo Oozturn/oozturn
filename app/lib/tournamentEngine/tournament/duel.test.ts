@@ -1,15 +1,16 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires, no-var
 var Duel = require('duel');
 import { Duel as DuelTS } from './duel'
-import { expect, test, describe } from '@jest/globals';
+import { expect, test, describe } from '@jest/globals'
 
 
-let checkSameStateAndMatch = function (
+const checkSameStateAndMatch = function (
   parameters: ConstructorParameters<typeof DuelTS>,
   operationsFn?: (duel: DuelTS) => void,
   testFn?: (duel: DuelTS) => void
 ) {
-  let duel = new Duel(...parameters)
-  let duelTS = new DuelTS(...parameters)
+  const duel = new Duel(...parameters)
+  const duelTS = new DuelTS(...parameters)
 
   if (operationsFn) {
     operationsFn(duel)
@@ -34,7 +35,7 @@ describe('Duel 4 players', () => {
 
 describe('Duel 4 players with score', () => {
   checkSameStateAndMatch([4, {}], (duel) => {
-    let match1 = duel.matches[0]
+    const match1 = duel.matches[0]
     duel.score(match1.id, [10, 0])
   })
 });
@@ -55,7 +56,7 @@ describe('Duel 4 players until done', () => {
 });
 
 test('Duel 4 players winner with higherscore', () => {
-  let duel = new DuelTS(4, {})
+  const duel = new DuelTS(4, {})
   duel.score({ s: Duel.WB, r: 1, m: 1 }, [10, 0]) // 1 vs 4, 1 win
   duel.score({ s: Duel.WB, r: 1, m: 2 }, [0, 10]) // 3 vs 2, 2 win
   duel.score({ s: Duel.WB, r: 2, m: 1 }, [10, 0]) // 1 vs 2, 1 win
@@ -71,7 +72,7 @@ test('Duel 4 players winner with higherscore', () => {
 });
 
 test('Duel 4 players winner with lowerscore', () => {
-  let duel = new DuelTS(4, { lowerScoreIsBetter: true })
+  const duel = new DuelTS(4, { lowerScoreIsBetter: true })
   duel.score({ s: Duel.WB, r: 1, m: 1 }, [0, 10]) // 1 vs 4, 1 win
   duel.score({ s: Duel.WB, r: 1, m: 2 }, [10, 0]) // 3 vs 2, 2 win
   duel.score({ s: Duel.WB, r: 2, m: 1 }, [0, 10]) // 1 vs 2, 1 win
@@ -87,7 +88,7 @@ test('Duel 4 players winner with lowerscore', () => {
 })
 
 test('Duel 5 players with higherscore', () => {
-  let duel = new DuelTS(5, {})
+  const duel = new DuelTS(5, {})
   //R1 M1 -> 1 alone
   duel.score({ s: Duel.WB, r: 1, m: 2 }, [0, 10]) //5 vs 4, 4 win
   //R1 M3 -> 3 alone
@@ -108,7 +109,7 @@ test('Duel 5 players with higherscore', () => {
 })
 
 test('Duel 5 players with lowerscore', () => {
-  let duel = new DuelTS(5, {lowerScoreIsBetter:true})
+  const duel = new DuelTS(5, {lowerScoreIsBetter:true})
   //R1 M1 -> 1 alone
   duel.score({ s: Duel.WB, r: 1, m: 2 }, [10, 0]) //5 vs 4, 4 win
   //R1 M3 -> 3 alone

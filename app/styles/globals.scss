@@ -112,11 +112,6 @@ a, a:hover {
     }
 }
 
-.is-transparent {
-    background-color: transparent !important;
-    @include textAndFillColor(transparent, transparent)
-}
-
 .has-background-primary-level {
     background-color: var(--background-primary-level) !important;
     @include textAndFillColor(var(--text-color), var(--text-color-70))
@@ -166,10 +161,6 @@ a, a:hover {
 .is-full-width {
     max-width: 100% !important;
     width: 100% !important;
-}
-
-.no-min-width {
-    min-width: 0;
 }
 
 .is-borderless {
@@ -844,11 +835,6 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
     gap: 1.5rem;
 }
 
-.homeTournamentBoxNew {
-    height: 236px;
-    position: relative;
-}
-
 .homeTournamentBox {
     height: 236px;
     position: relative;
@@ -1133,19 +1119,6 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
     .is-draggable {
         cursor: inherit;
     }
-}
-
-@keyframes toptobottom {
-    0%,10% {
-        top: 0;
-    }
-    90%,100% {
-        top: calc((100vh - 2.25rem - 60px - ($navbar-height + $footer-height)) - 100%);
-    }
-}
-
-.animateFromTopToBottom {
-    animation: 10s toptobottom cubic-bezier(.5,0,.5,1) infinite alternate;
 }
 
 .tournamentInfoRunning {

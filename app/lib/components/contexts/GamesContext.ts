@@ -1,8 +1,8 @@
-import { createContext, useContext } from "react";
-import { Game } from "~/lib/types/games";
+import { createContext, useContext } from "react"
+import { Game } from "~/lib/types/games"
 
 
-export const GamesContext = createContext<Game[]|undefined>(undefined);
+export const GamesContext = createContext<Game[] | undefined>(undefined)
 
 export function useGames() {
     const games = useContext(GamesContext)

@@ -1,14 +1,15 @@
 import { useFetcher } from "@remix-run/react"
 import React, { useState } from "react"
-import { Item, ItemParams, Menu, Separator, useContextMenu } from "react-contexify"
+import { Item, ItemParams, Menu, TriggerEvent, useContextMenu } from "react-contexify"
 import { useLan } from "~/lib/components/contexts/LanContext"
 import { useTournaments } from "~/lib/components/contexts/TournamentsContext"
 import { useUsers } from "~/lib/components/contexts/UsersContext"
 import { ButtonMore } from "~/lib/components/elements/custom-button"
-import { CustomModalBinary, ModalLayout } from "~/lib/components/elements/custom-modal"
+import { CustomModalBinary } from "~/lib/components/elements/custom-modal"
 import { UserTileRectangle } from "~/lib/components/elements/user-tile"
 import { User } from "~/lib/types/user"
 import { AdminIntents } from "../route"
+import { clickorkey } from "~/lib/utils/clickorkey"
 
 
 export function UsersList() {
@@ -16,28 +17,29 @@ export function UsersList() {
     const [activeUser, setActiveUser] = useState("")
     const [userInEdit, setUserInEdit] = useState<User | null>(null)
     const [newUsername, setNewUsername] = useState("")
-    const { show: showMenu } = useContextMenu();
+    const { show: showMenu } = useContextMenu()
     const users = useUsers()
     const tournaments = useTournaments()
     const lan = useLan()
 
     const fetcher = useFetcher()
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const leaderboard: any[] = []
 
-    const handleMenuItemClick = ({ id, event, props }: ItemParams<{ user: User }>) => {
+    const handleMenuItemClick = ({ id, props }: ItemParams<{ user: User }>) => {
         switch (id) {
             case "resetPassword":
                 resetUserPassword(props!.user.id)
-                break;
+                break
             case "renameUser":
                 startUserRename(props!.user)
-                break;
+                break
         }
     }
 
     function resetUserPassword(userId: string) {
-        let fd = new FormData()
+        const fd = new FormData()
         fd.append("userId", userId)
         fd.append("intent", AdminIntents.RESET_USER_PASSWORD)
         fetcher.submit(fd, { method: "POST" })
@@ -49,7 +51,7 @@ export function UsersList() {
     }
 
     function renameUser(userId: string, newUsername: string) {
-        let fd = new FormData()
+        const fd = new FormData()
         fd.append("userId", userId)
         fd.append("newUsername", newUsername)
         fd.append("intent", AdminIntents.RENAME_USER)
@@ -77,10 +79,10 @@ export function UsersList() {
                 <React.Fragment key={user.id}>
                     <div className={`userTile is-flex-col is-clickable ${activeUser == user.id ? 'is-active' : ''}`} onMouseEnter={() => setHooveredUser(user.id)} onMouseLeave={() => setHooveredUser("")}>
                         <div className="is-flex is-justify-content-space-between is-align-items-center">
-                            <div className="is-flex is-clickable grow" onClick={() => setActiveUser(activeUser == user.id ? '' : user.id)}>
+                            <div className="is-flex is-clickable grow" {...clickorkey(() => setActiveUser(activeUser == user.id ? '' : user.id))}>
                                 <UserTileRectangle userId={user.id} height={40} />
                             </div>
-                            <ButtonMore height={40} show={hooveredUser == user.id} callback={(e) => {
+                            <ButtonMore height={40} show={hooveredUser == user.id} callback={(e: TriggerEvent) => {
                                 showMenu({
                                     id: user.id,
                                     event: e,
@@ -91,7 +93,7 @@ export function UsersList() {
                             }}
                             />
                         </div>
-                        <div className='userTooltip is-flex pl-3' onClick={() => setActiveUser(activeUser == user.id ? '' : user.id)}>
+                        <div className='userTooltip is-flex pl-3' {...clickorkey(() => setActiveUser(activeUser == user.id ? '' : user.id))}>
                             <div className='is-flex-col'>
                                 <div>IP: {user.ips ? user.ips[0] : 'unknown'}</div>
                                 <div>Tournois: {tournaments?.filter(tournament => tournament.players.find(player => player.userId == user.id)).length || 0}</div>

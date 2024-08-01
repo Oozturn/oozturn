@@ -1,8 +1,8 @@
-import { Outlet } from "@remix-run/react";
-import TournamentsList from "./tournaments-list";
-import { LoaderFunctionArgs } from "@remix-run/node";
-import { requireUserLoggedIn } from "~/lib/session.server";
-import { useRevalidateOnGlobalTournamentUpdate } from "../sse/hook";
+import { Outlet } from "@remix-run/react"
+import TournamentsList from "./tournaments-list"
+import { LoaderFunctionArgs } from "@remix-run/node"
+import { requireUserLoggedIn } from "~/lib/session.server"
+import { useRevalidateOnGlobalTournamentUpdate } from "../sse/hook"
 
 export async function loader({ request }: LoaderFunctionArgs) {
     await requireUserLoggedIn(request)

@@ -1,20 +1,20 @@
 
-import useLocalStorageState from "use-local-storage-state";
-import { accentsList, modesList } from "../data/themes";
-import { useEffect } from "react";
+import useLocalStorageState from "use-local-storage-state"
+import { accentsList, modesList } from "../data/themes"
+import { useEffect } from "react"
 
 export function GetUserTheme() {
-	const [modeLocalStorage, setModeLocalStorage] = useLocalStorageState("mode", { defaultValue: "Dark" })
-	const [accentLocalStorage, setAccentLocalStorage] = useLocalStorageState("accent", { defaultValue: "Switch" })
+	const [modeLocalStorage] = useLocalStorageState("mode", { defaultValue: "Dark" })
+	const [accentLocalStorage] = useLocalStorageState("accent", { defaultValue: "Switch" })
 
-	useEffect(() => {	
+	useEffect(() => {
 		const mode = modesList.find(mode => mode.name == modeLocalStorage) || modesList[0]
 		document.documentElement.style.setProperty('--background-primary-level', mode.primary)
 		document.documentElement.style.setProperty('--background-secondary-level', mode.secondary)
 		document.documentElement.style.setProperty('--text-color', mode.text)
 		document.documentElement.style.setProperty('--text-color-70', mode.text + 'B3')
 		document.documentElement.style.setProperty('--generic-game-image', mode.genericGame)
-		
+
 		const accent = accentsList.find(accent => accent.name == accentLocalStorage) || accentsList[0]
 		document.documentElement.style.setProperty('--accent-primary-color', accent.primary)
 		document.documentElement.style.setProperty('--accent-secondary-color', accent.secondary)

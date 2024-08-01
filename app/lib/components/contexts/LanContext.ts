@@ -1,7 +1,7 @@
-import { createContext, useContext } from "react";
-import { Lan } from "~/lib/types/lan";
+import { createContext, useContext } from "react"
+import { Lan } from "~/lib/types/lan"
 
-export const LanContext = createContext<Lan | null>(null);
+export const LanContext = createContext<Lan | null>(null)
 
 export function useLan() {
     const lan = useContext(LanContext)

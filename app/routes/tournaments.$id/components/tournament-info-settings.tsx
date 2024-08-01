@@ -38,18 +38,18 @@ export default function TournamentInfoSettings() {
         </div>
         {/* Équipes créées */}
         {tournament.settings[0].useTeams &&
-        
-        <div className="is-flex gap-3 wrap">
-          <div className='has-text-right is-one-quarter'>Équipes :</div>
-          <div className="is-flex gap-2">
-          <div>{tournament.teams ? tournament.teams.length : 0}</div>
-            {tournament.settings[0].type == BracketType.FFA && tournament.settings[0].sizes && tournament.settings[0].advancers &&
-              <div className='fade-text ml-1'>
-                / {GetFFAMaxPlayers(tournament.settings[0].sizes, tournament.settings[0].advancers)} max
-              </div>
-            }
+
+          <div className="is-flex gap-3 wrap">
+            <div className='has-text-right is-one-quarter'>Équipes :</div>
+            <div className="is-flex gap-2">
+              <div>{tournament.teams ? tournament.teams.length : 0}</div>
+              {tournament.settings[0].type == BracketType.FFA && tournament.settings[0].sizes && tournament.settings[0].advancers &&
+                <div className='fade-text ml-1'>
+                  / {GetFFAMaxPlayers(tournament.settings[0].sizes, tournament.settings[0].advancers)} max
+                </div>
+              }
+            </div>
           </div>
-        </div>
         }
         {/* Début du tournoi */}
         <div className='is-flex gap-3 wrap'>
@@ -58,9 +58,9 @@ export default function TournamentInfoSettings() {
         </div>
         {/* Commentaires */}
         <div className='is-flex gap-3 wrap'>
-        {tournament.properties.comments && <div className=''>Commentaires :</div>}
-        {tournament.properties.comments && <div className='is-scrollable enable-line-break'><FormattedTextWithUrls text={tournament.properties.comments} /></div>}
-      </div>
+          {tournament.properties.comments && <div className=''>Commentaires :</div>}
+          {tournament.properties.comments && <div className='is-scrollable enable-line-break'><FormattedTextWithUrls text={tournament.properties.comments} /></div>}
+        </div>
       </div>
     </div>
   )

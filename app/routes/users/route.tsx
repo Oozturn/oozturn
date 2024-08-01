@@ -1,20 +1,24 @@
-import { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
-import { useLan } from "~/lib/components/contexts/LanContext";
-import { useUsers } from "~/lib/components/contexts/UsersContext";
-import { UserTileUsersPage } from "~/lib/components/elements/user-tile";
-import { requireUserLoggedIn } from "~/lib/session.server";
+import { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
+import { Fragment } from "react"
+import { useUsers } from "~/lib/components/contexts/UsersContext"
+import { UserTileUsersPage } from "~/lib/components/elements/user-tile"
+import { getLan } from "~/lib/persistence/lan.server"
+import { requireUserLoggedIn } from "~/lib/session.server"
 
 
-export const meta: MetaFunction = () => {
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
-      { title: useLan().name + " - Users" }
+    { title: data?.lanName + " - Users" }
   ]
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: LoaderFunctionArgs): Promise<{
+  lanName: string
+}> {
   await requireUserLoggedIn(request)
-  return null
+  return { lanName: getLan().name }
 }
+
 
 export default function Users() {
   const users = useUsers()
@@ -25,7 +29,9 @@ export default function Users() {
     </div>
     <div className="is-flex wrap grow has-background-secondary-level p-3 is-scrollable gap-3">
       {users.sort((a, b) => a.username.toLowerCase().localeCompare(b.username.toLowerCase())).map((user, place) =>
-        <UserTileUsersPage userId={user.id} tournaments={0} leaderboardPlace={place + 1} points={0} />
+        <Fragment key={user.id}>
+          <UserTileUsersPage userId={user.id} tournaments={0} leaderboardPlace={place + 1} points={0} />
+        </Fragment>
       )}
     </div>
   </div>

@@ -1,11 +1,11 @@
-import { createCookieSessionStorage, redirect } from "@remix-run/node";
-import { getLan } from "./persistence/lan.server";
-import { getUserById } from "./persistence/users.server";
-import { User } from "./types/user";
+import { createCookieSessionStorage, redirect } from "@remix-run/node"
+import { getLan } from "./persistence/lan.server"
+import { getUserById } from "./persistence/users.server"
+import { User } from "./types/user"
 
-const sessionSecret = process.env.SESSION_SECRET;
+const sessionSecret = process.env.SESSION_SECRET
 if (!sessionSecret) {
-    throw new Error("SESSION_SECRET must be set");
+    throw new Error("SESSION_SECRET must be set")
 }
 
 const secureStorage =
@@ -22,36 +22,36 @@ const secureStorage =
                 secure: process.env.NODE_ENV === "production",
             },
         }
-    );
+    )
 
 async function getSession(request: Request) {
     return await secureStorage.getSession(
         request.headers.get("Cookie")
-    );
+    )
 }
 
 export async function createSessionWithUser(user: User) {
-    const session = await secureStorage.getSession();
-    session.set("userId", user.id);
-    session.set("username", user.username);
-    session.set("auth", "username");
+    const session = await secureStorage.getSession()
+    session.set("userId", user.id)
+    session.set("username", user.username)
+    session.set("auth", "username")
     return await secureStorage.commitSession(session)
 }
 
 export async function destroySession(request: Request) {
-    const session = await getSession(request);
+    const session = await getSession(request)
     return await secureStorage.destroySession(session)
 }
 
 export async function updateSessionWithAdminElevation(request: Request) {
     const session = await getSession(request)
-    session.set("admin", true);
+    session.set("admin", true)
     return await secureStorage.commitSession(session)
 }
 
 export async function updateSessionWithPasswordAuth(request: Request) {
     const session = await getSession(request)
-    session.set("auth", "password");
+    session.set("auth", "password")
     return await secureStorage.commitSession(session)
 }
 
@@ -84,7 +84,7 @@ export async function getUserFromRequest(request: Request): Promise<User | undef
 export async function requireUserLoggedIn(request: Request) {
     const userLoggedIn = await isUserLoggedIn(request)
     if (!userLoggedIn) {
-        throw redirect('/login');
+        throw redirect('/login')
     }
     return await getUserId(request) as string
 }
@@ -93,6 +93,6 @@ export async function requireUserAdmin(request: Request) {
     await requireUserLoggedIn(request)
     const userIdAdmin = await isUserAdmin(request)
     if (!userIdAdmin) {
-        throw redirect('/admin/login');
+        throw redirect('/admin/login')
     }
 }

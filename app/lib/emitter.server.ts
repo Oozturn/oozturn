@@ -1,12 +1,12 @@
-import { EventEmitter } from "node:events";
+import { EventEmitter } from "node:events"
 
 export const EMITTER_GLOBAL_TOURNAMENT_UPDATE = "globalTournamentUpdate"
 export const EMITTER_NOTIFICATION_MESSAGE = "notificationMessage"
 
-export let emitter = new EventEmitter();
+export const emitter = new EventEmitter()
 
 let index = 0
-let userId = ["will", "rnd"]
+const userId = ["will", "rnd"]
 
 /** Juste pour lancer pendant le dev en attendant d'avoir de vrai evenements */
 setInterval(() => {

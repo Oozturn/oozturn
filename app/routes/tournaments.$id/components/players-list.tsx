@@ -1,29 +1,30 @@
-import { useEffect, useState } from "react";
-import { useTournament } from "~/lib/components/contexts/TournamentsContext";
-import { useUser } from "~/lib/components/contexts/UserContext";
-import { UserTileRectangle } from "~/lib/components/elements/user-tile";
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, useDroppable, useSensor, useSensors } from '@dnd-kit/core';
-import { SortableContext, arrayMove } from "@dnd-kit/sortable";
-import { Sortable } from "~/lib/components/dnd/Sortable";
-import { GetFFAMaxPlayers } from "~/lib/utils/tournaments";
-import { SmartDndPointerSensor } from "~/lib/utils/smartDndPointerSensor";
-import { CustomModalBinary } from "~/lib/components/elements/custom-modal";
-import { CustomButton } from "~/lib/components/elements/custom-button";
-import { BalanceSVG, BinSVG, DistributeSVG, RandomSVG, SubsribedSVG } from "~/lib/components/data/svg-container";
-import { Draggable } from "~/lib/components/dnd/Draggable";
-import { useFetcher } from "@remix-run/react";
-import { TeamsManagementIntents, TournamentManagementIntents } from "../route";
-import { BracketType, Player, Team, TournamentStatus } from "~/lib/tournamentEngine/types";
+import { Fragment, useEffect, useState } from "react"
+import { useTournament } from "~/lib/components/contexts/TournamentsContext"
+import { useUser } from "~/lib/components/contexts/UserContext"
+import { UserTileRectangle } from "~/lib/components/elements/user-tile"
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, useDroppable, useSensor, useSensors } from '@dnd-kit/core'
+import { SortableContext, arrayMove } from "@dnd-kit/sortable"
+import { Sortable } from "~/lib/components/dnd/Sortable"
+import { GetFFAMaxPlayers } from "~/lib/utils/tournaments"
+import { SmartDndPointerSensor } from "~/lib/utils/smartDndPointerSensor"
+import { CustomModalBinary } from "~/lib/components/elements/custom-modal"
+import { CustomButton } from "~/lib/components/elements/custom-button"
+import { BalanceSVG, BinSVG, DistributeSVG, RandomSVG, SubsribedSVG } from "~/lib/components/data/svg-container"
+import { Draggable } from "~/lib/components/dnd/Draggable"
+import { useFetcher } from "@remix-run/react"
+import { TeamsManagementIntents, TournamentManagementIntents } from "../route"
+import { BracketType, Player, Team, TournamentStatus } from "~/lib/tournamentEngine/types"
+import { clickorkey } from "~/lib/utils/clickorkey"
 
 
 
-export function PlayersListSolo() {
+export function OpponentsListSolo() {
 
     const tournament = useTournament()
     const user = useUser()
     const fetcher = useFetcher()
-    const [draggingPlayer, setDraggingPlayer] = useState<string | null>(null);
-    const [sortablePlayers, setSortablePlayers] = useState<(Player & { id: string })[]>([]);
+    const [draggingPlayer, setDraggingPlayer] = useState<string | null>(null)
+    const [sortablePlayers, setSortablePlayers] = useState<(Player & { id: string })[]>([])
 
     useEffect(() => {
         setSortablePlayers(tournament.players.map(player => {
@@ -37,7 +38,7 @@ export function PlayersListSolo() {
     }
 
     async function onDragEnd(event: DragEndEvent) {
-        const { active, over } = event;
+        const { active, over } = event
         setDraggingPlayer(null)
         document.body.classList.remove('is-dragging')
         if (over?.id && (active.id != over.id)) {
@@ -94,18 +95,18 @@ export function PlayersListSolo() {
     )
 }
 
-export function PlayersListTeam() {
+export function OpponentsListTeam() {
     const tournament = useTournament()
     const user = useUser()
     const fetcher = useFetcher()
     const [showNewTeam, setShowNewTeam] = useState(false)
     const [newTeamName, setNewTeamName] = useState("")
 
-    const [draggingPlayer, setDraggingPlayer] = useState<string | null>(null);
-    const [draggingTeam, setDraggingTeam] = useState<string | null>(null);
+    const [draggingPlayer, setDraggingPlayer] = useState<string | null>(null)
+    const [draggingTeam, setDraggingTeam] = useState<string | null>(null)
     const [sortableTeams, setSortableTeams] = useState<(Team & { id: string })[]>(tournament.teams?.map(team => {
         return { ...team, id: 'team_' + team.name }
-    }) || []);
+    }) || [])
 
     useEffect(() => {
         tournament.teams && setSortableTeams(tournament.teams.map(team => {
@@ -159,7 +160,7 @@ export function PlayersListTeam() {
     }
 
     async function onDragEnd(event: DragEndEvent) {
-        const { active, over } = event;
+        const { active, over } = event
         if (draggingPlayer) {
             document.body.classList.remove('is-dragging')
             setDraggingPlayer(null)
@@ -184,7 +185,7 @@ export function PlayersListTeam() {
                 const oldIndex = sortableTeams.findIndex(t => t.id == active.id)
                 const newIndex = sortableTeams.findIndex(t => t.id == over.id)
 
-                const newTeamsOrders = arrayMove(sortableTeams, oldIndex, newIndex);
+                const newTeamsOrders = arrayMove(sortableTeams, oldIndex, newIndex)
                 setSortableTeams(newTeamsOrders)
                 fetcher.submit(
                     {
@@ -224,6 +225,7 @@ export function PlayersListTeam() {
                             <div className="is-flex align-center">
                                 <div className="mr-3">Nom de l&apos;équipe : </div>
                                 <div>
+                                    {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
                                     <input className='input' autoFocus type="text" placeholder="Nom de l'équipe" value={newTeamName} onChange={(e) => { setNewTeamName(e.target.value) }} onKeyDown={(e) => e.key == "Enter" && newTeam()} />
                                 </div>
                             </div>
@@ -286,9 +288,9 @@ function TeamTile({ team, draggedPlayer, addPlayerToTeam, removePlayerFromTeams 
     const [showRenameTeam, setShowRenameTeam] = useState(false)
     const [showDeleteTeam, setShowDeleteTeam] = useState(false)
     const [teamName, setTeamName] = useState(team.name)
-    const { isOver, setNodeRef } = useDroppable({
+    const { setNodeRef } = useDroppable({
         id: "team_" + team.name,
-    });
+    })
 
     const isFull = !(tournament.settings[0].useTeams && tournament.settings[0].teamsMaxSize && team.members.length < tournament.settings[0].teamsMaxSize)
     const couldJoin = !team.members.includes(user.id)
@@ -321,8 +323,8 @@ function TeamTile({ team, draggedPlayer, addPlayerToTeam, removePlayerFromTeams 
                 <div className='is-uppercase'>{team.name}</div>
                 {user.isAdmin &&
                     <div className='is-flex-row align-center gap-1'>
-                        <div className='is-clickable is-flex fade-on-mouse-out' onClick={() => setShowRenameTeam(true)}><SubsribedSVG /></div>
-                        <div className='is-clickable is-flex fade-on-mouse-out' onClick={() => setShowDeleteTeam(true)}><BinSVG /></div>
+                        <div className='is-clickable is-flex fade-on-mouse-out' {...clickorkey(() => setShowRenameTeam(true))}><SubsribedSVG /></div>
+                        <div className='is-clickable is-flex fade-on-mouse-out' {...clickorkey(() => setShowDeleteTeam(true))}><BinSVG /></div>
                         <CustomModalBinary
                             show={showRenameTeam}
                             onHide={() => setShowRenameTeam(false)}
@@ -368,12 +370,12 @@ function TeamTile({ team, draggedPlayer, addPlayerToTeam, removePlayerFromTeams 
                 )}
                 {tournament.status == TournamentStatus.Open &&
                     (team.members.includes(user.id) ?
-                        <div className='is-flex justify-center align-center is-unselectable px-4 py-2 is-clickable has-background-secondary-accent' onClick={() => removePlayerFromTeams(user.id)}>
+                        <div className='is-flex justify-center align-center is-unselectable px-4 py-2 is-clickable has-background-secondary-accent' {...clickorkey(() => removePlayerFromTeams(user.id))}>
                             <div className=''>Quitter l&apos;équipe</div>
                         </div>
                         :
                         (!isFull && couldJoin ?
-                            <div className='is-flex justify-center align-center is-unselectable px-4 py-2 is-clickable has-background-primary-accent' onClick={() => addPlayerToTeam(user.id, team.name)}>
+                            <div className='is-flex justify-center align-center is-unselectable px-4 py-2 is-clickable has-background-primary-accent' {...clickorkey(() => addPlayerToTeam(user.id, team.name))}>
                                 <div className=''>Rejoindre l&apos;équipe</div>
                             </div>
                             :
@@ -396,7 +398,9 @@ function OverlayTeamTile({ team }: OverlayTeamTileProps) {
             <div className='is-uppercase mr-2'>{team.name}</div>
             <div className='is-flex-col gap-1'>
                 {team.members.map(userId =>
-                    <UserTileRectangle userId={userId} />
+                    <Fragment key={userId}>
+                        <UserTileRectangle userId={userId} />
+                    </Fragment>
                 )}
             </div>
         </div>
@@ -405,33 +409,22 @@ function OverlayTeamTile({ team }: OverlayTeamTileProps) {
 
 function PlayerWithoutTeamArea() {
     const tournament = useTournament()
-    const user = useUser()
     const fetcher = useFetcher()
+    const { setNodeRef } = useDroppable({
+        id: 'no-team',
+    })
 
     if (!tournament.teams) return null
     const teams = tournament.teams
     const notInTeamPlayers = tournament.players.filter(player => !([] as string[]).concat(...teams.map(team => team.members)).includes(player.userId)).map(player => player.userId)
-    const [hooveredPlayer, setHooveredPlayer] = useState("")
 
-    const { isOver, setNodeRef } = useDroppable({
-        id: 'no-team',
-    });
+
 
     async function distributePlayers() {
         fetcher.submit(
             {
                 intent: TeamsManagementIntents.DISTRIBUTE,
                 tournamentId: tournament?.id || ""
-            },
-            { method: "POST", encType: "application/json" }
-        )
-    }
-    async function removeUserFromTournament(userId: string) {
-        fetcher.submit(
-            {
-                intent: TournamentManagementIntents.REMOVE_PLAYER,
-                tournamentId: tournament?.id || "",
-                userId: userId
             },
             { method: "POST", encType: "application/json" }
         )
@@ -510,7 +503,7 @@ function PlayerTileWithCommands({ userId, isDraggable, baseColor }: PlayerTileWi
 
     return <div className={`is-flex align-center grow ${isDraggable ? 'is-draggable' : ''} ${userId == user.id ? 'has-background-primary-accent' : baseColor ? baseColor : "has-background-secondary-level"}`} onMouseEnter={() => setHooveredPlayer(true)} onMouseLeave={() => setHooveredPlayer(false)}>
         <UserTileRectangle userId={userId} />
-        <div className="is-flex align-center is-clickable" style={{ width: "20px" }} onClick={() => removeUserFromTournament(userId)}>
+        <div className="is-flex align-center is-clickable" style={{ width: "20px" }} {...clickorkey(() => removeUserFromTournament(userId))}>
             {user.isAdmin && hooveredPlayer && <BinSVG />}
         </div>
     </div>

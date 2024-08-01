@@ -1,25 +1,30 @@
-import { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
-import { Link } from "@remix-run/react";
-import React from "react";
-import { useGames } from "~/lib/components/contexts/GamesContext";
-import { useLan } from "~/lib/components/contexts/LanContext";
-import { useTournaments } from "~/lib/components/contexts/TournamentsContext";
-import { useUser } from "~/lib/components/contexts/UserContext";
-import { AddTournamentCrossSVG, SubsribedSVG } from "~/lib/components/data/svg-container";
-import { FormattedTextWithUrls } from "~/lib/components/elements/formatted-text-url";
-import { requireUserLoggedIn } from "~/lib/session.server";
-import { Game } from "~/lib/types/games";
-import { TournamentInfo, TournamentStatus } from "~/lib/tournamentEngine/types";
+import { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
+import { Link } from "@remix-run/react"
+import React from "react"
+import { useGames } from "~/lib/components/contexts/GamesContext"
+import { useLan } from "~/lib/components/contexts/LanContext"
+import { useTournaments } from "~/lib/components/contexts/TournamentsContext"
+import { useUser } from "~/lib/components/contexts/UserContext"
+import { AddTournamentCrossSVG, SubsribedSVG } from "~/lib/components/data/svg-container"
+import { FormattedTextWithUrls } from "~/lib/components/elements/formatted-text-url"
+import { requireUserLoggedIn } from "~/lib/session.server"
+import { Game } from "~/lib/types/games"
+import { TournamentInfo, TournamentStatus } from "~/lib/tournamentEngine/types"
+import { getLan } from "~/lib/persistence/lan.server"
 
-export const meta: MetaFunction = () => {
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
-    { title: useLan().name + " - Accueil" }
+    { title: data?.lanName + " - Accueil" }
   ]
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({
+  request
+}: LoaderFunctionArgs): Promise<{
+  lanName: string
+}> {
   await requireUserLoggedIn(request)
-  return null
+  return { lanName: getLan().name }
 }
 
 export default function Index() {
@@ -44,7 +49,7 @@ export default function Index() {
           <div className="is-scrollable grow">
             <div className='homeTournamentsGrid'>
               {me?.isAdmin &&
-                <Link to="/tournaments/new" className="homeTournamentBoxNew has-background-primary-accent is-flex-col justify-center align-center is-clickable fade-on-mouse-out" data-id="editTournament">
+                <Link to="/tournaments/new" className="homeTournamentBox has-background-primary-accent is-flex-col justify-center align-center is-clickable fade-on-mouse-out" data-id="editTournament">
                   <AddTournamentCrossSVG />
                   <div className='has-text-weight-semibold'>Créer un tournoi</div>
                 </Link>
@@ -59,7 +64,7 @@ export default function Index() {
         </div>
       </div >
     </>
-  );
+  )
 }
 
 function IndexTournamentTile({ tournament, userId, game }: { tournament: TournamentInfo, userId: string, game: Game | undefined }) {

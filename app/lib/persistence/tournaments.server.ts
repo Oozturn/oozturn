@@ -6,6 +6,7 @@ import { TournamentEngine, TournamentStorage } from "../tournamentEngine/tournam
 import { BracketSettings, TournamentInfo, TournamentProperties } from "../tournamentEngine/types"
 
 declare global {
+    // eslint-disable-next-line no-var
     var tournaments: TournamentEngine[]
 }
 
@@ -14,7 +15,7 @@ const tournamentsFilePath = path.join(dbFolderPath, 'tournaments.json')
 subscribeObjectManager("tournaments", {
     onRestore: () => {
         if (global.tournaments) {
-            return;
+            return
         }
 
         if (fs.existsSync(tournamentsFilePath)) {
@@ -48,18 +49,18 @@ export function newTournament(tournamentId: string, properties: TournamentProper
 
 export function cancelTournament(tournamentId: string) {
     const index = global.tournaments.findIndex(tournament => tournament.getId() == tournamentId)
-    if (index ==  -1) throw new Error(`Tournament ${tournamentId} not found`)
+    if (index == -1) throw new Error(`Tournament ${tournamentId} not found`)
     global.tournaments.splice(index, 1)
 }
 
 export function updateTournamentProperties(tournamentId: string, partialProperties: Partial<TournamentProperties>) {
-    let tournament = global.tournaments.find(tournament => tournament.getId() == tournamentId)
+    const tournament = global.tournaments.find(tournament => tournament.getId() == tournamentId)
     if (!tournament) throw new Error(`Tournament ${tournamentId} not found`)
     tournament.updateProperties(partialProperties)
 }
 
 export function updateTournamentSettings(tournamentId: string, partialSettings: Partial<BracketSettings>) {
-    let tournament = global.tournaments.find(tournament => tournament.getId() == tournamentId)
+    const tournament = global.tournaments.find(tournament => tournament.getId() == tournamentId)
     if (!tournament) throw new Error(`Tournament ${tournamentId} not found`)
     tournament.updateSettings(partialSettings)
 }

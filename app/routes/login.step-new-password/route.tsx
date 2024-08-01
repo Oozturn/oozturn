@@ -1,38 +1,37 @@
-import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction, json, redirect } from "@remix-run/node";
-import { Form, useActionData, useLoaderData } from "@remix-run/react";
-import { getLan } from "~/lib/persistence/lan.server";
-import { storePassword } from "~/lib/persistence/password.server";
-import { getUserFromRequest, getUserId, updateSessionWithPasswordAuth } from "~/lib/session.server";
-import { validate } from "./validate";
-import { useLan } from "~/lib/components/contexts/LanContext";
+import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction, json, redirect } from "@remix-run/node"
+import { Form, useActionData, useLoaderData } from "@remix-run/react"
+import { getLan } from "~/lib/persistence/lan.server"
+import { storePassword } from "~/lib/persistence/password.server"
+import { getUserFromRequest, getUserId, updateSessionWithPasswordAuth } from "~/lib/session.server"
+import { validate } from "./validate"
 
 
-export const meta: MetaFunction = () => {
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
-    { title: useLan().name + " - Nouveau mot de passe" }
+    { title: data?.lanName + " - Nouveau mot de passe" }
   ]
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
   if (!getLan().authenticationNeeded) {
-    throw redirect('/login');
+    throw redirect('/login')
   }
 
   const user = await getUserFromRequest(request)
   if (!user) {
-    throw redirect('/login');
+    throw redirect('/login')
   }
-  return { ...user }
+  return { ...user, lanName: getLan().name }
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const formData = await request.formData();
-  const password = String(formData.get("password") || "").trim();
-  const confirmPassword = String(formData.get("confirmPassword") || "").trim();
+  const formData = await request.formData()
+  const password = String(formData.get("password") || "").trim()
+  const confirmPassword = String(formData.get("confirmPassword") || "").trim()
 
-  let errors = await validate(password, confirmPassword);
+  const errors = await validate(password, confirmPassword)
   if (errors) {
-    return json({ ok: false, errors }, 400);
+    return json({ ok: false, errors }, 400)
   }
 
   const userId = await getUserId(request) as string
@@ -48,7 +47,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function LoginStepNewPassword() {
   const { username } = useLoaderData<typeof loader>()
-  let actionResult = useActionData<typeof action>();
+  const actionResult = useActionData<typeof action>()
 
   return <div className="is-flex is-flex-direction-column is-align-items-center">
     <div className="p-4 has-background-secondary-level is-full-width">
@@ -64,6 +63,7 @@ export default function LoginStepNewPassword() {
               type="password"
               placeholder="Mot de passe"
               required
+              // eslint-disable-next-line jsx-a11y/no-autofocus
               autoFocus
               maxLength={18}
             />

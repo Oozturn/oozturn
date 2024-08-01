@@ -19,7 +19,7 @@ export async function doLogin(rawUsername: string) {
     if (user) {
         logger.info({ username: username }, `${username} logged in`)
     }
-    else if(getLan().newUsersByAdminOnly)  {
+    else if (getLan().newUsersByAdminOnly) {
         return json({ error: "Utilisateur inconnu." })
     } else {
         logger.info({ username: username }, `New user ${username} logged in`)

@@ -1,5 +1,5 @@
-import { createContext, useContext } from "react";
-import { TournamentFullData, TournamentInfo } from "~/lib/tournamentEngine/types";
+import { createContext, useContext } from "react"
+import { TournamentFullData, TournamentInfo } from "~/lib/tournamentEngine/types"
 
 
 export const TournamentsContext = createContext<TournamentInfo[]>([])

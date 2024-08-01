@@ -1,33 +1,38 @@
-import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
-import { Link, useFetcher, useNavigate } from "@remix-run/react";
-import useLocalStorageState from "use-local-storage-state";
-import { useGames } from "~/lib/components/contexts/GamesContext";
-import { useLan } from "~/lib/components/contexts/LanContext";
-import { useTournaments } from "~/lib/components/contexts/TournamentsContext";
-import { CustomButton } from "~/lib/components/elements/custom-button";
-import { CustomCheckbox } from "~/lib/components/elements/custom-checkbox";
-import { CustomSelect } from "~/lib/components/elements/custom-select";
-import { EditGlobalTournamentPoints } from "~/lib/components/elements/global-tournament-points";
-import { updateLan } from "~/lib/persistence/lan.server";
-import { requireUserAdmin, requireUserLoggedIn } from "~/lib/session.server";
-import { Lan } from "~/lib/types/lan";
-import { autoSubmit } from "~/lib/utils/autosubmit";
-import { Days, range } from "~/lib/utils/ranges";
-import { AdminSectionContext, Section, useAdminSection } from "./components/AdminSectionContext";
-import { UsersList } from "./components/users-list";
-import { addUsers, renameUser, resetUserPassword } from "./queries.server";
-import { useState } from "react";
-import { CustomModalBinary } from "~/lib/components/elements/custom-modal";
+import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
+import { Link, useFetcher, useNavigate } from "@remix-run/react"
+import useLocalStorageState from "use-local-storage-state"
+import { useGames } from "~/lib/components/contexts/GamesContext"
+import { useLan } from "~/lib/components/contexts/LanContext"
+import { useTournaments } from "~/lib/components/contexts/TournamentsContext"
+import { CustomButton } from "~/lib/components/elements/custom-button"
+import { CustomCheckbox } from "~/lib/components/elements/custom-checkbox"
+import { CustomSelect } from "~/lib/components/elements/custom-select"
+import { EditGlobalTournamentPoints } from "~/lib/components/elements/global-tournament-points"
+import { getLan, updateLan } from "~/lib/persistence/lan.server"
+import { requireUserAdmin, requireUserLoggedIn } from "~/lib/session.server"
+import { Lan } from "~/lib/types/lan"
+import { autoSubmit } from "~/lib/utils/autosubmit"
+import { Days, range } from "~/lib/utils/ranges"
+import { AdminSectionContext, Section, useAdminSection } from "./components/AdminSectionContext"
+import { UsersList } from "./components/users-list"
+import { addUsers, renameUser, resetUserPassword } from "./queries.server"
+import { Fragment, useState } from "react"
+import { CustomModalBinary } from "~/lib/components/elements/custom-modal"
+import { clickorkey } from "~/lib/utils/clickorkey"
 
-export const meta: MetaFunction = () => {
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
-        { title: useLan().name + " - Admin" }
+        { title: data?.lanName + " - Admin" }
     ]
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({
+    request
+}: LoaderFunctionArgs): Promise<{
+    lanName: string
+}> {
     await requireUserAdmin(request)
-    return null
+    return { lanName: getLan().name }
 }
 
 export enum AdminIntents {
@@ -56,33 +61,32 @@ export async function action({ request }: ActionFunctionArgs) {
 
     const formData = await request.formData()
     const intent = formData.get("intent")
+    const partialLan: Partial<Lan> = {}
     switch (intent) {
         case AdminIntents.UPDATE_LAN:
-            let partialLan: Partial<Lan> = {
-                name: formData.get("lan_name") ? String(formData.get("lan_name")) : undefined,
-                motd: formData.get("lan_motd") ? String(formData.get("lan_motd")) : undefined,
-                startDate: formData.get("lan_start_date") ? JSON.parse(String(formData.get("lan_start_date"))) : undefined,
-                endDate: formData.get("lan_end_date") ? JSON.parse(String(formData.get("lan_end_date"))) : undefined,
-                newUsersByAdminOnly: formData.get("lan_newUsersByAdminOnly") ? JSON.parse(String(formData.get("lan_newUsersByAdminOnly"))) : undefined,
-                authenticationNeeded: formData.get("lan_authenticationNeeded") ? JSON.parse(String(formData.get("lan_authenticationNeeded"))) : undefined,
-                globalTournamentDefaultPoints: formData.get("lan_globalTournamentDefaultPoints") ? JSON.parse(String(formData.get("lan_globalTournamentDefaultPoints"))) : undefined,
-                showPartialResults: formData.get("lan_showPartialResults") ? JSON.parse(String(formData.get("lan_showPartialResults"))) : undefined,
-                weightTeamsResults: formData.get("lan_weightTeamsResults") ? JSON.parse(String(formData.get("lan_weightTeamsResults"))) : undefined,
-                showTeamsResults: formData.get("lan_showTeamsResults") ? JSON.parse(String(formData.get("lan_showTeamsResults"))) : undefined,
-            }
-            Object.keys(partialLan).forEach(key => (partialLan as any)[key] === undefined && delete (partialLan as any)[key])
+            if (formData.get("lan_name")) partialLan.name = String(formData.get("lan_name"))
+            if (formData.get("lan_motd")) partialLan.motd = String(formData.get("lan_motd"))
+            if (formData.get("lan_start_date")) partialLan.startDate = JSON.parse(String(formData.get("lan_start_date")))
+            if (formData.get("lan_end_date")) partialLan.endDate = JSON.parse(String(formData.get("lan_end_date")))
+            if (formData.get("lan_newUsersByAdminOnly")) partialLan.newUsersByAdminOnly = JSON.parse(String(formData.get("lan_newUsersByAdminOnly")))
+            if (formData.get("lan_authenticationNeeded")) partialLan.authenticationNeeded = JSON.parse(String(formData.get("lan_authenticationNeeded")))
+            if (formData.get("lan_globalTournamentDefaultPoints")) partialLan.globalTournamentDefaultPoints = JSON.parse(String(formData.get("lan_globalTournamentDefaultPoints")))
+            if (formData.get("lan_showPartialResults")) partialLan.showPartialResults = JSON.parse(String(formData.get("lan_showPartialResults")))
+            if (formData.get("lan_weightTeamsResults")) partialLan.weightTeamsResults = JSON.parse(String(formData.get("lan_weightTeamsResults")))
+            if (formData.get("lan_showTeamsResults")) partialLan.showTeamsResults = JSON.parse(String(formData.get("lan_showTeamsResults")))
             updateLan(partialLan)
-            break;
+            break
         case AdminIntents.RESET_USER_PASSWORD:
             await resetUserPassword(request, String(formData.get("userId")))
-            break;
+            break
         case AdminIntents.RENAME_USER:
             await renameUser(request, String(formData.get("userId")), String(formData.get("newUsername")))
-            break;
+            break
         case AdminIntents.ADD_USERS:
             await addUsers(JSON.parse(String(formData.get("users"))))
+            break
         default:
-            break;
+            break
     }
 
     return null
@@ -94,7 +98,7 @@ export default function Admin() {
     const [activeSection, setActiveSection] = useLocalStorageState<Section>("admin_activeSection", { defaultValue: "lanSettings" })
 
     function updateLan(key: string, value: string) {
-        let fd = new FormData()
+        const fd = new FormData()
         fd.append(key, value)
         fd.append("intent", AdminIntents.UPDATE_LAN)
         fetcher.submit(fd, { method: "POST" })
@@ -126,14 +130,14 @@ export function SectionLanSettings({ isActive }: { isActive: boolean }) {
     const [showAddUsers, setShowAddUsers] = useState(false)
     const [newUsers, setNewUsers] = useState("")
     function addUsers() {
-        let fd = new FormData()
+        const fd = new FormData()
         fd.append("users", JSON.stringify(newUsers.split(/\n/)))
         fd.append("intent", AdminIntents.ADD_USERS)
         fetcher.submit(fd, { method: "POST" })
     }
 
     return <div className={`is-clipped has-background-secondary-level px-4 is-flex-col ${isActive ? "grow no-basis" : ""}`}>
-        <div className="is-title medium is-uppercase py-2 px-1 is-clickable" onClick={() => setActiveSection("lanSettings")}>
+        <div className="is-title medium is-uppercase py-2 px-1 is-clickable" {...clickorkey(() => setActiveSection("lanSettings"))}>
             Paramètres de la LAN
         </div>
         <div className="is-flex-col gap-4" style={{ maxHeight: isActive ? undefined : 0 }}>
@@ -215,6 +219,7 @@ export function SectionLanSettings({ isActive }: { isActive: boolean }) {
                     content={
                         <div className="grow is-flex-col align-stretch">
                             <div className="">Liste ici les noms des utilisateurs à ajouter (un par ligne) :</div>
+                            {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
                             <textarea autoFocus rows={10} onChange={e => setNewUsers(e.target.value)} />
                         </div>
                     }
@@ -243,7 +248,7 @@ export function SectionTournamentsSettings({ isActive }: { isActive: boolean }) 
     const games = useGames()
 
     return <div className={`is-clipped has-background-secondary-level px-4 is-flex-col ${isActive ? "grow no-basis" : ""}`}>
-        <div className="is-title medium is-uppercase py-2 px-1 is-clickable" onClick={() => setActiveSection("tournamentsSettings")} style={{ flex: "none" }}>
+        <div className="is-title medium is-uppercase py-2 px-1 is-clickable" {...clickorkey(() => setActiveSection("tournamentsSettings"))} style={{ flex: "none" }}>
             Jeux et tournois
         </div>
         <div className="is-flex-col gap-4 is-scrollable" style={isActive ? { marginBottom: "1rem" } : { maxHeight: 0 }}>
@@ -277,8 +282,9 @@ export function SectionTournamentsSettings({ isActive }: { isActive: boolean }) 
                         <CustomButton customClasses="grow" contentItems={["New tournament"]} colorClass="has-background-secondary-level" callback={() => { navigate("/tournaments/new") }}></CustomButton>
                     </div>
                     {tournaments.map(tournament =>
-                        <CustomButton customClasses="grow" contentItems={[tournament.name]} colorClass="has-background-secondary-level" callback={() => { navigate("/tournaments/" + tournament.id) }}></CustomButton>
-                        // <div className="has-background-secondary-level p-2 grow has-text-centered" style={{ minWidth: "190px" }} key={tournament.id}>{tournament.name}</div>
+                        <Fragment key={tournament.id}>
+                            <CustomButton customClasses="grow" contentItems={[tournament.name]} colorClass="has-background-secondary-level" callback={() => { navigate("/tournaments/" + tournament.id) }} />
+                        </Fragment>
                     )}
                     <div className="growmax" style={{ width: 0, margin: "-.5rem" }}></div>
                 </div>
@@ -292,7 +298,7 @@ export function SectionGlobalTournamentSettings({ isActive }: { isActive: boolea
     const lan = useLan()
 
     return <div className={`is-clipped has-background-secondary-level px-4 is-flex-col ${isActive ? "grow no-basis" : ""}`}>
-        <div className="is-title medium is-uppercase py-2 px-1 is-clickable" onClick={() => setActiveSection("globalTournamentSettings")} style={{ flex: "none" }}>
+        <div className="is-title medium is-uppercase py-2 px-1 is-clickable" {...clickorkey(() => setActiveSection("globalTournamentSettings"))} style={{ flex: "none" }}>
             Tournoi global et résultats
         </div>
         <div className="is-flex-col gap-4" style={{ maxHeight: isActive ? undefined : 0 }}>
@@ -341,7 +347,7 @@ export function SectionCommunicationSettings({ isActive }: { isActive: boolean }
     const fetcher = useFetcher()
 
     return <div className={`is-clipped has-background-secondary-level px-4 is-flex-col ${isActive ? "grow no-basis" : ""}`}>
-        <div className="is-title medium is-uppercase py-2 px-1 is-clickable" onClick={() => setActiveSection("communicationSettings")} style={{ flex: "none" }}>
+        <div className="is-title medium is-uppercase py-2 px-1 is-clickable" {...clickorkey(() => setActiveSection("communicationSettings"))} style={{ flex: "none" }}>
             Communication et add-ons
         </div>
         <div className="is-flex-col gap-4" style={{ maxHeight: isActive ? undefined : 0 }}>

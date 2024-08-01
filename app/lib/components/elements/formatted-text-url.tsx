@@ -1,4 +1,4 @@
-import Linkify from 'linkify-react';
+import Linkify from 'linkify-react'
 
 interface FormattedTextWithUrlsProps {
 	text: string
@@ -11,7 +11,7 @@ export function FormattedTextWithUrls({ text }: FormattedTextWithUrlsProps) {
 			target: "_blank",
 			render: {
 				url: ({ attributes, content }) => {
-					return <a {...attributes} className='is-italic'>{content.replace(RegExp("(?:https?)?(?:ftp)?:?\/\/", 'g'), "")}</a>
+					return <a {...attributes} className='is-italic'>{content.replace(/(?:https?)?(?:ftp)?:?\/\//g, "")}</a>
 				}
 			}
 		}}>

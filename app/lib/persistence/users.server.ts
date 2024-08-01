@@ -5,6 +5,7 @@ import { User } from "../types/user"
 import { dbFolderPath, subscribeObjectManager, writeSafe } from "./db.server"
 
 declare global {
+    // eslint-disable-next-line no-var
     var users: User[]
 }
 
@@ -13,7 +14,7 @@ const usersFilePath = path.join(dbFolderPath, 'users.json')
 subscribeObjectManager("users", {
     onRestore: () => {
         if (global.users) {
-            return;
+            return
         }
 
         if (fs.existsSync(usersFilePath)) {
@@ -56,7 +57,7 @@ export function registerNewUser(username: string) {
 }
 
 export function updateUser(userId: string, partialUser: Partial<User>) {
-    let userIndex = global.users.findIndex(user => user.id == userId)
+    const userIndex = global.users.findIndex(user => user.id == userId)
     if (userIndex != -1) {
         global.users[userIndex] = { ...global.users[userIndex], ...partialUser }
     }
@@ -68,13 +69,9 @@ function normalize(text: string) {
 
 function generateUniqueId(username: string) {
     let postfix = 0
-    let id;
-    while (true) {
-        id = normalize(username) + (postfix ? postfix : "")
-        if (!getUserById(id)) {
-            break;
-        }
-        postfix = postfix + 1
+    let id = normalize(username)
+    while (getUserById(id)) {
+        id = normalize(username) + String(++postfix)
     }
     return id
 }

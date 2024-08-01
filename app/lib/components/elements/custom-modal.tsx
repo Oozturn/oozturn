@@ -1,6 +1,7 @@
-import { ReactNode } from "react";
-import { CloseCrossSVG } from "../data/svg-container";
-import { CustomButton } from "./custom-button";
+import { ReactNode } from "react"
+import { CloseCrossSVG } from "../data/svg-container"
+import { CustomButton } from "./custom-button"
+import { clickorkey } from "~/lib/utils/clickorkey"
 
 export function ModalLayout({ show, contentSlot, buttonsSlot, onHide }:
   { show: boolean, contentSlot: ReactNode, buttonsSlot: ReactNode, onHide: () => void }) {
@@ -11,10 +12,10 @@ export function ModalLayout({ show, contentSlot, buttonsSlot, onHide }:
 
   return (
     <div className="modal is-active">
-      <div className="modal-background" onClick={onHide}></div>
+      <div className="modal-background" {...clickorkey(onHide)}></div>
       <div className="modal-content">
         <div className="customModal">
-          <div className="close is-clickable fade-on-mouse-out" onClick={onHide}>
+          <div className="close is-clickable fade-on-mouse-out" {...clickorkey(onHide)}>
             <CloseCrossSVG />
           </div>
           {contentSlot}
@@ -25,7 +26,7 @@ export function ModalLayout({ show, contentSlot, buttonsSlot, onHide }:
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 interface BaseModalProps {
@@ -55,10 +56,10 @@ export function CustomModal({ show, onHide, content, modalButtons }: CustomModal
 
   return (
     <div className="modal is-active">
-      <div className="modal-background" onClick={onHide}></div>
+      <div className="modal-background" {...clickorkey(onHide)}></div>
       <div className="modal-content">
         <div className="customModal">
-          <div className="close is-clickable fade-on-mouse-out" onClick={onHide}>
+          <div className="close is-clickable fade-on-mouse-out" {...clickorkey(onHide)}>
             <CloseCrossSVG />
           </div>
           {content}
@@ -79,7 +80,7 @@ export function CustomModal({ show, onHide, content, modalButtons }: CustomModal
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 interface CustomModalBinaryProps extends BaseModalProps {

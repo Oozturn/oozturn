@@ -1,5 +1,5 @@
-import { ActionFunctionArgs, redirect } from "@remix-run/node";
-import { destroySession } from "~/lib/session.server";
+import { ActionFunctionArgs, redirect } from "@remix-run/node"
+import { destroySession } from "~/lib/session.server"
 
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -12,5 +12,5 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export async function loader() {
-    return redirect("/");
+    return redirect("/")
 }

@@ -20,13 +20,13 @@ export async function action({ request }: ActionFunctionArgs) {
                 {
                     team: String(formData.get("team"))
                 })
-            break;
+            break
         case Intents.UPLOAD_AVATAR:
             await setAvatar(userId, formData.get("avatar") as File)
-            break;
+            break
         case Intents.REMOVE_AVATAR:
             await removeAvatar(userId)
-            break;
+            break
 
     }
 

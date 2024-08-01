@@ -1,7 +1,7 @@
-import { updateGame } from "~/lib/persistence/games.server";
-import { Game } from "~/lib/types/games";
+import { updateGame } from "~/lib/persistence/games.server"
+import { Game } from "~/lib/types/games"
 import { mkdir } from "fs/promises"
-import { logger } from "~/lib/logging/logging";
+import { logger } from "~/lib/logging/logging"
 import { get } from "https"
 import { createWriteStream } from "fs"
 
@@ -42,13 +42,12 @@ export async function searchGames(query: string | null) {
         return []
     }
 
-    var myHeaders = new Headers()
+    const myHeaders = new Headers()
     myHeaders.append("Client-ID", process.env.IGDB_CLIENT_ID || "")
     myHeaders.append("Authorization", "Bearer " + IGDB_TOKEN)
 
-    var raw = `search "${query}"; limit 500; where category = 0 & version_parent = null;
-    fields id, name, platforms, cover.image_id, artworks.image_id, screenshots.image_id, first_release_date;`
-    var requestOptions: RequestInit = { method: 'POST', headers: myHeaders, body: raw, redirect: 'follow' };
+    const raw = `search "${query}"; limit 500; where category = 0 & version_parent = null; fields id, name, platforms, cover.image_id, artworks.image_id, screenshots.image_id, first_release_date;`
+    const requestOptions: RequestInit = { method: 'POST', headers: myHeaders, body: raw, redirect: 'follow' }
     const rawRes = await fetch("https://api.igdb.com/v4/games/", requestOptions)
 
     const res: GameFromIGDB[] = await rawRes.json()

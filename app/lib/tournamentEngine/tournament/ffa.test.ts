@@ -1,15 +1,15 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires, no-var
 var FFA = require('ffa');
 import { FFA as FFATS } from './ffa'
-import { Match } from './match';
 
 
-let checkSameStateAndMatch = function (
+const checkSameStateAndMatch = function (
   parameters: ConstructorParameters<typeof FFATS>,
   operationsFn?: (tournament: FFATS) => void,
   testFn?: (tournament: FFATS) => void
 ) {
-  let tournament = new FFA(...parameters)
-  let tournamentTS = new FFATS(...parameters)
+  const tournament = new FFA(...parameters)
+  const tournamentTS = new FFATS(...parameters)
 
   if (operationsFn) {
     operationsFn(tournament)
@@ -51,7 +51,7 @@ describe('FFA 16 match of 4 players until done', () => {
 });
 
 test('FFA 9, match of 3, winner with higherscore', () => {
-  let ffa = new FFATS(9, { sizes: [3, 3], advancers: [1] })
+  const ffa = new FFATS(9, { sizes: [3, 3], advancers: [1] })
   ffa.score({ s: 1, r: 1, m: 1 }, [3, 2, 1]) // 1 vs 4 vs 9, 1 win
   ffa.score({ s: 1, r: 1, m: 2 }, [3, 2, 1]) // 2 vs 5 vs 8, 2 win
   ffa.score({ s: 1, r: 1, m: 3 }, [3, 2, 1]) // 3 vs 6 vs 7, 3 win
@@ -72,7 +72,7 @@ test('FFA 9, match of 3, winner with higherscore', () => {
 });
 
 test('FFA 9, match of 3, winner with lowerscore', () => {
-  let ffa = new FFATS(9, { sizes: [3, 3], advancers: [1], lowerScoreIsBetter: true })
+  const ffa = new FFATS(9, { sizes: [3, 3], advancers: [1], lowerScoreIsBetter: true })
   ffa.score({ s: 1, r: 1, m: 1 }, [1, 2, 3]) // 1 vs 4 vs 9, 1 win
   ffa.score({ s: 1, r: 1, m: 2 }, [1, 2, 3]) // 2 vs 5 vs 8, 2 win
   ffa.score({ s: 1, r: 1, m: 3 }, [1, 2, 3]) // 3 vs 6 vs 7, 3 win

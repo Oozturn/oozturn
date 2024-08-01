@@ -6,6 +6,7 @@ import { dbFolderPath, subscribeObjectManager, writeSafe } from "./db.server"
 const { hashSync, compareSync } = bcrypt
 
 declare global {
+    // eslint-disable-next-line no-var
     var passwords: { [id: string]: string }
 }
 
@@ -14,7 +15,7 @@ const passwordsFilePath = path.join(dbFolderPath, 'passwords.json')
 subscribeObjectManager("passwords", {
     onRestore: () => {
         if (global.passwords) {
-            return;
+            return
         }
         if (fs.existsSync(passwordsFilePath)) {
             logger.info("Loading passwords from persistence")

@@ -12,7 +12,7 @@ export async function adminLogin(rawPassword: string, request: Request) {
         logger.warn(`${await getUserId(request)} tried to get admin rights with wrong password`)
         throw json({ error: "Wrong password." })
     }
-    updateUser(String(await getUserId(request)), {isAdmin: true})
+    updateUser(String(await getUserId(request)), { isAdmin: true })
 
     const cookie = await updateSessionWithAdminElevation(request)
     return redirect("/admin", {
