@@ -222,8 +222,8 @@ export function OpponentsListTeam() {
                         <div className="has-background-primary-accent pl-1 mt-1 mx-4"></div>
                         <div>
                             <div className='is-title medium is-uppercase mb-5'>Nouvelle équipe</div>
-                            <div className="is-flex align-center">
-                                <div className="mr-3">Nom de l&apos;équipe : </div>
+                            <div className="is-flex align-center gap-3">
+                                <div>Nom de l&apos;équipe : </div>
                                 <div>
                                     {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
                                     <input className='input' autoFocus type="text" placeholder="Nom de l'équipe" value={newTeamName} onChange={(e) => { setNewTeamName(e.target.value) }} onKeyDown={(e) => e.key == "Enter" && newTeam()} />
@@ -240,7 +240,7 @@ export function OpponentsListTeam() {
                 <div className='is-flex justify-space-between pb-2'>
                     <div className='is-title medium is-uppercase'>équipes</div>
                     {(user.isAdmin || (tournament.settings[0].usersCanCreateTeams && notInTeamPlayers.includes(user.id) && tournament.status == TournamentStatus.Open)) && canAddTeam &&
-                        <CustomButton callback={() => setShowNewTeam(true)} tooltip='Répartir les joueurs sans équipe' contentItems={[SubsribedSVG(), "New team"]} customClasses='small-button' colorClass='has-background-primary-accent' />
+                        <CustomButton callback={() => setShowNewTeam(true)} contentItems={[SubsribedSVG(), "New team"]} customClasses='small-button' colorClass='has-background-primary-accent' />
                     }
                 </div>
                 <div className='is-flex-col grow has-background-primary-level'>
@@ -334,8 +334,8 @@ function TeamTile({ team, draggedPlayer, addPlayerToTeam, removePlayerFromTeams 
                                     <div className="has-background-primary-accent pl-1 mt-2 mx-4"></div>
                                     <div>
                                         <div className='is-title medium is-uppercase mb-5 mt-1'>Renommer l&apos;équipe {team.name}</div>
-                                        <div className="is-flex align-center">
-                                            <div className="mr-3">Nom de l&apos;équipe : </div>
+                                        <div className="is-flex align-center gap-3">
+                                            <div>Nom de l&apos;équipe : </div>
                                             <div>
                                                 <input className='input' type="text" placeholder="Nom de l'équipe" value={teamName} onChange={(e) => { setTeamName(e.target.value); }} />
                                             </div>

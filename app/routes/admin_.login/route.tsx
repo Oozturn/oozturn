@@ -30,12 +30,12 @@ export async function action({ request }: ActionFunctionArgs) {
 export default function AdminLogin() {
 
     return (
-        <div className="is-full-height is-flex is-flex-direction-column is-align-items-center is-justify-content-space-around is-align-items-center">
-            <Form method="POST" className="p-4 field has-background-secondary-level is-child is-4 is-flex is-flex-direction-column is-align-items-center">
-                <div className="has-text-centered">Mot de passe administrateur</div>
+        <div className="is-flex-col is-full-height align-center justify-center">
+            <Form method="POST" className="p-4 has-background-secondary-level is-flex-col align-center gap-4">
+                <div>Mot de passe administrateur</div>
                 {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
-                <input id='password' name="password" autoFocus className="input my-4 is-radiusless" type="password" placeholder="Mot de passe" required />
-                <button type='submit' className="is-link my-0 is-radiusless is-borderless has-background-secondary-accent py-2 px-4 is-pulled-right">Soumettre</button>
+                <input id='password' name="password" autoFocus className="input is-radiusless has-background-primary-level" type="password" placeholder="Mot de passe" required />
+                <button type='submit' className="customButton has-background-primary-accent">Soumettre</button>
             </Form>
         </div>
     )

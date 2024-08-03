@@ -93,7 +93,7 @@ function SectionViewer({ bracket, section }: { bracket: number, section: number 
     return (
         <div className="is-flex-col gap-1">
             {showSectionName && <div className="is-title medium">{sectionName}</div>}
-            <div className="is-flex-row gap-3 align-center">
+            <div className="is-flex-row gap-3 align-stretch">
                 {rounds.map(round => {
                     return (
                         <Fragment key={bracket + '.' + section + '.' + round}>
@@ -125,7 +125,7 @@ function FinaleViewer({ bracket }: { bracket: number }) {
     const matches = useTournament().matches.filter(match => match.bracket == bracket && match.isFinale)
 
     return (
-        <div className="is-flex-col gap-1">
+        <div className="is-flex-col gap-1 justify-center">
             <div className="is-flex-row gap-3 justify-space-around is-relative">
                 <div className="pr-5 is-title medium" style={{ position: "absolute", left: "2rem", top: "-2.5rem" }}>Finale</div>
                 {matches.map(match =>

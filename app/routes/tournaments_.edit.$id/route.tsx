@@ -1,6 +1,6 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction, redirect } from "@remix-run/node"
 import { useLoaderData } from "@remix-run/react"
-import TournamentEdit from "~/lib/components/tournaments/edit"
+import TournamentEdit from "./components/edit"
 import { getLan } from "~/lib/persistence/lan.server"
 import { getTournament, updateTournamentProperties, updateTournamentSettings } from "~/lib/persistence/tournaments.server"
 import { requireUserLoggedIn } from "~/lib/session.server"

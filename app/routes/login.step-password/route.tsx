@@ -1,5 +1,8 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction, json, redirect } from "@remix-run/node"
 import { Form, useActionData, useLoaderData } from "@remix-run/react"
+import { useRef, useState } from "react"
+import { LogoUnfolded } from "~/lib/components/data/svg-container"
+import { CustomButton } from "~/lib/components/elements/custom-button"
 import { getLan } from "~/lib/persistence/lan.server"
 import { checkPassword, hasPassword } from "~/lib/persistence/password.server"
 import { getUserId, updateSessionWithPasswordAuth } from "~/lib/session.server"
@@ -51,38 +54,47 @@ export async function action({ request }: ActionFunctionArgs) {
 export default function LoginStepPassword() {
   const { username } = useLoaderData<typeof loader>()
   const actionResult = useActionData<typeof action>()
+  const [password, setPassword] = useState("")
+  const formRef = useRef(null)
 
-  return <div className="is-flex is-flex-direction-column is-align-items-center">
-    <div className="p-4 has-background-secondary-level is-full-width">
-      <div className="has-text-centered mb-4 is-size-3">Bienvenue <i style={{ color: "var(--accent-primary-color)" }}>{username}</i> ! </div>
-      <Form method="post">
-        <div className="field">
-          <label className="has-text-centered" htmlFor="username">Mot de passe :</label>
-          <div className="control">
+  return (
+    <div className="is-flex-col align-center justify-center is-relative">
+      <div className="loginLogo" style={{ width: "50vw" }}>
+        <LogoUnfolded animate={true} folded={true} />
+      </div>
+      <div className="is-flex-col align-center gap-5 p-4 has-background-secondary-level " style={{ maxWidth: "50vw" }}>
+        <div className="has-text-centered is-size-3">Bienvenue <i style={{ color: "var(--accent-primary-color)" }}>{username}</i> ! </div>
+        <Form ref={formRef} method="post" className="is-flex-col gap-6 is-full-width align-stretch">
+          <div className="is-flex-col align-center gap-2">
+            <div>Mot de passe :</div>
             <input
               id="password"
               name="password"
-              className="mt-2 input is-radiusless"
+              className="input grow no-basis has-text-centered has-background-primary-level"
               type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="Mot de passe"
               required
               // eslint-disable-next-line jsx-a11y/no-autofocus
               autoFocus
-              maxLength={18}
+              onKeyDown={(e) => { if (e.key === 'Enter') { !password && e.preventDefault() } }}
             />
           </div>
-          {actionResult?.errors?.password && (
-            <p className="help is-danger">
-              {actionResult.errors.password}
-            </p>
-          )}
-        </div>
-        <div className="field mt-4">
-          <div className="control">
-            <button type='submit' className={`is-link my-0 is-radiusless is-borderless has-background-secondary-accent py-2 px-4 is-pulled-right`}>Se connecter</button>
-          </div>
-        </div>
-      </Form>
+          <CustomButton
+            active={!!password}
+            colorClass="has-background-secondary-accent"
+            customClasses="is-align-self-flex-end"
+            callback={() => formRef.current && (formRef.current as HTMLFormElement).submit()}
+            contentItems={["Se connecter"]}
+          />
+        </Form>
+      </div>
+      {actionResult?.errors?.password && (
+        <p className="has-text-danger" style={{ position: "absolute", bottom: "-2rem", width: "500%", textAlign: "center" }}>
+          {actionResult.errors.password}
+        </p>
+      )}
     </div>
-  </div>
+  )
 }

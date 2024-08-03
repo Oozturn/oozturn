@@ -63,8 +63,7 @@ export function CustomModal({ show, onHide, content, modalButtons }: CustomModal
             <CloseCrossSVG />
           </div>
           {content}
-          <div className="is-flex is-justify-content-flex-end mt-4" style={{ gap: ".5rem" }}>
-            <div className="is-flex-grow-2"></div>
+          <div className="is-flex justify-flex-end mt-4" style={{ gap: ".5rem" }}>
             {modalButtons.map((buttonProps, index) =>
               <CustomButton
                 key={index}

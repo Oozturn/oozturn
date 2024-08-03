@@ -78,7 +78,7 @@ export function UsersList() {
             {users && users.sort((a, b) => a.username.toLowerCase().localeCompare(b.username.toLowerCase())).map(user =>
                 <React.Fragment key={user.id}>
                     <div className={`userTile is-flex-col is-clickable ${activeUser == user.id ? 'is-active' : ''}`} onMouseEnter={() => setHooveredUser(user.id)} onMouseLeave={() => setHooveredUser("")}>
-                        <div className="is-flex is-justify-content-space-between is-align-items-center">
+                        <div className="is-flex justify-space-between align-center">
                             <div className="is-flex is-clickable grow" {...clickorkey(() => setActiveUser(activeUser == user.id ? '' : user.id))}>
                                 <UserTileRectangle userId={user.id} height={40} />
                             </div>

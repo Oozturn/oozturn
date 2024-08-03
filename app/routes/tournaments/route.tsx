@@ -1,5 +1,5 @@
 import { Outlet } from "@remix-run/react"
-import TournamentsList from "./tournaments-list"
+import TournamentsList from "./components/tournaments-list"
 import { LoaderFunctionArgs } from "@remix-run/node"
 import { requireUserLoggedIn } from "~/lib/session.server"
 import { useRevalidateOnGlobalTournamentUpdate } from "../sse/hook"

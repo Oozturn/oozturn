@@ -17,6 +17,8 @@ export default function Navbar() {
     const current_page: string = "/admin"
     const loading = false
 
+    if(!user) return null
+
     const delay = (ms: number) => new Promise(res => setTimeout(res, ms))
     async function animateLogoFunc() {
         setAnimateLogo(true)

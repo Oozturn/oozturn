@@ -272,6 +272,9 @@ input, textarea, select, .input, .textarea, .select select {
     font-size: 20px;
     font-family: 'Karla';
     line-height: 2rem;
+    &::placeholder {
+        color: var(--text-color-70);
+    }
 }
 input {
     max-height: 2rem;
@@ -823,7 +826,9 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
     }
 }
 
-
+.wrongConfirmPassword {
+    color: $danger;
+}
 
 /******************************* 
 ************  HOME  ************
@@ -955,66 +960,10 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
 }
 
 .manageGames {
-    gap: .75rem;
-    .selectGameColumn {
-        flex:1;
-        gap: .75rem;
-        .newGame {
-            gap: .5rem;
-            height: 100%;
-        }
-        .lanGames {
-            flex: 1;
-            gap: .5rem;
-            max-height: 50%;
-        }
-        .gamesList {
-            gap: .25rem;
-            position: relative;
-            .gameTile {
-                width: 100%;
-                border: 2px transparent solid;
-                &.is-active {
-                    border: 2px var(--accent-primary-color) solid;
-                }
-                img {
-                    height: 2.5rem;
-                }
-                div {
-                    flex: 1;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
-                }
-            }
-        }
-    }
-    .configureGame {
-        flex: 4;
-        gap: .5rem;
-        .gameInfo {
-            img {
-                height: 15vh;
-                min-height: 100px;
-            }
-            .platforms {
-                gap: .5rem;
-            }
-        }
-        .picturesList {
-            flex: 1;
-            gap: .75rem;
-            img {
-                height: 25vh;
-                margin: 0;
-                padding: 0;
-            }
-            .imageToSelect{
-                border: 2px transparent solid;
-                &.is-active {
-                    border: 2px var(--accent-primary-color) solid;
-                }
-            }
+    .selectable {
+        border: 2px transparent solid;
+        &.is-active {
+            border-color: var(--accent-primary-color);
         }
     }
 }

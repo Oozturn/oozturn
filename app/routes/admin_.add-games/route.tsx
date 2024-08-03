@@ -56,11 +56,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export default function AddGames() {
     const { gameSearchResults, query } = useLoaderData<typeof loader>()
     const [gameToConfigure, setGameToConfigure] = useState<GameInfo | undefined>(undefined)
-    const [selectedImage, setSelectedImage] = useState("")
+    const lanGames = useGames()
+    const [selectedImage, setSelectedImage] = useState(lanGames.find(game => game.id == gameToConfigure?.id)?.picture || "")
     const [showDeleteGame, setShowDeleteGame] = useState(false)
     const fetcher = useFetcher()
 
-    const lanGames = useGames()
+    useEffect(() => {
+        setSelectedImage(lanGames.find(game => game.id == gameToConfigure?.id)?.picture || "")
+    }, [gameToConfigure, lanGames])
+
 
     useEffect(() => {
         if (gameSearchResults.length == 1) {
@@ -99,59 +103,61 @@ export default function AddGames() {
     }
 
     return (
-        <div className="is-full-height is-flex p-3 manageGames">
-            <div className='selectGameColumn is-flex is-flex-direction-column'>
-                {/* New game selection */}
-                <div className='newGame is-flex is-flex-direction-column has-background-secondary-level p-3 is-relative'>
-                    <div className='is-title medium'>Nouveau jeu</div>
-                    <Form method="GET">
-                        <div className='is-flex is-align-items-stretch'>
-                            <input type="text" name="query" defaultValue={query || ""} placeholder='Jeu à rechercher...' className='is-flex-grow-1' />
-                            <div className='mx-1'></div>
-                            <button type="submit" className='has-background-primary-accent is-flex fade-on-mouse-out px-2 is-align-items-center is-clickable'>
-                                <SearchSVG />
-                            </button>
-                        </div>
-                    </Form>
-                    <div className='gamesList is-flex-grow-1 has-background-primary-level is-scrollable is-relative'>
-                        {gameSearchResults.map(game =>
-                            <div key={game.id} className={`gameTile ${game.id == gameToConfigure?.id && 'is-active'} px-1 py-2 m-0 is-clickable is-flex is-align-items-center`} {...clickorkey(() => setGameToConfigure(game))}>
-                                <img className='is-full-height' src={`/igdb_image/t_cover_small/${game.cover}.jpg`} alt="" />
-                                <div className='is-flex is-flex-direction-column'>
-                                    <div className='ml-2' style={{ lineHeight: "1.5rem" }}>{game.name}</div>
-                                    {game.release && <div className='ml-2 fade-text is-size-6' style={{ lineHeight: "1rem" }}>{game.release}</div>}
-                                </div>
-                            </div>
-                        )}
-                        {gameSearchResults.length == 0 && <div className='fade-text has-text-centered is-size-6 mt-2'>Utilise le champ de recherche pour lister des jeux ici.</div>}
+        <div className="manageGames is-full-height is-flex p-3 gap-3">
+            {/* New game selection */}
+            <div className='is-flex-col gap-2 is-full-height has-background-secondary-level p-3 is-relative is-one-quarter'>
+                <div className='is-title medium'>Nouveau jeu</div>
+                <Form method="GET">
+                    <div className='is-flex gap-2 align-stretch'>
+                        <input type="text" name="query" defaultValue={query || ""} placeholder='Jeu à rechercher...' className='grow no-basis is-full-height pl-1' />
+                        <button type="submit" className='customButton has-background-primary-accent is-flex fade-on-mouse-out px-2 align-center is-clickable' style={{width: "80px", height: "34px"}}>
+                            <SearchSVG />
+                        </button>
                     </div>
+                </Form>
+                <div className='grow has-background-primary-level is-scrollable is-relative'>
+                    {gameSearchResults.map(game =>
+                        <div key={game.id} className={`selectable ${game.id == gameToConfigure?.id && 'is-active'} px-1 py-2 m-0 is-clickable is-flex align-center gap-2`} {...clickorkey(() => setGameToConfigure(game))}>
+                            <img className='is-full-height' src={`/igdb_image/t_cover_small/${game.cover}.jpg`} alt=""/>
+                            <div className='is-flex-col is-clipped' style={{}}>
+                                <div className='is-clipped' style={{ lineHeight: "1.5rem", textOverflow: "ellipsis" }}>{game.name}</div>
+                                {game.release && <div className='fade-text is-size-6' style={{ lineHeight: "1rem" }}>{game.release}</div>}
+                            </div>
+                        </div>
+                    )}
+                    {gameSearchResults.length == 0 && <div className='fade-text has-text-centered is-size-6 mt-2'>Utilise le champ de recherche pour lister des jeux ici.</div>}
                 </div>
             </div>
             {/* New game options */}
-            <div className='configureGame is-flex is-flex-direction-column has-background-secondary-level p-3 is-align-items-strech is-full-height'>
+            <div className='is-flex-col has-background-secondary-level p-3 align-strech is-full-height grow no-basis'>
                 {gameToConfigure ?
-                    <div className='is-full-height is-flex is-flex-direction-column is-align-items-center'>
+                    <div className='is-full-height is-flex-col align-center'>
                         <div className='is-title medium is-full-width'>Configuration du jeu</div>
-                        <div className='gameInfo is-flex is-align-items-center'>
-                            <img src={`/igdb_image/t_cover_small/${gameToConfigure.cover}.jpg`} alt="" />
-                            <div className='ml-3 is-flex is-flex-direction-column is-justify-content-space-evenly is-full-height'>
-                                <div className='is-title medium mr-6'>{gameToConfigure.name}</div>
-                                <div className='fade-text mr-6'>{gameToConfigure.release}</div>
-                                <div className='fade-text platforms is-flex'>
-                                    {/* Include logos here, and move this code to a dedicated function */}
-                                    {[3, 6, 14].filter(p => gameToConfigure.platforms?.includes(p)).length > 0 && <div>PC</div>}
-                                    {[7, 8, 9, 48, 131, 167].filter(p => gameToConfigure.platforms?.includes(p)).length > 0 && <div>PS</div>}
-                                    {[11, 12, 49, 169].filter(p => gameToConfigure.platforms?.includes(p)).length > 0 && <div>Xbox</div>}
+                        <div className='is-flex align-center gap-3'>
+                            <img src={`/igdb_image/t_cover_small/${gameToConfigure.cover}.jpg`} alt="" style={{height: "8rem"}}/>
+                            <div className='is-flex-col justify-space-evenly is-full-height'>
+                                <div className='is-title medium'>{gameToConfigure.name}</div>
+                                <div className='fade-text'>{gameToConfigure.release}</div>
+                                <div className='is-flex gap-2 fade-text'>
+                                    {[3, 6, 14].some(p => gameToConfigure.platforms?.includes(p)) && <div>PC</div>}
+                                    {[7, 8, 9, 48, 131, 167].some(p => gameToConfigure.platforms?.includes(p)) && <div>PS</div>}
+                                    {[11, 12, 49, 169].some(p => gameToConfigure.platforms?.includes(p)) && <div>Xbox</div>}
                                 </div>
                             </div>
                         </div>
-                        <div className='mt-4'>Sélectionne l&apos;image à utiliser pour ce jeu</div>
-                        <div className='picturesList is-flex is-flex-wrap-wrap is-scrollable is-justify-content-center'>
+                        <div className='mt-4 mb-2'>Sélectionne l&apos;image à utiliser pour ce jeu</div>
+                        <div className='is-flex gap-3 wrap is-scrollable justify-center'>
                             {gameToConfigure.pictures.map(pictureURL =>
-                                <img key={pictureURL} className={`imageToSelect m-0 p-0 is-clickable ${pictureURL == selectedImage ? 'is-active' : ''}`} src={`/igdb_image/t_720p/${pictureURL}.jpg`} alt="" {...clickorkey(() => setSelectedImage(selectedImage == pictureURL ? '' : pictureURL))} />
+                                <img
+                                    key={pictureURL}
+                                    className={`selectable is-clickable ${pictureURL == selectedImage ? 'is-active' : ''}`}
+                                    src={`/igdb_image/t_720p/${pictureURL}.jpg`}
+                                    alt="" {...clickorkey(() => setSelectedImage(selectedImage == pictureURL ? '' : pictureURL))}
+                                    style={{height: "15rem"}}
+                                />
                             )}
                         </div>
-                        <div className='mt-4 is-full-width is-flex is-justify-content-end'>
+                        <div className='mt-4 is-full-width is-flex justify-end'>
                             {lanGames && lanGames.filter(game => game.id == gameToConfigure.id).length > 0 && <CustomButton callback={() => setShowDeleteGame(true)} contentItems={["Supprimer le jeu"]} customClasses="has-background-primary-level" />}
                             <CustomModalBinary
                                 show={showDeleteGame}
@@ -159,11 +165,9 @@ export default function AddGames() {
                                 cancelButton={true}
                                 onConfirm={handleRemoveGame}
                                 content={
-                                    <div className='is-flex is-align-items-stretch pt-5 pl-5 pb-4'>
-                                        <div className="has-background-primary-accent pl-1 mt-2 mx-4"></div>
-                                        <div>
-                                            <div className='is-size-5'>Es-tu sûr de vouloir supprimer le jeu {gameToConfigure.name} ?</div>
-                                        </div>
+                                    <div className='is-flex align-stretch px-6 py-4 gap-4'>
+                                        <div className="has-background-primary-accent pl-1"></div>
+                                        <div className='is-size-5'>Es-tu sûr de vouloir supprimer le jeu {gameToConfigure.name} ?</div>
                                     </div>
                                 }
                             />
@@ -172,7 +176,7 @@ export default function AddGames() {
 
                     </div>
                     :
-                    <div className='is-full-height is-flex is-align-items-center is-justify-content-center fade-text'>Sélectionne un jeu pour le configurer</div>
+                    <div className='is-full-height is-flex align-center justify-center fade-text'>Sélectionne un jeu pour le configurer</div>
                 }
             </div>
         </div>

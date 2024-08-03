@@ -44,10 +44,10 @@ export default function Index() {
             </p>
           </div>
         }
-        <div className="grow has-background-secondary-level p-5 is-flex-col gap-5">
+        <div className="grow has-background-secondary-level pr-2 py-5 pl-5 is-flex-col gap-5 is-clipped">
           <div className='is-title big'>TOURNOIS</div>
           <div className="is-scrollable grow">
-            <div className='homeTournamentsGrid'>
+            <div className='homeTournamentsGrid pr-4'>
               {me?.isAdmin &&
                 <Link to="/tournaments/new" className="homeTournamentBox has-background-primary-accent is-flex-col justify-center align-center is-clickable fade-on-mouse-out" data-id="editTournament">
                   <AddTournamentCrossSVG />
@@ -74,7 +74,7 @@ function IndexTournamentTile({ tournament, userId, game }: { tournament: Tournam
     <Link to={`/tournaments/${tournament.id}`} className={`homeTournamentBox is-clickable p-0 ${game?.id == undefined ? 'has-generic-game-background-image' : ''}`} style={{ backgroundImage: backgroundImage }}>
       <div className={`tournamentName ${tournament.status == TournamentStatus.Done && 'over'}`}>{tournament.name}</div>
       {tournament.players.find(player => player.userId == userId) &&
-        <div className='subscribed is-flex is-align-items-center has-background-primary-accent'>
+        <div className='subscribed is-flex align-center has-background-primary-accent'>
           <SubsribedSVG />
           <div className='ml-2'>Inscrit</div>
         </div>

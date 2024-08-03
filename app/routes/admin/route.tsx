@@ -1,5 +1,5 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
-import { Link, useFetcher, useNavigate } from "@remix-run/react"
+import { useFetcher, useNavigate } from "@remix-run/react"
 import useLocalStorageState from "use-local-storage-state"
 import { useGames } from "~/lib/components/contexts/GamesContext"
 import { useLan } from "~/lib/components/contexts/LanContext"
@@ -261,11 +261,12 @@ export function SectionTournamentsSettings({ isActive }: { isActive: boolean }) 
                 <div className="has-text-right is-one-fifth mt-4">Jeux de la LAN :</div>
                 <div id="tournamentsList" className="is-flex wrap grow gap-1 p-2 has-background-primary-level is-scrollable">
                     <div className="is-flex">
-                        <Link to="/admin/add-games" className="customButton fade-on-mouse-out is-unselectable grow has-background-secondary-level is-clickable">New Game
-                        </Link>
+                        <CustomButton customClasses="grow" contentItems={["New Game"]} colorClass="has-background-secondary-accent" callback={() => { navigate("/admin/add-games") }} />
                     </div>
                     {games.map(game =>
-                        <div className="has-background-secondary-level p-2 grow has-text-centered" style={{ minWidth: "190px" }} key={game.id}>{game.name}</div>
+                        <Fragment key={game.id}>
+                            <CustomButton customClasses="grow" contentItems={[game.name]} colorClass="has-background-secondary-level" callback={() => { navigate("/admin/add-games?query=" + game.name) }} />
+                        </Fragment>
                     )}
                     <div className="growmax" style={{ width: 0, margin: "-.5rem" }}></div>
                 </div>
@@ -279,7 +280,7 @@ export function SectionTournamentsSettings({ isActive }: { isActive: boolean }) 
                 <div className="has-text-right is-one-fifth mt-4">Tournois de la LAN :</div>
                 <div id="tournamentsList" className="is-flex wrap grow gap-1 p-2 has-background-primary-level is-scrollable">
                     <div className="is-flex">
-                        <CustomButton customClasses="grow" contentItems={["New tournament"]} colorClass="has-background-secondary-level" callback={() => { navigate("/tournaments/new") }}></CustomButton>
+                        <CustomButton customClasses="grow" contentItems={["New tournament"]} colorClass="has-background-secondary-accent" callback={() => { navigate("/tournaments/new") }}></CustomButton>
                     </div>
                     {tournaments.map(tournament =>
                         <Fragment key={tournament.id}>
