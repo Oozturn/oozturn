@@ -17,8 +17,8 @@ import { GetUserTheme } from "./lib/components/tools/user-theme"
 import { getGames } from "./lib/persistence/games.server"
 import { getLan } from "./lib/persistence/lan.server"
 import { getTournaments } from "./lib/persistence/tournaments.server"
-import { getUserById, getUsers } from "./lib/persistence/users.server"
-import { getUserId, isUserLoggedIn } from "./lib/session.server"
+import { getUsers } from "./lib/persistence/users.server"
+import { getUserFromRequest, isUserLoggedIn } from "./lib/session.server"
 import { Game } from "./lib/types/games"
 import { Lan } from "./lib/types/lan"
 import { TournamentInfo } from "./lib/tournamentEngine/types"
@@ -38,7 +38,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<{
   if (await isUserLoggedIn(request)) {
     return {
       lan: getLan(),
-      user: getUserById(String(await getUserId(request))),
+      user: await getUserFromRequest(request),
       users: getUsers(),
       tournaments: getTournaments(),
       games: getGames()

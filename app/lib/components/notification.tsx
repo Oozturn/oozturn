@@ -1,5 +1,5 @@
 import { useEffect } from "react"
-import { Slide, toast, ToastContainer } from "react-toastify"
+import { cssTransition, toast, ToastContainer } from "react-toastify"
 import { useEventSource } from "remix-utils/sse/react"
 import { SSE_NOTIFICATION_MESSAGE_EVENT } from "~/routes/sse/route"
 import 'react-toastify/dist/ReactToastify.css';
@@ -35,7 +35,11 @@ export function Notification() {
       closeOnClick
       draggable={false}
       theme="dark"
-      transition={Slide}
+      transition={cssTransition({
+        enter: "toast-enter-animation",
+        exit: "toast-exit-animation"
+      })}
+      closeButton={false}
     />
   )
 }

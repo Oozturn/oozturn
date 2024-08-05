@@ -8,7 +8,7 @@ import { accentsList, modesList } from "../data/themes"
 import { CustomRadio } from "../elements/custom-radio"
 import { Intents } from "~/routes/api/route"
 import { UserAvatar } from "../elements/user-avatar"
-import { useLan } from "../contexts/LanContext"
+import lanConfig from "config.json"
 import { clickorkey } from "~/lib/utils/clickorkey"
 import { CustomButton } from "../elements/custom-button"
 
@@ -26,7 +26,6 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
   const fetcherUpdateAvatar = useFetcher()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
-  const lan = useLan()
 
   if (!show || !me) {
     return null
@@ -78,7 +77,7 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
                   </div>
                 </div>
               </fetcherUpdateTeam.Form>
-              {lan.authenticationNeeded &&
+              {lanConfig.security.authentication_needed &&
               <CustomButton callback={handleChangeMdp} colorClass="has-background-secondary-accent" contentItems={["Changer mdp"]}/>
                 // <button
                 //   onClick={handleChangeMdp}

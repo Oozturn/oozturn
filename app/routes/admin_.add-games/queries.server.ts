@@ -4,6 +4,7 @@ import { mkdir } from "fs/promises"
 import { logger } from "~/lib/logging/logging"
 import { get } from "https"
 import { createWriteStream } from "fs"
+import lanConfig from "config.json"
 
 
 interface GameFromIGDB {
@@ -43,7 +44,7 @@ export async function searchGames(query: string | null) {
     }
 
     const myHeaders = new Headers()
-    myHeaders.append("Client-ID", process.env.IGDB_CLIENT_ID || "")
+    myHeaders.append("Client-ID", lanConfig.igdb_api.igdb_client_id || "")
     myHeaders.append("Authorization", "Bearer " + IGDB_TOKEN)
 
     const raw = `search "${query}"; limit 500; where category = 0 & version_parent = null; fields id, name, platforms, cover.image_id, artworks.image_id, screenshots.image_id, first_release_date;`
@@ -103,8 +104,8 @@ async function downloadFile(url: string, targetFile: string) {
 
 async function getIGDBToken() {
     const rawRes = await fetch(
-        "https://id.twitch.tv/oauth2/token?client_id=" + process.env.IGDB_CLIENT_ID
-        + "&client_secret=" + process.env.IGDB_CLIENT_SECRET
+        "https://id.twitch.tv/oauth2/token?client_id=" + lanConfig.igdb_api.igdb_client_id
+        + "&client_secret=" + lanConfig.igdb_api.igdb_client_secret
         + "&grant_type=client_credentials",
         { method: 'POST', redirect: 'follow' })
     if (!rawRes.ok) return null

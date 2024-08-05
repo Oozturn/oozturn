@@ -1,7 +1,7 @@
 import { createCookieSessionStorage, redirect } from "@remix-run/node"
-import { getLan } from "./persistence/lan.server"
 import { getUserById } from "./persistence/users.server"
 import { User } from "./types/user"
+import lanConfig from "config.json"
 
 const sessionSecret = process.env.SESSION_SECRET
 if (!sessionSecret) {
@@ -57,7 +57,7 @@ export async function updateSessionWithPasswordAuth(request: Request) {
 
 export async function isUserLoggedIn(request: Request) {
     const session = await getSession(request)
-    if (getLan().authenticationNeeded) {
+    if (lanConfig.security.authentication_needed) {
         return session.has("userId")
             && session.get("auth") === "password"
     }
@@ -77,7 +77,9 @@ export async function getUserId(request: Request): Promise<string | undefined> {
 export async function getUserFromRequest(request: Request): Promise<User | undefined> {
     const userId = await getUserId(request)
     if(userId) {
-        return getUserById(userId)
+        const user = getUserById(userId)
+        if(user) user.isAdmin = await isUserAdmin(request) 
+        return user
     }
 }
 

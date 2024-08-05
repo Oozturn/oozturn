@@ -1,7 +1,6 @@
 import { useFetcher } from "@remix-run/react"
 import React, { useState } from "react"
 import { Item, ItemParams, Menu, TriggerEvent, useContextMenu } from "react-contexify"
-import { useLan } from "~/lib/components/contexts/LanContext"
 import { useTournaments } from "~/lib/components/contexts/TournamentsContext"
 import { useUsers } from "~/lib/components/contexts/UsersContext"
 import { ButtonMore } from "~/lib/components/elements/custom-button"
@@ -11,7 +10,7 @@ import { User } from "~/lib/types/user"
 import { AdminIntents } from "../route"
 import { clickorkey } from "~/lib/utils/clickorkey"
 import { useRevalidateOnUsersUpdate } from "~/routes/sse/hook"
-
+import lanConfig from "config.json"
 
 export function UsersList() {
     const [hooveredUser, setHooveredUser] = useState("")
@@ -21,8 +20,16 @@ export function UsersList() {
     const { show: showMenu } = useContextMenu()
     const users = useUsers()
     const tournaments = useTournaments()
-    const lan = useLan()
     useRevalidateOnUsersUpdate()
+
+    const [showAddUsers, setShowAddUsers] = useState(false)
+    const [newUsers, setNewUsers] = useState("")
+    function addUsers() {
+        const fd = new FormData()
+        fd.append("users", JSON.stringify(newUsers.split(/\n/)))
+        fd.append("intent", AdminIntents.ADD_USERS)
+        fetcher.submit(fd, { method: "POST" })
+    }
 
     const fetcher = useFetcher()
 
@@ -76,7 +83,21 @@ export function UsersList() {
                 </div>
             }
         />
+        <CustomModalBinary
+                    show={showAddUsers}
+                    onHide={() => setShowAddUsers(false)}
+                    content={
+                        <div className="grow is-flex-col align-stretch">
+                            <div className="">Liste ici les noms des utilisateurs à ajouter (un par ligne) :</div>
+                            {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
+                            <textarea autoFocus rows={10} onChange={e => setNewUsers(e.target.value)} />
+                        </div>
+                    }
+                    cancelButton={true}
+                    onConfirm={addUsers}
+                    />
         <div className="UserTilesContainer is-flex-col p-0 m-0 is-scrollable pr-2">
+            <div className="is-flex align-center justify-center has-background-primary-accent fade-on-mouse-out is-clickable is-unselectable" style={{minHeight:"40px"}} {...clickorkey(() => setShowAddUsers(true))}>Ajouter des joueurs</div>
             {users && users.sort((a, b) => a.username.toLowerCase().localeCompare(b.username.toLowerCase())).map(user =>
                 <React.Fragment key={user.id}>
                     <div className={`userTile is-flex-col is-clickable ${activeUser == user.id ? 'is-active' : ''}`} onMouseEnter={() => setHooveredUser(user.id)} onMouseLeave={() => setHooveredUser("")}>
@@ -105,7 +126,7 @@ export function UsersList() {
                     </div>
                     <Menu id={user.id} animation="slide" >
                         <Item id="renameUser" onClick={handleMenuItemClick}>Renommer</Item>
-                        {lan.authenticationNeeded &&
+                        {lanConfig.security.authentication_needed &&
                             <Item id="resetPassword" onClick={handleMenuItemClick}>Réinitialiser le mot de passe</Item>
                         }
                         <Item id="deleteUser" onClick={handleMenuItemClick}>Supprimer</Item>

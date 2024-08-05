@@ -1,4 +1,4 @@
-import { Link, useSubmit } from "@remix-run/react"
+import { Link, useLocation, useSubmit } from "@remix-run/react"
 import { useContext, useState } from "react"
 import { useLan } from "../contexts/LanContext"
 import { UserContext } from "../contexts/UserContext"
@@ -14,10 +14,10 @@ export default function Navbar() {
     const user = useContext(UserContext)
     const [showMobileNav] = useState(false)
     const [animateLogo, setAnimateLogo] = useState(false)
-    const current_page: string = "/admin"
+    const current_page: string = useLocation().pathname
     const loading = false
 
-    if(!user) return null
+    if (!user) return null
 
     const delay = (ms: number) => new Promise(res => setTimeout(res, ms))
     async function animateLogoFunc() {

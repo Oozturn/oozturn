@@ -1,7 +1,7 @@
 import { json, redirect } from "@remix-run/node"
 import { logger } from "~/lib/logging/logging"
-import { getLan } from "~/lib/persistence/lan.server"
-import { getUserByUsername, registerNewUser } from "~/lib/persistence/users.server"
+import lanConfig from "config.json"
+import { getUserByUsername, registerNewUser, updateUser } from "~/lib/persistence/users.server"
 import { createSessionWithUser } from "~/lib/session.server"
 
 export async function doLogin(rawUsername: string) {
@@ -17,9 +17,10 @@ export async function doLogin(rawUsername: string) {
     let user = getUserByUsername(username)
     // If user exists, recover it from global. Else, register it
     if (user) {
+        updateUser(user.id, {isAdmin: false})
         logger.info({ username: username }, `${username} logged in`)
     }
-    else if (getLan().newUsersByAdminOnly) {
+    else if (lanConfig.security.new_users_by_admin_only) {
         return json({ error: "Utilisateur inconnu." })
     } else {
         logger.info({ username: username }, `New user ${username} logged in`)
@@ -27,7 +28,7 @@ export async function doLogin(rawUsername: string) {
     }
 
     const cookie = await createSessionWithUser(user)
-    return redirect(getLan().authenticationNeeded ? "step-password" : "/", {
+    return redirect(lanConfig.security.authentication_needed ? "step-password" : "/", {
         headers: {
             "Set-Cookie": cookie
         }

@@ -16,8 +16,7 @@ import { Days, range } from "~/lib/utils/ranges"
 import { AdminSectionContext, Section, useAdminSection } from "./components/AdminSectionContext"
 import { UsersList } from "./components/users-list"
 import { addUsers, renameUser, resetUserPassword } from "./queries.server"
-import { Fragment, useState } from "react"
-import { CustomModalBinary } from "~/lib/components/elements/custom-modal"
+import { Fragment } from "react"
 import { clickorkey } from "~/lib/utils/clickorkey"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -68,8 +67,6 @@ export async function action({ request }: ActionFunctionArgs) {
             if (formData.get("lan_motd")) partialLan.motd = String(formData.get("lan_motd"))
             if (formData.get("lan_start_date")) partialLan.startDate = JSON.parse(String(formData.get("lan_start_date")))
             if (formData.get("lan_end_date")) partialLan.endDate = JSON.parse(String(formData.get("lan_end_date")))
-            if (formData.get("lan_newUsersByAdminOnly")) partialLan.newUsersByAdminOnly = JSON.parse(String(formData.get("lan_newUsersByAdminOnly")))
-            if (formData.get("lan_authenticationNeeded")) partialLan.authenticationNeeded = JSON.parse(String(formData.get("lan_authenticationNeeded")))
             if (formData.get("lan_globalTournamentDefaultPoints")) partialLan.globalTournamentDefaultPoints = JSON.parse(String(formData.get("lan_globalTournamentDefaultPoints")))
             if (formData.get("lan_showPartialResults")) partialLan.showPartialResults = JSON.parse(String(formData.get("lan_showPartialResults")))
             if (formData.get("lan_weightTeamsResults")) partialLan.weightTeamsResults = JSON.parse(String(formData.get("lan_weightTeamsResults")))
@@ -126,15 +123,6 @@ export function SectionLanSettings({ isActive }: { isActive: boolean }) {
     const { setActiveSection, updateLan } = useAdminSection()
     const fetcher = useFetcher()
     const lan = useLan()
-
-    const [showAddUsers, setShowAddUsers] = useState(false)
-    const [newUsers, setNewUsers] = useState("")
-    function addUsers() {
-        const fd = new FormData()
-        fd.append("users", JSON.stringify(newUsers.split(/\n/)))
-        fd.append("intent", AdminIntents.ADD_USERS)
-        fetcher.submit(fd, { method: "POST" })
-    }
 
     return <div className={`is-clipped has-background-secondary-level px-4 is-flex-col ${isActive ? "grow no-basis" : ""}`}>
         <div className="is-title medium is-uppercase py-2 px-1 is-clickable" {...clickorkey(() => setActiveSection("lanSettings"))}>
@@ -208,35 +196,10 @@ export function SectionLanSettings({ isActive }: { isActive: boolean }) {
                 </div>
             </div>
             <div></div>  {/* Spacer */}
-            {/* User creation */}
-            <div className="is-flex gap-3 align-center">
-                <CustomCheckbox variable={lan.newUsersByAdminOnly} customClass='justify-flex-end is-one-fifth' setter={(value: boolean) => updateLan("lan_newUsersByAdminOnly", JSON.stringify(value))} />
-                <div className='lanSubscriptiontByAdmins'>Seuls les admins peuvent inscrire les nouveaux participants </div>
-                <CustomButton callback={() => setShowAddUsers(true)} contentItems={["New users"]} colorClass="has-background-primary-level" />
-                <CustomModalBinary
-                    show={showAddUsers}
-                    onHide={() => setShowAddUsers(false)}
-                    content={
-                        <div className="grow is-flex-col align-stretch">
-                            <div className="">Liste ici les noms des utilisateurs à ajouter (un par ligne) :</div>
-                            {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
-                            <textarea autoFocus rows={10} onChange={e => setNewUsers(e.target.value)} />
-                        </div>
-                    }
-                    cancelButton={true}
-                    onConfirm={addUsers} />
-
-            </div>
-            {/* Authentication */}
-            <div className="is-flex gap-3 align-center">
-                <CustomCheckbox variable={lan.authenticationNeeded} customClass='justify-flex-end is-one-fifth' setter={(value: boolean) => updateLan("lan_authenticationNeeded", JSON.stringify(value))} />
-                <div className='lanSubscriptiontByAdmins'>Authentification par mot de passe</div>
-            </div>
-            <div></div>  {/* Spacer */}
             {/* End of LAN */}
-            <div className="is-flex grow justify-center">
+            {/* <div className="is-flex grow justify-center">
                 <CustomButton callback={() => { }} contentItems={["Terminer la LAN"]} colorClass="has-background-primary-level" />
-            </div>
+            </div> */}
         </div>
     </div>
 }

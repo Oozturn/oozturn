@@ -6,7 +6,7 @@ import { getUserFromRequest, getUserId, updateSessionWithPasswordAuth } from "~/
 import { validate } from "./validate"
 import { useRef, useState } from "react"
 import { CustomButton } from "~/lib/components/elements/custom-button"
-
+import lanConfig from "config.json"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -15,7 +15,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  if (!getLan().authenticationNeeded) {
+  if (!lanConfig.security.authentication_needed) {
     throw redirect('/login')
   }
 
@@ -31,9 +31,11 @@ export async function action({ request }: ActionFunctionArgs) {
   const password = String(formData.get("password") || "").trim()
   const confirmPassword = String(formData.get("confirmPassword") || "").trim()
 
-  const errors = await validate(password, confirmPassword)
-  if (errors) {
-    return json({ ok: false, errors }, 400)
+  if (lanConfig.security.secure_users_password) {
+    const errors = await validate(password, confirmPassword)
+    if (errors) {
+      return json({ ok: false, errors }, 400)
+    }
   }
 
   const userId = await getUserId(request) as string
@@ -73,11 +75,11 @@ export default function LoginStepNewPassword() {
               // eslint-disable-next-line jsx-a11y/no-autofocus
               autoFocus
               maxLength={18}
-              title="18 caractères max."
+              title={"18 caractères max." + lanConfig.security.secure_users_password ? " doit contenir au moins 1 de chaque : minuscule / majuscule / nombre / charcactère spécial": ""}
               onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); !!password && document.getElementById("confirmPassword")?.focus() } }}
             />
           </div>
-          <div className="is-flex-col align-center gap-é">
+          <div className="is-flex-col align-center gap-2">
             <div>Confirmation du mot de passe :</div>
             <input
               id="confirmPassword"
@@ -90,7 +92,6 @@ export default function LoginStepNewPassword() {
               required
               // eslint-disable-next-line jsx-a11y/no-autofocus
               maxLength={18}
-              title="18 caractères max."
               onKeyDown={(e) => { if (e.key === 'Enter') { !password && e.preventDefault() } }}
             />
           </div>
