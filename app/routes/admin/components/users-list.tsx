@@ -10,6 +10,7 @@ import { UserTileRectangle } from "~/lib/components/elements/user-tile"
 import { User } from "~/lib/types/user"
 import { AdminIntents } from "../route"
 import { clickorkey } from "~/lib/utils/clickorkey"
+import { useRevalidateOnUsersUpdate } from "~/routes/sse/hook"
 
 
 export function UsersList() {
@@ -21,6 +22,7 @@ export function UsersList() {
     const users = useUsers()
     const tournaments = useTournaments()
     const lan = useLan()
+    useRevalidateOnUsersUpdate()
 
     const fetcher = useFetcher()
 

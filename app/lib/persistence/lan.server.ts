@@ -3,6 +3,7 @@ import { dbFolderPath, subscribeObjectManager, writeSafe } from "./db.server"
 import * as fs from 'fs'
 import * as path from 'path'
 import { Lan } from "../types/lan"
+import { EventUpdateLan } from "../emitter.server"
 
 declare global {
     // eslint-disable-next-line no-var
@@ -48,5 +49,6 @@ export function getLan() {
 }
 
 export function updateLan(partialLan: Partial<Lan>) {
+    EventUpdateLan()
     global.lan = { ...lan, ...partialLan }
 }

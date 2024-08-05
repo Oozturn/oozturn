@@ -1,3 +1,4 @@
+import { EventUpdateUsers } from "~/lib/emitter.server"
 import { logger } from "~/lib/logging/logging"
 import { hasPassword, resetPassword } from "~/lib/persistence/password.server"
 import { getUserById, getUserByUsername, registerNewUser } from "~/lib/persistence/users.server"
@@ -38,6 +39,7 @@ export async function renameUser(request: Request, userId: string, newUsername: 
     user.username = newUsername
 
     logger.info(`Renamed ${userId} to ${newUsername}`)
+    EventUpdateUsers()
 }
 
 export async function addUsers(rawUsernames: string[]) {
@@ -52,7 +54,8 @@ export async function addUsers(rawUsernames: string[]) {
             logger.error(`Impossible to add ${username}: username already exists`)
             return
         }
-        registerNewUser(username)
+        registerNewUser(username, false)
         logger.info(`New user ${username} created`)
     })
+    EventUpdateUsers()
 }

@@ -1,16 +1,29 @@
 import { EventEmitter } from "node:events"
-
-export const EMITTER_GLOBAL_TOURNAMENT_UPDATE = "globalTournamentUpdate"
-export const EMITTER_NOTIFICATION_MESSAGE = "notificationMessage"
+import { EVENT_UPDATE_LAN, EVENT_UPDATE_TOURNAMENT, EVENT_UPDATE_TOURNAMENTS, EVENT_UPDATE_USERS, TOURNAMENT_UPDATE_TYPES, tournamentUpdateEventProps } from "./events/types"
 
 export const emitter = new EventEmitter()
 
-let index = 0
-const userId = ["will", "rnd"]
-
-/** Juste pour lancer pendant le dev en attendant d'avoir de vrai evenements */
-setInterval(() => {
-    index = (index+1)%2
-    emitter.emit(EMITTER_GLOBAL_TOURNAMENT_UPDATE, {emitter:userId[index]})
-    emitter.emit(EMITTER_NOTIFICATION_MESSAGE, {content:userId[index]})
-}, 30000)
+export function EventStartTournament(tournamentId: string) {
+    emitter.emit(EVENT_UPDATE_TOURNAMENT, <tournamentUpdateEventProps>{updateType: TOURNAMENT_UPDATE_TYPES.START,  tournamentId: tournamentId})
+}
+export function EventEndTournament(tournamentId: string) {
+    emitter.emit(EVENT_UPDATE_TOURNAMENT, <tournamentUpdateEventProps>{updateType: TOURNAMENT_UPDATE_TYPES.END,  tournamentId: tournamentId})
+}
+export function EventNewTournament(tournamentId: string) {
+    emitter.emit(EVENT_UPDATE_TOURNAMENT, <tournamentUpdateEventProps>{updateType: TOURNAMENT_UPDATE_TYPES.NEW,  tournamentId: tournamentId})
+}
+export function EventUpdateTournamentInfo(tournamentId: string) {
+    emitter.emit(EVENT_UPDATE_TOURNAMENT, <tournamentUpdateEventProps>{updateType: TOURNAMENT_UPDATE_TYPES.UPDATE_INFO,  tournamentId: tournamentId})
+}
+export function EventUpdateTournamentBracket(tournamentId: string) {
+    emitter.emit(EVENT_UPDATE_TOURNAMENT, <tournamentUpdateEventProps>{updateType: TOURNAMENT_UPDATE_TYPES.UPDATE_BRACKET,  tournamentId: tournamentId})
+}
+export function EventUpdateTournaments() {
+    emitter.emit(EVENT_UPDATE_TOURNAMENTS)
+}
+export function EventUpdateLan() {
+    emitter.emit(EVENT_UPDATE_LAN)
+}
+export function EventUpdateUsers() {
+    emitter.emit(EVENT_UPDATE_USERS)
+}

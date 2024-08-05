@@ -4,6 +4,7 @@ import { useUsers } from "~/lib/components/contexts/UsersContext"
 import { UserTileUsersPage } from "~/lib/components/elements/user-tile"
 import { getLan } from "~/lib/persistence/lan.server"
 import { requireUserLoggedIn } from "~/lib/session.server"
+import { useRevalidateOnUsersUpdate } from "../sse/hook"
 
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -22,6 +23,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<{
 
 export default function Users() {
   const users = useUsers()
+  useRevalidateOnUsersUpdate()
 
   return <div className="is-full-height is-flex-col gap-3 p-3 align-stretch">
     <div className="is-title big is-uppercase has-background-secondary-level p-2 px-4">

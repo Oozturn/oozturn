@@ -4,6 +4,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { TournamentEngine, TournamentStorage } from "../tournamentEngine/tournamentEngine"
 import { BracketSettings, TournamentInfo, TournamentProperties } from "../tournamentEngine/types"
+import { EventUpdateTournamentBracket, EventUpdateTournamentInfo, EventUpdateTournaments } from "../emitter.server"
 
 declare global {
     // eslint-disable-next-line no-var
@@ -45,23 +46,27 @@ export function getTournaments(): TournamentInfo[] {
 export function newTournament(tournamentId: string, properties: TournamentProperties, settings: BracketSettings[]) {
     if (global.tournaments.find(t => t.getId() == tournamentId)) throw new Error(`Tournament ${tournamentId} already exists`)
     global.tournaments.push(new TournamentEngine(tournamentId, properties, settings))
+    EventUpdateTournaments()
 }
 
 export function cancelTournament(tournamentId: string) {
     const index = global.tournaments.findIndex(tournament => tournament.getId() == tournamentId)
     if (index == -1) throw new Error(`Tournament ${tournamentId} not found`)
     global.tournaments.splice(index, 1)
+    EventUpdateTournaments()
 }
 
 export function updateTournamentProperties(tournamentId: string, partialProperties: Partial<TournamentProperties>) {
     const tournament = global.tournaments.find(tournament => tournament.getId() == tournamentId)
     if (!tournament) throw new Error(`Tournament ${tournamentId} not found`)
     tournament.updateProperties(partialProperties)
+    EventUpdateTournamentInfo(tournamentId)
 }
 
 export function updateTournamentSettings(tournamentId: string, partialSettings: Partial<BracketSettings>) {
     const tournament = global.tournaments.find(tournament => tournament.getId() == tournamentId)
     if (!tournament) throw new Error(`Tournament ${tournamentId} not found`)
     tournament.updateSettings(partialSettings)
+    EventUpdateTournamentBracket(tournamentId)
 }
 

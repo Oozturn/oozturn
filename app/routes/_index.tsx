@@ -11,6 +11,7 @@ import { requireUserLoggedIn } from "~/lib/session.server"
 import { Game } from "~/lib/types/games"
 import { TournamentInfo, TournamentStatus } from "~/lib/tournamentEngine/types"
 import { getLan } from "~/lib/persistence/lan.server"
+import { useRevalidateOnGlobalTournamentUpdate } from "./sse/hook"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -32,6 +33,7 @@ export default function Index() {
   const lan = useLan()
   const tournaments = useTournaments()
   const games = useGames()
+  useRevalidateOnGlobalTournamentUpdate()
 
   return (
     <>
@@ -68,10 +70,10 @@ export default function Index() {
 }
 
 function IndexTournamentTile({ tournament, userId, game }: { tournament: TournamentInfo, userId: string, game: Game | undefined }) {
-  const backgroundImage = [game?.id, game?.picture].includes(undefined) ? '' : 'url(/igdb/' + game?.picture + '.jpg)'
+  const backgroundImage = [game?.id, game?.picture].includes(undefined) ? 'var(--generic-game-image) !important' : 'url(/igdb/' + game?.picture + '.jpg)'
   return (
 
-    <Link to={`/tournaments/${tournament.id}`} className={`homeTournamentBox is-clickable p-0 ${game?.id == undefined ? 'has-generic-game-background-image' : ''}`} style={{ backgroundImage: backgroundImage }}>
+    <Link to={`/tournaments/${tournament.id}`} className="homeTournamentBox is-clickable p-0" style={{ backgroundImage: backgroundImage }}>
       <div className={`tournamentName ${tournament.status == TournamentStatus.Done && 'over'}`}>{tournament.name}</div>
       {tournament.players.find(player => player.userId == userId) &&
         <div className='subscribed is-flex align-center has-background-primary-accent'>

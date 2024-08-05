@@ -1,6 +1,7 @@
 import crypto from 'crypto'
 import { mkdir, rm } from 'fs/promises'
 import sharp from 'sharp'
+import { EventUpdateUsers } from '~/lib/emitter.server'
 import { getUserOrThrow } from '~/lib/persistence/users.server'
 
 const AVATAR_FOLDER = "public/avatar"
@@ -12,6 +13,7 @@ export async function setAvatar(userId: string, file: File) {
         await deleteOldAvatar(user.avatar)
     }
     user.avatar = newAvatar
+    EventUpdateUsers()
 }
 
 export async function removeAvatar(userId: string) {
@@ -20,6 +22,7 @@ export async function removeAvatar(userId: string) {
         await deleteOldAvatar(user.avatar)
     }
     user.avatar = ""
+    EventUpdateUsers()
 }
 
 async function deleteOldAvatar(filename: string) {

@@ -3,9 +3,12 @@ import { useTournaments } from "~/lib/components/contexts/TournamentsContext"
 import { useUser } from "~/lib/components/contexts/UserContext"
 import { useGames } from "~/lib/components/contexts/GamesContext"
 import { TournamentStatus } from "~/lib/tournamentEngine/types"
+import { useRevalidateOnGlobalTournamentUpdate } from "~/routes/sse/hook"
 
 
 export default function TournamentsList() {
+    
+    useRevalidateOnGlobalTournamentUpdate()
 
     const user = useUser()
     const tournaments = useTournaments()
@@ -23,9 +26,8 @@ export default function TournamentsList() {
                 <NavLink
                     to={`/tournaments/${tournament.id}`}
                     key={tournament.id}
-                    className={({ isActive }) => `tournamentTile has-background-secondary-level is-clickable ${isActive ? 'is-active' : ''}
-                    ${tournament.game == undefined ? 'has-generic-game-background-image' : ''}`}
-                    style={{ backgroundImage: (tournament.game == undefined || !gamesList.find(game => game.id == tournament.game)) ? "" : 'url(/igdb/' + gamesList.find(game => game.id == tournament.game)?.picture + '.jpg)' }}>
+                    className={({ isActive }) => `tournamentTile has-background-secondary-level is-clickable ${isActive ? 'is-active' : ''}`}
+                    style={{ backgroundImage: (tournament.game == undefined || !gamesList.find(game => game.id == tournament.game)) ? "var(--generic-game-image) !important" : 'url(/igdb/' + gamesList.find(game => game.id == tournament.game)?.picture + '.jpg)' }}>
                     <div className='tournamentName'>{tournament.name}</div>
                     {tournament.players.find(p => p.userId == user.id) && <div className='subscribedIndicator' title='inscrit'></div>}
                     {tournament.status == TournamentStatus.Balancing && <div className='tournamentState'>En préparation</div>}

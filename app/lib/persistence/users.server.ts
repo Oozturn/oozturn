@@ -3,6 +3,7 @@ import * as path from 'path'
 import { logger } from "~/lib/logging/logging"
 import { User } from "../types/user"
 import { dbFolderPath, subscribeObjectManager, writeSafe } from "./db.server"
+import { EventUpdateUsers } from '../emitter.server'
 
 declare global {
     // eslint-disable-next-line no-var
@@ -50,13 +51,15 @@ export function getUserOrThrow(userId: string) {
     return user
 }
 
-export function registerNewUser(username: string) {
+export function registerNewUser(username: string, refreshEvent=true) {
     const user: User = { id: generateUniqueId(username), username: username, avatar: "", team: "", isAdmin: false, ips: [] }
     global.users.push(user)
+    refreshEvent && EventUpdateUsers()
     return user
 }
 
 export function updateUser(userId: string, partialUser: Partial<User>) {
+    EventUpdateUsers()
     const userIndex = global.users.findIndex(user => user.id == userId)
     if (userIndex != -1) {
         global.users[userIndex] = { ...global.users[userIndex], ...partialUser }

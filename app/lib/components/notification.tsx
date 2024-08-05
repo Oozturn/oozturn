@@ -1,36 +1,41 @@
 import { useEffect } from "react"
-import { cssTransition, toast, ToastContainer } from "react-toastify"
+import { Slide, toast, ToastContainer } from "react-toastify"
 import { useEventSource } from "remix-utils/sse/react"
 import { SSE_NOTIFICATION_MESSAGE_EVENT } from "~/routes/sse/route"
-
-
-const notificationAnimation = cssTransition({
-  enter: "toast-enter-animation",
-  exit: "toast-exit-animation"
-})
+import 'react-toastify/dist/ReactToastify.css';
+import { notificationProps } from "../events/types";
+import { Link } from "@remix-run/react";
 
 export function Notification() {
   const message = useEventSource("/sse", { event: SSE_NOTIFICATION_MESSAGE_EVENT })
 
   useEffect(() => {
-    console.log("message " + message)
-    if (!message) {
-      return
+    if (!message) return
+    const { time, messageType, data } = JSON.parse(message) as notificationProps
+    if (["startTournament", "endTournament"].includes(messageType)) {
+      const { id, name } = JSON.parse(data) as { id: string, name: string }
+      toast.info(
+        <Link to={"/tournaments/" + id}>Le tournoi {name} vient de {messageType == "startTournament" ? "démarrer" : "s'achever"} !</Link>,
+        {
+          toastId: time
+        }
+      )
     }
-    toast.info(message, {
-      toastId: message,
-      autoClose: 5000,
-      progressStyle: { background: "transparent" },
-      closeButton: false
-    })
+    else
+      toast.error(message)
   }, [message])
 
 
   return (
     <ToastContainer
       limit={1}
-      position={"bottom-right"}
-      transition={notificationAnimation}
+      position="top-center"
+      autoClose={5000}
+      hideProgressBar
+      closeOnClick
+      draggable={false}
+      theme="dark"
+      transition={Slide}
     />
   )
 }

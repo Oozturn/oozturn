@@ -6,7 +6,7 @@ import { useUser } from "~/lib/components/contexts/UserContext"
 import { CustomButton } from "~/lib/components/elements/custom-button"
 import { CustomModalBinary } from "~/lib/components/elements/custom-modal"
 import { useState } from "react"
-import { BinSVG, LeaveSVG, ParticipateSVG, StartSVG, SubsribedSVG } from "~/lib/components/data/svg-container"
+import { BinSVG, LeaveSVG, ParticipateSVG, RollBackSVG, StartSVG, SubsribedSVG } from "~/lib/components/data/svg-container"
 import { addPlayerToTournament, addTeamToTournament, toggleBalanceTournament, removePlayerFromTournament, reorderPlayers, reorderTeams, addPlayerToTeam, removeTeamFromTournament, renameTeam, removePlayerFromTeams, distributePlayersOnTeams, balanceTeams, randomizePlayersOnTeams, cancelTournament, startTournament, scoreMatch, stopTournament } from "./queries.server"
 import { useUsers } from "~/lib/components/contexts/UsersContext"
 import { OpponentsListSolo, OpponentsListTeam } from "./components/players-list"
@@ -15,6 +15,7 @@ import { BracketType, TournamentFullData, TournamentStatus } from "~/lib/tournam
 import { TournamentContext, useTournament } from "~/lib/components/contexts/TournamentsContext"
 import { TournamentViewer } from "./components/tournamentViewer"
 import { getLan } from "~/lib/persistence/lan.server"
+import { useRevalidateOnTournamentUpdate } from "../sse/hook"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
@@ -123,6 +124,8 @@ export enum MatchesIntents {
 
 export default function TournamentPage() {
     const { tournament } = useLoaderData<typeof loader>()
+    
+    useRevalidateOnTournamentUpdate(tournament.id)
     const user = useUser()
     const fetcher = useFetcher()
     const users = useUsers()
@@ -276,9 +279,9 @@ function TournamentCommands() {
                 <CustomButton callback={() => setShowConfirmStart(true)} contentItems={[StartSVG(), "Démarrer"]} colorClass='has-background-primary-accent' />
             </>
         }
-        {/* {![TournamentStatus.Open, TournamentStatus.Balancing, TournamentStatus.Done].includes(tournament.status) &&
+        {![TournamentStatus.Open, TournamentStatus.Balancing, TournamentStatus.Done].includes(tournament.status) &&
             <CustomButton callback={() => setShowConfirmStop(true)} contentItems={[RollBackSVG(), "Redémarrer"]} colorClass='has-background-primary-accent' />
-        } */}
+        }
         <CustomModalBinary show={showConfirmCancel} onHide={() => setShowConfirmCancel(false)} content={"Es-tu sûr de vouloir annuler ce tournoi ?"} cancelButton={true} onConfirm={cancelTournament} />
         <CustomModalBinary show={showConfirmStart} onHide={() => setShowConfirmStart(false)} content={"Es-tu sûr de vouloir démarrer ce tournoi ?"} cancelButton={true} onConfirm={startTournament} />
         <CustomModalBinary show={showConfirmStop} onHide={() => setShowConfirmStop(false)} content={`Es-tu sûr de vouloir redémarrer ce tournoi ? Tu pourras éditer ${tournament.settings[0].useTeams ? "les équipes et " : ""}les inscriptions, mais toute sa progression sera perdue !`} cancelButton={true} onConfirm={stopTournament} />

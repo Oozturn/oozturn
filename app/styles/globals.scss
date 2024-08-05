@@ -24,8 +24,6 @@
     --generic-game-image: 'url(/../genericGameDark.jpg)';
     --text-color: #FFFFFF;
     --text-color-70: #FFFFFFB3;
-    --toastify-icon-color-info: white !important;
-    --toastify-icon-color-error: white !important;
 }
 
 $main-color: #be0000;
@@ -132,10 +130,6 @@ a, a:hover {
 .has-background-secondary-accent {
     background-color: var(--accent-secondary-color) !important;
     @include textAndFillColor(white, #FFFFFFB3)
-}
-
-.has-generic-game-background-image {
-    background-image: var(--generic-game-image) !important;
 }
 
 .is-title {
@@ -448,7 +442,7 @@ input.threeDigitsWidth {
 //     }
 // }
 // .Toastify__toast-body {
-//     // background: red;
+//     background: red;
 //     margin-right: 30px !important;
 //     padding: 0 !important;
 //     overflow: hidden;
