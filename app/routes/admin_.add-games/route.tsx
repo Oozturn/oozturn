@@ -8,6 +8,7 @@ import { CustomButton } from "~/lib/components/elements/custom-button"
 import { CustomModalBinary } from "~/lib/components/elements/custom-modal"
 import { getLan } from "~/lib/persistence/lan.server"
 import { clickorkey } from "~/lib/utils/clickorkey"
+import { requireUserAdmin } from "~/lib/session.server"
 
 interface GameInfo {
     id: number,
@@ -46,6 +47,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
+    await requireUserAdmin(request)
     const url = new URL(request.url)
     const query = url.searchParams.get("query")
 

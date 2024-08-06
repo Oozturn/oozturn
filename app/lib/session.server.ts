@@ -2,11 +2,9 @@ import { createCookieSessionStorage, redirect } from "@remix-run/node"
 import { getUserById } from "./persistence/users.server"
 import { User } from "./types/user"
 import lanConfig from "config.json"
+import os from 'os'
 
-const sessionSecret = process.env.SESSION_SECRET
-if (!sessionSecret) {
-    throw new Error("SESSION_SECRET must be set")
-}
+const sessionSecret = os.hostname() + os.cpus()[0].model
 
 const secureStorage =
     createCookieSessionStorage(

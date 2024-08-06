@@ -6,13 +6,12 @@ Manage your multi-tournament LAN without opening Excel
 
 ## Features
 
-- Complete configuration from app interface
-- Duels and FFA tournaments
-- Global tournament, with cutomizable points for each tournament
-- Players management
-- Achievements
-- Leaderboard for both players and teams
-- ⚠️ **App in French** ⚠️ (translation is for the next version)
+ ⚙️ Complete configuration from app interface  
+ ⚔️ Duels and FFA tournaments  
+ 🏆 Global tournament, with cutomizable points for each tournament  
+ 👤 Players management  
+ 🎯 Achievements  
+ 🏅 Leaderboard for both players and teams  
 
 ## Getting Started
 
@@ -20,23 +19,20 @@ This app requires the LTS version of [NodeJS](https://nodejs.org). Then:
 
 - Clone this repository and `cd` into it
 - Install dependencies with `npm install`
-- Open .env.production and complete the environment variables:
-  - *SESSION_SECRET* : secret used to seal the session cookie. It should be at least 32 characters long
-  - *ADMIN_PASSWORD* : password used to access admin elevation
-- If you want to import games images from IGDB, you will need to create an account on https://api.igdb.com and obtain an access token. Then, fill the following environment variables in .env.production:
-  - *IGDB_CLIENT_ID* : your IGDB application ID
-  - *IGDB_CLIENT_SECRET* : your IGDB access token
-- To run the server in dev mode, copy the .env.production file to a .env.local file then run `npm run dev`
+- Open **config.json** and fill:
+  - ***security.admin_password***  with a bcryt hash of your admin page password.  
+  You can get it from [bcrypt](https://www.bcrypt.fr/).
+  - ***igdb_api.igdb_client_id*** and ***igdb_api.igdb_client_secret*** to import games images from IGDB.  
+  You can get your token from [IGDB](https://api.igdb.com) website.
+
+- To run the server in dev mode run `npm run dev`
 - To run the server in production mode, build the application with `npm run build` then start the server with `npm run start`
 - Open http://localhost:3000 with your browser to see the app
 
-## API
 
-The GraphQL interface can be accessed on http://localhost:3000/api/graphql
+## Demo V1
 
-## Demo
-
-Here is a [Demo](https://oozturn.bug38.com) running on a Raspberry Pi 4, itself hosting other stuff.
+Here is a [Demo](https://oozturn.bug38.com) running on a Raspberry Pi 4, itself hosting other stuff. V1 was less efficient than V2.
 
 ## Used By
 
@@ -49,38 +45,3 @@ This app uses a derivative of the [tournament-js](https://github.com/tournament-
 ## License
 
 [AGPL3](https://github.com/Oozturn/oozturn/blob/main/LICENSE)
-
-# Welcome to Remix + Vite!
-
-📖 See the [Remix docs](https://remix.run/docs) and the [Remix Vite docs](https://remix.run/docs/en/main/future/vite) for details on supported features.
-
-## Development
-
-Run the Express server with Vite dev middleware:
-
-```shellscript
-npm run dev
-```
-
-## Deployment
-
-First, build your app for production:
-
-```sh
-npm run build
-```
-
-Then run the app in production mode:
-
-```sh
-npm start
-```
-
-Now you'll need to pick a host to deploy it to.
-
-### DIY
-
-If you're familiar with deploying Express applications you should be right at home. Just make sure to deploy the output of `npm run build`
-
-- `build/server`
-- `build/client`
