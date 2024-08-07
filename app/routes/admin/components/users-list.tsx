@@ -3,7 +3,7 @@ import React, { useState } from "react"
 import { Item, ItemParams, Menu, TriggerEvent, useContextMenu } from "react-contexify"
 import { useTournaments } from "~/lib/components/contexts/TournamentsContext"
 import { useUsers } from "~/lib/components/contexts/UsersContext"
-import { ButtonMore } from "~/lib/components/elements/custom-button"
+import { ButtonMore, CustomButton } from "~/lib/components/elements/custom-button"
 import { CustomModalBinary } from "~/lib/components/elements/custom-modal"
 import { UserTileRectangle } from "~/lib/components/elements/user-tile"
 import { User } from "~/lib/types/user"
@@ -67,8 +67,11 @@ export function UsersList() {
         fetcher.submit(fd, { method: "POST" })
     }
 
-    return <div className="has-background-secondary-level adminUsersList is-full-height is-flex-col pr-2 pl-4 py-4">
-        <div className="is-title medium mb-2">Joueurs</div>
+    return <div className="has-background-secondary-level adminUsersList is-full-height is-flex-col pr-2 p-4 gap-3">
+        <div className="is-flex justify-space-between align-center">
+            <div className="is-title medium">Joueurs</div>
+            <CustomButton customClasses="small-button" colorClass="has-background-primary-accent" callback={() => setShowAddUsers(true)} contentItems={["Add users"]} />
+        </div>
         <CustomModalBinary
             show={!!userInEdit}
             onHide={() => { setUserInEdit(null) }}
@@ -84,20 +87,20 @@ export function UsersList() {
             }
         />
         <CustomModalBinary
-                    show={showAddUsers}
-                    onHide={() => setShowAddUsers(false)}
-                    content={
-                        <div className="grow is-flex-col align-stretch">
-                            <div className="">Liste ici les noms des utilisateurs à ajouter (un par ligne) :</div>
-                            {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
-                            <textarea autoFocus rows={10} onChange={e => setNewUsers(e.target.value)} />
-                        </div>
-                    }
-                    cancelButton={true}
-                    onConfirm={addUsers}
-                    />
+            show={showAddUsers}
+            onHide={() => setShowAddUsers(false)}
+            content={
+                <div className="grow is-flex-col align-stretch">
+                    <div className="">Liste ici les noms des utilisateurs à ajouter (un par ligne) :</div>
+                    {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
+                    <textarea autoFocus rows={10} onChange={e => setNewUsers(e.target.value)} />
+                </div>
+            }
+            cancelButton={true}
+            onConfirm={addUsers}
+        />
         <div className="UserTilesContainer is-flex-col p-0 m-0 is-scrollable pr-2">
-            <div className="is-flex align-center justify-center has-background-primary-accent fade-on-mouse-out is-clickable is-unselectable" style={{minHeight:"40px"}} {...clickorkey(() => setShowAddUsers(true))}>Ajouter des joueurs</div>
+            {/* <div className="is-flex align-center justify-center has-background-primary-accent fade-on-mouse-out is-clickable is-unselectable" style={{minHeight:"40px"}} {...clickorkey(() => setShowAddUsers(true))}>Ajouter des joueurs</div> */}
             {users && users.sort((a, b) => a.username.toLowerCase().localeCompare(b.username.toLowerCase())).map(user =>
                 <React.Fragment key={user.id}>
                     <div className={`userTile is-flex-col is-clickable ${activeUser == user.id ? 'is-active' : ''}`} onMouseEnter={() => setHooveredUser(user.id)} onMouseLeave={() => setHooveredUser("")}>

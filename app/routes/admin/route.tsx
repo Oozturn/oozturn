@@ -109,7 +109,7 @@ export default function Admin() {
                         <SectionLanSettings isActive={activeSection == "lanSettings"} />
                         <SectionTournamentsSettings isActive={activeSection == "tournamentsSettings"} />
                         <SectionGlobalTournamentSettings isActive={activeSection == "globalTournamentSettings"} />
-                        <SectionCommunicationSettings isActive={activeSection == "communicationSettings"} />
+                        {/* <SectionCommunicationSettings isActive={activeSection == "communicationSettings"} /> */}
                     </AdminSectionContext.Provider>
                 </div>
 
@@ -216,10 +216,6 @@ export function SectionTournamentsSettings({ isActive }: { isActive: boolean }) 
         </div>
         <div className="is-flex-col gap-4 is-scrollable" style={isActive ? { marginBottom: "1rem" } : { maxHeight: 0 }}>
             {/* LAN games */}
-            {/* Si on clique gauche dessus ça ouvre l'édition du jeu.
-            Si on clique droit ça ouvre un menu contextuel qui propose de mettre à jour ou supprimer le jeu.
-            Tout au début de la liste se trouve le bouton d'ajout de nouveau jeu.
-        */}
             <div className="is-flex gap-3 ">
                 <div className="has-text-right is-one-fifth mt-4">Jeux de la LAN :</div>
                 <div id="tournamentsList" className="is-flex wrap grow gap-1 p-2 has-background-primary-level is-scrollable">
@@ -235,10 +231,6 @@ export function SectionTournamentsSettings({ isActive }: { isActive: boolean }) 
                 </div>
             </div>
             {/* LAN tournaments */}
-            {/* Si on clique gauche dessus ça envoie au tournoi.
-            Si on clique droit ça ouvre un menu contextuel qui propose de mettre à jour ou supprimer le tournoi.
-            Tout au début de la liste se trouve le bouton d'ajout de nouveau tournoi.
-        */}
             <div className="is-flex gap-3 ">
                 <div className="has-text-right is-one-fifth mt-4">Tournois de la LAN :</div>
                 <div id="tournamentsList" className="is-flex wrap grow gap-1 p-2 has-background-primary-level is-scrollable">
@@ -297,9 +289,6 @@ export function SectionGlobalTournamentSettings({ isActive }: { isActive: boolea
             <div className='is-flex gap-3 align-center'>
                 <CustomCheckbox variable={lan.showTeamsResults} customClass='justify-flex-end is-one-fifth' setter={(value: boolean) => updateLan("lan_showTeamsResults", JSON.stringify(value))} />
                 <div>Afficher les achievements</div>
-                {/* <div className='is-flex-col'>
-                <div className='is-size-7'>Sélectionne <i>oui</i> pour pondérer les scores d&apos;équipe en fonction du nombre de joueurs qui la composent. Dans le cas contraire, bien sûr, sélectionne <i>non</i>.</div>
-            </div> */}
                 <CustomButton callback={() => { }} contentItems={["Edit achievements"]} colorClass="has-background-primary-level" />
             </div>
         </div>
@@ -315,20 +304,6 @@ export function SectionCommunicationSettings({ isActive }: { isActive: boolean }
             Communication et add-ons
         </div>
         <div className="is-flex-col gap-4" style={{ maxHeight: isActive ? undefined : 0 }}>
-            {/* Torrent tracker */}
-            <fetcher.Form className="is-flex gap-3" method="POST">
-                <div className='has-text-right is-one-fifth'>Tracker torrent :</div>
-                <div className="grow">
-                    <input type="hidden" name="intent" value={AdminIntents.UPDATE_LAN} />
-                    <input id="field"
-                        name="torrent_tracker"
-                        className="input" type="text"
-                        defaultValue=""
-                        title="Tracker à renseigner lors de la création de torrents. Laisser vide si aucun tracker n'est disponible."
-                    // {...autoSubmit(fetcher)}
-                    />
-                </div>
-            </fetcher.Form>
             {/* TS server */}
             <fetcher.Form className="is-flex gap-3" method="POST">
                 <div className='has-text-right is-one-fifth'>TS server URL :</div>

@@ -13,7 +13,7 @@ import { TournamentsContext } from "./lib/components/contexts/TournamentsContext
 import { UserContext } from "./lib/components/contexts/UserContext"
 import { UsersContext } from "./lib/components/contexts/UsersContext"
 import Navbar from "./lib/components/layout/navbar"
-import { GetUserTheme } from "./lib/components/tools/user-theme"
+import { GetUserTheme, useIconUrl } from "./lib/components/tools/user-theme"
 import { getGames } from "./lib/persistence/games.server"
 import { getLan } from "./lib/persistence/lan.server"
 import { getTournaments } from "./lib/persistence/tournaments.server"
@@ -54,6 +54,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<{
 
 export default function App() {
   const { lan, user, users, tournaments, games } = useLoaderData<typeof loader>()
+  const iconUrl = useIconUrl()
   useRevalidateOnLanUpdate()
   return (
     <html lang="fr">
@@ -61,6 +62,7 @@ export default function App() {
         <head>
           <meta charSet="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <link rel="icon" href={iconUrl} />
           <Meta />
           <Links />
         </head>
