@@ -7,9 +7,9 @@ import { ButtonMore, CustomButton } from "~/lib/components/elements/custom-butto
 import { CustomModalBinary } from "~/lib/components/elements/custom-modal"
 import { UserTileRectangle } from "~/lib/components/elements/user-tile"
 import { User } from "~/lib/types/user"
-import { AdminIntents } from "../route"
+import { AdminIntents } from "../admin"
 import { clickorkey } from "~/lib/utils/clickorkey"
-import { useRevalidateOnUsersUpdate } from "~/routes/sse/hook"
+import { useRevalidateOnUsersUpdate } from "~/api/hook"
 import lanConfig from "config.json"
 
 export function UsersList() {

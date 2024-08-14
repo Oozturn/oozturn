@@ -8,9 +8,10 @@ export async function validate(password: string, confirmPassword: string) {
         errors.password = "Mot de passe requis"
     } else if (password !== confirmPassword) {
         errors.password = "La confirmation ne correspond pas au mot de passe"
-    } else if (!PASSWORD_REGEX.test(password)) {
-        errors.password = "Mot de passe de 8 à 18 caractères avec au minimum une majuscule, une minuscule, un chiffre et un caractère special (#?!@$%^&*-)"
-    }
+    } 
+    // else if (!PASSWORD_REGEX.test(password)) {
+    //     errors.password = "Mot de passe de 8 à 18 caractères avec au minimum une majuscule, une minuscule, un chiffre et un caractère special (#?!@$%^&*-)"
+    // }
 
     return Object.keys(errors).length ? errors : null
 }

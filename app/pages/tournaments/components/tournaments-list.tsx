@@ -3,7 +3,7 @@ import { useTournaments } from "~/lib/components/contexts/TournamentsContext"
 import { useUser } from "~/lib/components/contexts/UserContext"
 import { useGames } from "~/lib/components/contexts/GamesContext"
 import { TournamentStatus } from "~/lib/tournamentEngine/types"
-import { useRevalidateOnGlobalTournamentUpdate } from "~/routes/sse/hook"
+import { useRevalidateOnGlobalTournamentUpdate } from "~/api/hook"
 
 
 export default function TournamentsList() {

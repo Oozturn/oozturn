@@ -1,5 +1,5 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction, redirect } from "@remix-run/node"
-import TournamentEdit from "../tournaments_.edit.$id/components/edit"
+import TournamentEdit from "../../pages/tournaments/edit.$id/components/edit"
 import { getLan } from "~/lib/persistence/lan.server"
 import { newTournament } from "~/lib/persistence/tournaments.server"
 import { requireUserAdmin } from "~/lib/session.server"

@@ -1,7 +1,7 @@
 import { Outlet } from "@remix-run/react"
-import TournamentsList from "./components/tournaments-list"
 import { LoaderFunctionArgs } from "@remix-run/node"
 import { requireUserLoggedIn } from "~/lib/session.server"
+import TournamentsList from "./components/tournaments-list"
 
 export async function loader({ request }: LoaderFunctionArgs) {
     await requireUserLoggedIn(request)

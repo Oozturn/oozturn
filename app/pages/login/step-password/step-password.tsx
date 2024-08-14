@@ -24,7 +24,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw redirect('/login')
   }
   if (!hasPassword(username)) {
-    throw redirect('../step-new-password')
+    throw redirect('/login/step-new-password')
   }
   return { username: username, lanName: getLan().name }
 }

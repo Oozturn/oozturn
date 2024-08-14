@@ -4,7 +4,7 @@ import { useUsers } from "~/lib/components/contexts/UsersContext"
 import { UserTileUsersPage } from "~/lib/components/elements/user-tile"
 import { getLan } from "~/lib/persistence/lan.server"
 import { requireUserLoggedIn } from "~/lib/session.server"
-import { useRevalidateOnUsersUpdate } from "../sse/hook"
+import { useRevalidateOnUsersUpdate } from "../../api/hook"
 
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {

@@ -15,7 +15,7 @@ import { BracketType, TournamentFullData, TournamentStatus } from "~/lib/tournam
 import { TournamentContext, useTournament } from "~/lib/components/contexts/TournamentsContext"
 import { TournamentViewer } from "./components/tournamentViewer"
 import { getLan } from "~/lib/persistence/lan.server"
-import { useRevalidateOnTournamentUpdate } from "../sse/hook"
+import { useRevalidateOnTournamentUpdate } from "../../api/hook"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [

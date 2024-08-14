@@ -11,7 +11,7 @@ import { requireUserLoggedIn } from "~/lib/session.server"
 import { Game } from "~/lib/types/games"
 import { TournamentInfo, TournamentStatus } from "~/lib/tournamentEngine/types"
 import { getLan } from "~/lib/persistence/lan.server"
-import { useRevalidateOnGlobalTournamentUpdate } from "./sse/hook"
+import { useRevalidateOnGlobalTournamentUpdate } from "~/api/hook"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [

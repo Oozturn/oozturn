@@ -3,7 +3,7 @@
         "new_users_by_admin_only": true,
         "authentication_needed": true,
         "secure_users_password": true,
-        "admin_password": ""
+        "admin_password": "$2y$10$ZtQeAILaSeWciLODMJo9VOTiujZfRiRzSRFIT7/27iAuasnEPerK."
     },
     "igdb_api": {
         "igdb_client_id": "",
