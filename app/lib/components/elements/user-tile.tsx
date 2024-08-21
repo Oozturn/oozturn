@@ -1,5 +1,9 @@
 import { UserAvatar } from "./user-avatar"
 import { useUsers } from "../contexts/UsersContext"
+import { AvatarComponent } from "avatar-initials"
+import { accentsList } from "../data/themes"
+import useLocalStorageState from "use-local-storage-state"
+import { ShinySVG } from "../data/svg-container"
 
 interface UserTileProps {
     userId: string
@@ -8,8 +12,11 @@ interface UserTileProps {
     height?: number
     maxLength?: number
     showTeam?: boolean
+    initial?: string
+    isShiny?: boolean
 }
-export function UserTileRectangle({ userId, colorClass, height, maxLength, showTeam }: UserTileProps) {
+export function UserTileRectangle({ userId, colorClass, height, maxLength, showTeam, initial, isShiny }: UserTileProps) {
+    const [accentLocalStorage,] = useLocalStorageState("accent", { defaultValue: "Switch" })
     const user = useUsers().find(user => (user.id == userId) || (user.username == userId))
     if (!user) {
         return null
@@ -23,8 +30,19 @@ export function UserTileRectangle({ userId, colorClass, height, maxLength, showT
     const maxUsernameLength = showTeam ? (maxLength - height) * 2 / 3 : maxLength - height
     return <div key={user.id} className={`is-flex grow gap-1 pr-3 align-center is-unselectable ${colorClass ? colorClass : ''}`} style={{ maxWidth: maxLength }}>
         <div className='is-flex'>
-            <UserAvatar username={user.username} avatar={user.avatar} size={height} />
+            {initial ?
+                <AvatarComponent
+                    useGravatar={false}
+                    color="#B3FFFFFF"
+                    background={accentsList.find(accent => accent.name == accentLocalStorage)?.primary as string}
+                    initials={initial}
+                    size={height}
+                />
+                :
+                <UserAvatar username={user.username} avatar={user.avatar} size={height} />
+            }
         </div>
+        {isShiny && <div className="is-flex has-text-primary-accent"><ShinySVG /></div>}
         <div style={{ maxWidth: maxUsernameLength + "px", overflow: "hidden", textOverflow: "ellipsis" }}>{user.username}</div>
         {showTeam && user.team && <div className='fade-text' style={{ maxWidth: maxTeamLength + "px", overflow: "hidden", textOverflow: "ellipsis" }}>[{user.team}]</div>}
     </div>

@@ -277,6 +277,10 @@ export class TournamentEngine implements TournamentSpecification {
 		if (!resume && ![TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status))
 			throw new Error(`Tournament ${this.id} not in Open or Balance mode`)
 		/** TODO: Edit here the case of multi staged tournaments */
+		if (this.settings[0].useTeams) {
+			this.teams = this.teams.filter(team => team.members.length > 0)
+			this.players = this.players.filter(player => this.teams.flatMap(team => team.members).includes(player.userId))
+		}
 		const opponentsLength = this.settings[0].useTeams ? this.teams?.length || 0 : this.players.length
 		if (this.settings[0].type == BracketType.Duel)
 			this.brackets = [new Duel(opponentsLength, this.settings[0])]

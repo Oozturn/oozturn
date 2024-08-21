@@ -1,10 +1,15 @@
 import { IdToString } from "~/lib/utils/tournaments"
 import { useTournament } from "../../../lib/components/contexts/TournamentsContext"
-import { MatchTile } from "../../../lib/components/elements/bracket-elements"
-import { Fragment, useEffect, useRef, useState } from "react"
-import { BracketType } from "~/lib/tournamentEngine/types"
+import { Fragment, useContext, useEffect, useRef, useState } from "react"
+import { BracketType, TournamentStatus } from "~/lib/tournamentEngine/types"
 import { Duel } from "~/lib/tournamentEngine/tournament/duel"
 import { TransformComponent, TransformWrapper, useTransformContext } from "react-zoom-pan-pinch"
+import { HightlightOpponentContext } from "./HightlightOpponentContext"
+import { Id } from "~/lib/tournamentEngine/tournament/match"
+import { useUser } from "~/lib/components/contexts/UserContext"
+import { useFetcher } from "@remix-run/react"
+import { MatchesIntents } from "../route"
+import { FakeUserTileRectangle, UserTileRectangle } from "~/lib/components/elements/user-tile"
 
 export function TournamentViewer() {
     const tournament = useTournament()
@@ -13,6 +18,7 @@ export function TournamentViewer() {
     const [minScale, setMinScale] = useState(0)
     const containerRef = useRef(null)
     const bracketRef = useRef(null)
+    const [hightlightOpponent, setHightlightOpponent] = useState("")
 
     useEffect(() => {
         const ref = containerRef.current as unknown as HTMLDivElement
@@ -27,25 +33,54 @@ export function TournamentViewer() {
             ))
     }, [containerRef, bracketRef, minScale, tournament.id])
 
-    return <div className="is-flex grow no-basis has-background-primary-level p-4">
-        <div ref={containerRef} className="is-flex grow no-basis">
-            <TransformWrapper centerOnInit={true} initialScale={minScale ? minScale : 1} minScale={minScale ? minScale : .3} maxScale={1} panning={{ excluded: ["input"] }} doubleClick={{ disabled: true }} disablePadding={true}>
-                <TransformComponent
-                    wrapperStyle={{ width: width ? width : "100%", height: height ? height : "100%" }}
-                    wrapperClass="has-background-primary-level"
-                    contentClass=""
-                    contentStyle={{ whiteSpace: "nowrap" }}
-                >
-                    {width ?
-                        <div ref={bracketRef}>
-                            <BracketViewer bracket={0} />
+
+    useEffect(() => {
+        if (hightlightOpponent == "") return
+        const TeamInfosContainer = document.getElementById('TeamInfosContainer')
+        const TeamInfos = document.getElementById('TeamInfos')
+        if (!TeamInfosContainer || !TeamInfos) return
+        TeamInfos.classList.remove('animateFromTopToBottom')
+        if (TeamInfosContainer.offsetHeight < TeamInfos.offsetHeight) {
+            TeamInfos.classList.add('animateFromTopToBottom')
+            TeamInfos.style.setProperty('--dist', String(TeamInfosContainer.offsetHeight - TeamInfos.offsetHeight) + "px")
+        }
+    }, [hightlightOpponent])
+
+    return <div className="is-flex grow no-basis has-background-primary-level p-4 is-relative">
+        <HightlightOpponentContext.Provider value={{ hightlightOpponent: hightlightOpponent, setHightlightOpponent: setHightlightOpponent }} >
+            <div ref={containerRef} className="is-flex grow no-basis">
+                <TransformWrapper centerOnInit={true} initialScale={minScale ? minScale : 1} minScale={minScale ? minScale : .3} maxScale={1} panning={{ excluded: ["input"] }} doubleClick={{ disabled: true }} disablePadding={true}>
+                    <TransformComponent
+                        wrapperStyle={{ width: width ? width : "100%", height: height ? height : "100%" }}
+                        wrapperClass="has-background-primary-level"
+                        contentClass=""
+                        contentStyle={{ whiteSpace: "nowrap" }}
+                    >
+                        {width ?
+                            <div ref={bracketRef}>
+                                <BracketViewer bracket={0} />
+                            </div>
+                            :
+                            null
+                        }
+                    </TransformComponent>
+                </TransformWrapper>
+            </div>
+            {tournament.teams && tournament.teams.map(team => team?.name).includes(hightlightOpponent) &&
+                <div id='TeamInfosContainer' className="TeamInfosContainer has-background-primary-level">
+                    <div id='TeamInfos' className='is-flex-col p-4 gap-4 is-relative'>
+                        <div className='is-title medium has-text-primary-accent'>Équipe {hightlightOpponent}</div>
+                        <div className='pl-2 is-flex-col gap-1'>
+                            {tournament.teams.find(team => team?.name == hightlightOpponent)?.members.map((player, index) =>
+                                <Fragment key={player}>
+                                    <UserTileRectangle isShiny={index == 0} userId={player} maxLength={245} showTeam={false} />
+                                </Fragment>
+                            )}
                         </div>
-                        :
-                        null
-                    }
-                </TransformComponent>
-            </TransformWrapper>
-        </div>
+                    </div>
+                </div>
+            }
+        </HightlightOpponentContext.Provider>
     </div>
 }
 
@@ -134,5 +169,76 @@ function FinaleViewer({ bracket }: { bracket: number }) {
                     </Fragment>
                 )}
             </div></div>
+    )
+}
+
+
+function MatchTile({ matchId }: { matchId: Id }) {
+    const user = useUser()
+    const tournament = useTournament()
+    const fetcher = useFetcher()
+    const { hightlightOpponent, setHightlightOpponent } = useContext(HightlightOpponentContext)
+
+    const userTeam = tournament.teams.find(team => team.members.includes(user.id))
+
+    const match = tournament.matches.find(match => match.id == matchId)
+    if (!match) return null
+
+    // const showHeaderAndPlace = tournament.settings[match.bracket].type == BracketType.FFA
+
+    const score = (mId: Id, opponent: string, score: number) => {
+        fetcher.submit(
+            {
+                intent: MatchesIntents.SCORE,
+                tournamentId: tournament?.id || "",
+                matchID: IdToString(mId),
+                opponent: opponent,
+                score: score
+            },
+            { method: "POST", encType: "application/json" }
+        )
+    }
+
+    const getOpponentColorClass = (opponent: string) => {
+        if (opponent == hightlightOpponent) return "has-text-primary-accent"
+        if (!hightlightOpponent && (user.id == opponent || userTeam?.name == opponent)) return "has-text-primary-accent"
+    }
+
+    return (
+        <div className="is-flex-row align-center" style={{ width: 275 }}>
+            <div className="is-vertical is-flex pt-2" style={{ transform: "rotate(-90deg)", width: "2rem", lineHeight: "1rem" }}>{IdToString(match.id)}</div>
+            <div className={`is-flex-col ${match.isFinale ? 'has-background-secondary-accent' : 'has-background-secondary-level'} grow p-1 gap-1`}>
+                {match.opponents.map((opponent, index) => {
+
+                    const canEditScore = match.scorable &&
+                        (
+                            (tournament.status == TournamentStatus.Running && (user.id == opponent || (userTeam && (user.id == userTeam.members[0]) && (userTeam.name == opponent))))
+                            || (tournament.status != TournamentStatus.Done && user.isAdmin)
+                        )
+
+                    return <div key={IdToString(matchId) + '-' + String(index)} className="is-flex-row align-end justify-space-between gap-2" onMouseEnter={() => setHightlightOpponent(opponent || "")} onMouseLeave={() => setHightlightOpponent("")}>
+                        {opponent != undefined ?
+                            tournament.settings[0].useTeams ?
+                                <FakeUserTileRectangle userName={opponent} initial={opponent[0]} maxLength={245} colorClass={getOpponentColorClass(opponent)} />
+                                :
+                                <UserTileRectangle userId={opponent} maxLength={245} showTeam={false} colorClass={getOpponentColorClass(opponent)} />
+                            :
+                            <FakeUserTileRectangle userName="Unknown" initial="?" maxLength={245} />
+                        }
+                        {canEditScore ?
+                            <input type="number" name="score"
+                                className="threeDigitsWidth has-text-centered"
+                                defaultValue={match.score[index]}
+                                onChange={(event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+                                    score(matchId, opponent || "", Number(event.target.value))
+                                }}
+                            />
+                            :
+                            <div className="has-text-centered" style={{ width: "2.5rem" }}>{match.score[index] || ""}</div>
+                        }
+                    </div>
+                })}
+            </div>
+        </div>
     )
 }

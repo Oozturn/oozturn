@@ -21,8 +21,8 @@ const defaultLan: Lan = {
     authenticationNeeded: false,
     globalTournamentDefaultPoints: { leaders: [10, 6, 4, 2], default: 1 },
     showPartialResults: false,
-    weightTeamsResults: false,
-    showTeamsResults: false,
+    weightTeamsResults: true,
+    showTeamsResults: true,
 }
 
 subscribeObjectManager("lan", {

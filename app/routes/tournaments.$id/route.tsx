@@ -3,10 +3,10 @@ import { useFetcher, useLoaderData, useNavigate } from "@remix-run/react"
 import { getTournament } from "~/lib/persistence/tournaments.server"
 import TournamentInfoSettings from "./components/tournament-info-settings"
 import { useUser } from "~/lib/components/contexts/UserContext"
-import { CustomButton } from "~/lib/components/elements/custom-button"
+import { CustomButton, SquareButton } from "~/lib/components/elements/custom-button"
 import { CustomModalBinary } from "~/lib/components/elements/custom-modal"
-import { useState } from "react"
-import { BinSVG, LeaveSVG, ParticipateSVG, RollBackSVG, StartSVG, SubsribedSVG } from "~/lib/components/data/svg-container"
+import { ReactNode, useState } from "react"
+import { BinSVG, LeaveSVG, LockSVG, MoreSVG, ParticipateSVG, RollBackSVG, StartSVG, SubsribedSVG, UnlockSVG } from "~/lib/components/data/svg-container"
 import { addPlayerToTournament, addTeamToTournament, toggleBalanceTournament, removePlayerFromTournament, reorderPlayers, reorderTeams, addPlayerToTeam, removeTeamFromTournament, renameTeam, removePlayerFromTeams, distributePlayersOnTeams, balanceTeams, randomizePlayersOnTeams, cancelTournament, startTournament, scoreMatch, stopTournament } from "./queries.server"
 import { useUsers } from "~/lib/components/contexts/UsersContext"
 import { OpponentsListSolo, OpponentsListTeam } from "./components/players-list"
@@ -16,6 +16,7 @@ import { TournamentContext, useTournament } from "~/lib/components/contexts/Tour
 import { TournamentViewer } from "./components/tournamentViewer"
 import { getLan } from "~/lib/persistence/lan.server"
 import { useRevalidateOnTournamentUpdate } from "../sse/hook"
+import Dropdown from "~/lib/components/elements/custom-dropdown"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
@@ -124,7 +125,7 @@ export enum MatchesIntents {
 
 export default function TournamentPage() {
     const { tournament } = useLoaderData<typeof loader>()
-    
+
     useRevalidateOnTournamentUpdate(tournament.id)
     const user = useUser()
     const fetcher = useFetcher()
@@ -187,7 +188,7 @@ export default function TournamentPage() {
                 <div className="has-background-secondary-level is-flex-row grow p-3 gap-6 is-relative">
                     <div className="is-flex-col justify-space-between" style={{ width: "30%", minWidth: "30%", maxWidth: "30%" }}>
                         <TournamentInfoSettings />
-                        {user.isAdmin && <TournamentCommands />}
+                        {user.isAdmin && tournament.status != TournamentStatus.Done && <TournamentCommands />}
                     </div>
                     {[TournamentStatus.Open, TournamentStatus.Balancing].includes(tournament.status) ?
                         <div className="is-flex-col grow no-basis">
@@ -200,7 +201,11 @@ export default function TournamentPage() {
                             <div className="is-flex-row justify-space-between gap-3">
                                 {user.isAdmin ?
                                     <>
-                                        <CustomButton callback={toggleBalanceTournament} tooltip={tournament.status == TournamentStatus.Open ? "Empêcher les joueurs d'interragir avec le tournoi, pour pouvoir les re-seeder" : "Réouvrir le tournoi aux joueurs"} contentItems={tournament.status == TournamentStatus.Open ? [StartSVG(), "Verrouiller"] : [StartSVG(), "Déverrouiller"]} colorClass='has-background-primary-level' />
+                                        <CustomButton
+                                            callback={toggleBalanceTournament}
+                                            tooltip={tournament.status == TournamentStatus.Open ? "Empêcher les joueurs d'interragir avec le tournoi, pour pouvoir les re-seeder" : "Réouvrir le tournoi aux joueurs"}
+                                            contentItems={[tournament.status == TournamentStatus.Open ? LockSVG() : UnlockSVG(), "Inscriptions"]}
+                                            colorClass='has-background-primary-level' />
                                         {/**  DEV ONLY  */}
                                         {process.env.NODE_ENV === "development" && canAddPlayers && <CustomButton callback={addFakePlayer} contentItems={["Add player"]} colorClass='has-background-primary' />}
                                         {/**  DEV ONLY  */}
@@ -208,11 +213,14 @@ export default function TournamentPage() {
                                     :
                                     <></>
                                 }
-                                {tournament.players.find(player => player.userId == user.id) ?
-                                    <CustomButton callback={leaveTournament} contentItems={[LeaveSVG(), "Quitter"]} colorClass='has-background-secondary-accent' />
-                                    :
-                                    <CustomButton callback={joinTournament} active={canAddPlayers} contentItems={[ParticipateSVG(), "Participer"]} colorClass='has-background-primary-accent' />
-                                }
+                                <>
+                                    <div></div>
+                                    {tournament.players.find(player => player.userId == user.id) ?
+                                        <CustomButton callback={leaveTournament} contentItems={[LeaveSVG(), "Quitter"]} colorClass='has-background-secondary-accent' />
+                                        :
+                                        <CustomButton callback={joinTournament} active={canAddPlayers} contentItems={[ParticipateSVG(), "Participer"]} colorClass='has-background-primary-accent' />
+                                    }
+                                </>
                             </div>
                         </div>
                         :
@@ -270,20 +278,29 @@ function TournamentCommands() {
         )
         navigate("/")
     }
+    const items: { content: ReactNode[], callback: CallableFunction }[] = []
+    if (![TournamentStatus.Done, TournamentStatus.Validating].includes(tournament.status))
+        items.push({ content: [SubsribedSVG(), "Éditer"], callback: editTournament })
+    if ([TournamentStatus.Open, TournamentStatus.Balancing].includes(tournament.status))
+        items.push({ content: [BinSVG(), "Annuler"], callback: () => setShowConfirmCancel(true) })
+    if (![TournamentStatus.Open, TournamentStatus.Balancing, TournamentStatus.Done].includes(tournament.status))
+        items.push({ content: [RollBackSVG(), "Redémarrer"], callback: () => setShowConfirmStop(true) })
 
     return <div className='is-flex justify-end gap-3'>
-        <CustomButton callback={editTournament} contentItems={[SubsribedSVG(), "Éditer"]} tooltip='Modifier les paramètres du tournoi' colorClass='has-background-primary-level' />
-        {[TournamentStatus.Open, TournamentStatus.Balancing].includes(tournament.status) &&
-            <>
-                <CustomButton callback={() => setShowConfirmCancel(true)} contentItems={[BinSVG(), "Annuler"]} colorClass='has-background-primary-level' />
-                <CustomButton callback={() => setShowConfirmStart(true)} contentItems={[StartSVG(), "Démarrer"]} colorClass='has-background-primary-accent' />
-            </>
-        }
-        {![TournamentStatus.Open, TournamentStatus.Balancing, TournamentStatus.Done].includes(tournament.status) &&
-            <CustomButton callback={() => setShowConfirmStop(true)} contentItems={[RollBackSVG(), "Redémarrer"]} colorClass='has-background-primary-accent' />
-        }
+        {[TournamentStatus.Open, TournamentStatus.Balancing].includes(tournament.status) && <CustomButton callback={() => setShowConfirmStart(true)} contentItems={[StartSVG(), "Démarrer"]} colorClass='has-background-primary-accent' />}
+        <Dropdown
+            trigger={[TournamentStatus.Open, TournamentStatus.Balancing].includes(tournament.status) ?
+                <SquareButton contentItems={[MoreSVG()]} colorClass='has-background-primary-level' /> :
+                <CustomButton contentItems={["Options"]} colorClass='has-background-primary-level' />
+            }
+            id="tournamentMoreCommands"
+            items={items}
+            align="right"
+            direction="top"
+        />
+
         <CustomModalBinary show={showConfirmCancel} onHide={() => setShowConfirmCancel(false)} content={"Es-tu sûr de vouloir annuler ce tournoi ?"} cancelButton={true} onConfirm={cancelTournament} />
-        <CustomModalBinary show={showConfirmStart} onHide={() => setShowConfirmStart(false)} content={"Es-tu sûr de vouloir démarrer ce tournoi ?"} cancelButton={true} onConfirm={startTournament} />
+        <CustomModalBinary show={showConfirmStart} onHide={() => setShowConfirmStart(false)} content={<>Es-tu sûr de vouloir démarrer ce tournoi ? <br/>{tournament.settings[0].useTeams ? "Les équipes vides et les joueurs sans équipes seront retirés du tournoi." : ""}</>} cancelButton={true} onConfirm={startTournament} />
         <CustomModalBinary show={showConfirmStop} onHide={() => setShowConfirmStop(false)} content={`Es-tu sûr de vouloir redémarrer ce tournoi ? Tu pourras éditer ${tournament.settings[0].useTeams ? "les équipes et " : ""}les inscriptions, mais toute sa progression sera perdue !`} cancelButton={true} onConfirm={stopTournament} />
     </div>
 }

@@ -28,7 +28,7 @@ This app requires the LTS version of [NodeJS](https://nodejs.org). Then:
 - To run the server in dev mode run `npm run dev`
 - To run the server in production mode, build the application with `npm run build` then start the server with `npm run start`
 - Open http://localhost:3000 with your browser to see the app
-
+- To access Admin panel, visit http://localhost:3000/admin
 
 ## Demo V1
 

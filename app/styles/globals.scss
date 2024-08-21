@@ -11,6 +11,19 @@
 // 1. Import the initial variables
 @import "../node_modules/bulma/sass/utilities/initial-variables";
 
+// Navbar customization
+$navbar-height: 56px;
+$footer-height: 12px;
+$navbar-padding-vertical:0px;
+$navbar-item-img-max-height: None;
+
+// dimensions
+$tournament-side-list-width: 350px;
+
+// 4. Import the rest of Bulma
+@import "../node_modules/bulma/bulma";
+
+
 // CSS custom properties for theme and customization
 :root {
     // Base colors
@@ -26,34 +39,11 @@
     --text-color-70: #FFFFFFB3;
     --toastify-icon-color-info: white !important;
     --toastify-icon-color-error: white !important;
+    // dimensions
+    --button-height: 50px;
+    --button-width: 190px;
 }
 
-$main-color: #be0000;
-// Update the sans-serif font family
-
-// 3. Set the derived variables
-// Use the new pink as the primary color
-$primary: $main-color;
-$box-background-color: $white-ter;
-
-
-// Navbar customization
-$navbar-height: 56px;
-$footer-height: 12px;
-$navbar-padding-vertical:0px;
-$navbar-item-img-max-height: None;
-
-// dimensions
-$custom-button-height: 50px;
-$custom-button-width: 190px;
-
-$tournament-side-list-width: 350px;
-$tournament-info-aside-bracket: calc($custom-button-width * 2 + .5rem);
-
-// $modal-background-background-color: 
-
-// 4. Import the rest of Bulma
-@import "../node_modules/bulma/bulma";
 
 
 /******************************* 
@@ -132,6 +122,15 @@ a, a:hover {
 .has-background-secondary-accent {
     background-color: var(--accent-secondary-color) !important;
     @include textAndFillColor(white, #FFFFFFB3)
+}
+
+.has-text-primary-accent {
+    color: var(--accent-primary-color) !important;
+    @include textAndFillColor(var(--accent-primary-color), var(--accent-primary-color))
+}
+.has-text-secondary-accent {
+    color: var(--accent-secondary-color) !important;
+    @include textAndFillColor(var(--accent-secondary-color), var(--accent-secondary-color))
 }
 
 .is-title {
@@ -285,8 +284,8 @@ input.threeDigitsWidth {
 }
 
 .customButton {
-    height: $custom-button-height;
-    width: $custom-button-width;
+    height: var(--button-height);
+    width: var(--button-width);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -300,9 +299,9 @@ input.threeDigitsWidth {
     border: none;
 }
 
-.customButtonMore {
+.customButtonSquare {
     @extend .customButton;
-    width: $custom-button-height;
+    width: var(--button-height);
     &:not(.is-shown) {
         path.fillAsText {
             fill: transparent !important;
@@ -1065,6 +1064,63 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
         cursor: inherit;
     }
 }
+@keyframes popupTimer {
+    from {
+        opacity: 0;
+    } to {
+        opacity: 100%;
+    }
+}
+
+.TeamInfosContainer {
+    max-height: calc(100% + 2px);
+    overflow: hidden;
+    opacity: 0;
+    animation-delay: .3s;
+    animation-name: popupTimer;
+    animation-duration: .2s;
+    animation-fill-mode: forwards;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    border-top: solid 2px var(--background-secondary-level);
+    border-left: solid 2px var(--background-secondary-level);
+
+    .opponentName {
+        position: relative;
+        z-index: 1;
+        color: var(--accent-primary-color);
+        background: var(--background-primary-level);
+    }
+
+    .opponentInfo {
+        position: relative;
+        top: 0;
+
+        &:before {
+            content: "";
+            width: 1px;
+            position: absolute;
+            left: 0.25rem;
+            top: 0;
+            height: 100%;
+            background-color: var(--accent-primary-color);
+        }
+    }
+}
+
+@keyframes toptobottom {
+    0%,10% {
+        top: 0;
+    }
+    90%,100% {
+        top: var(--dist, 0);
+    }
+}
+
+.animateFromTopToBottom {
+    animation: 10s toptobottom cubic-bezier(.5, 0, .5, 1) infinite alternate;
+}
 
 .tournamentInfoRunning {
     flex-grow: 1;
@@ -1075,12 +1131,6 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
     padding: .75rem;
     padding-top: 0;
     position: relative;
-    .info {
-        min-width: $tournament-info-aside-bracket;
-        max-width: $tournament-info-aside-bracket;
-        min-height: calc(100vh - 2.25rem - 60px - ($navbar-height + $footer-height));
-        max-height: calc(100vh - 2.25rem - 60px - ($navbar-height + $footer-height));
-    }
     .playersManagement {
         padding: .5rem;
         gap: .5rem;
@@ -1135,46 +1185,7 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
         padding: .5rem 1rem;
         background-color: var(--background-primary-level);
     }
-    .bracketOpponentInfosContainer {
-        max-height: calc(100% + 2px);
-        overflow: hidden;
-        opacity: 0;
-        animation-delay: .3s;
-        animation-name: popupTimer;
-        animation-duration: .2s;
-        animation-fill-mode: forwards;
-        position: absolute;
-        bottom: 0;
-        right: 0;
-        display: flex;
-        flex-direction: column;
-        padding: 0 1rem .5rem;
-        background-color: var(--background-primary-level);
-        border-top: solid 2px var(--background-secondary-level);
-        border-left: solid 2px var(--background-secondary-level);
-        .bracketOpponentInfos {
-            position: relative;
-        }
-        .opponentName {
-            position: relative;
-            z-index: 1;
-            color: var(--accent-primary-color);
-            background: var(--background-primary-level);
-        }
-        .opponentInfo {
-            position: relative;
-            top: 0;
-            &:before {
-                content:"";
-                width: 1px;
-                position: absolute;
-                left: 0.25rem;
-                top: 0;
-                height: 100%;
-                background-color: var(--accent-primary-color);
-            }
-        }
-    }
+    
     .bracketView {
         position: relative;
         display: flex;
@@ -1492,54 +1503,6 @@ input[type=number] {
         }
         .content {
             flex: 1;
-        }
-    }
-}
-
-@keyframes popupTimer {
-    from {
-        opacity: 0;
-    } to {
-        opacity: 100%;
-    }
-}
-
-.popupInfoTeam {
-    opacity: 0;
-    animation-delay: .3s;
-    animation-name: popupTimer;
-    animation-duration: .2s;
-    animation-fill-mode: forwards;
-    border: solid 2px var(--accent-secondary-color);
-    background-color: var(--background-primary-level);
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    padding: 1rem;
-    padding-top: .5rem;
-    .teamName {
-        font-size: 32px;
-        font-weight: bold;
-        color: var(--accent-primary-color);
-        text-align: center;
-    }
-    .tournamentsCount {
-        font-size: 24px;
-        font-weight: bold;
-        color: var(--text-color-70);
-        text-align: center;
-    }
-    .teamMembers {
-        display: flex;
-        flex-direction: column;
-        padding-left: .75rem;
-        .teamMembersTitle {
-            font-size: 24px;
-            font-weight: normal;
-        }
-        .teamMember {
-            font-size: 20px;
-            font-weight: normal;
         }
     }
 }

@@ -3,7 +3,7 @@ import React, { useState } from "react"
 import { Item, ItemParams, Menu, TriggerEvent, useContextMenu } from "react-contexify"
 import { useTournaments } from "~/lib/components/contexts/TournamentsContext"
 import { useUsers } from "~/lib/components/contexts/UsersContext"
-import { ButtonMore, CustomButton } from "~/lib/components/elements/custom-button"
+import { SquareButton, CustomButton } from "~/lib/components/elements/custom-button"
 import { CustomModalBinary } from "~/lib/components/elements/custom-modal"
 import { UserTileRectangle } from "~/lib/components/elements/user-tile"
 import { User } from "~/lib/types/user"
@@ -11,6 +11,7 @@ import { AdminIntents } from "../route"
 import { clickorkey } from "~/lib/utils/clickorkey"
 import { useRevalidateOnUsersUpdate } from "~/routes/sse/hook"
 import lanConfig from "config.json"
+import { MoreSVG, SmallCrossSVG } from "~/lib/components/data/svg-container"
 
 export function UsersList() {
     const [hooveredUser, setHooveredUser] = useState("")
@@ -70,7 +71,7 @@ export function UsersList() {
     return <div className="has-background-secondary-level adminUsersList is-full-height is-flex-col pr-2 p-4 gap-3">
         <div className="is-flex justify-space-between align-center">
             <div className="is-title medium">Joueurs</div>
-            <CustomButton customClasses="small-button" colorClass="has-background-primary-accent" callback={() => setShowAddUsers(true)} contentItems={["Add users"]} />
+            <CustomButton customClasses="small-button" colorClass="has-background-primary-accent" callback={() => setShowAddUsers(true)} contentItems={[SmallCrossSVG(), "Add users"]} />
         </div>
         <CustomModalBinary
             show={!!userInEdit}
@@ -108,9 +109,9 @@ export function UsersList() {
                             <div className="is-flex is-clickable grow" {...clickorkey(() => setActiveUser(activeUser == user.id ? '' : user.id))}>
                                 <UserTileRectangle userId={user.id} height={40} />
                             </div>
-                            <ButtonMore height={40} show={hooveredUser == user.id} callback={(e: TriggerEvent) => {
+                            <SquareButton contentItems={[MoreSVG()]} height={40} show={hooveredUser == user.id} callback={(e: TriggerEvent) => {
                                 showMenu({
-                                    id: user.id,
+                                    id: "usersMenu",
                                     event: e,
                                     props: {
                                         user: user
@@ -127,16 +128,16 @@ export function UsersList() {
                             </div>
                         </div>
                     </div>
-                    <Menu id={user.id} animation="slide" >
-                        <Item id="renameUser" onClick={handleMenuItemClick}>Renommer</Item>
-                        {lanConfig.security.authentication_needed &&
-                            <Item id="resetPassword" onClick={handleMenuItemClick}>Réinitialiser le mot de passe</Item>
-                        }
-                        <Item id="deleteUser" onClick={handleMenuItemClick}>Supprimer</Item>
-
-                    </Menu>
                 </React.Fragment>
             )}
         </div>
+        <Menu id="usersMenu" animation="slide" >
+            <Item id="renameUser" onClick={handleMenuItemClick}>Renommer</Item>
+            {lanConfig.security.authentication_needed &&
+                <Item id="resetPassword" onClick={handleMenuItemClick}>Réinitialiser le mot de passe</Item>
+            }
+            <Item id="deleteUser" onClick={handleMenuItemClick}>Supprimer</Item>
+
+        </Menu>
     </div>
 }

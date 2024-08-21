@@ -9,7 +9,7 @@ import { GetFFAMaxPlayers } from "~/lib/utils/tournaments"
 import { SmartDndPointerSensor } from "~/lib/utils/smartDndPointerSensor"
 import { CustomModalBinary } from "~/lib/components/elements/custom-modal"
 import { CustomButton } from "~/lib/components/elements/custom-button"
-import { BalanceSVG, BinSVG, DistributeSVG, RandomSVG, SubsribedSVG } from "~/lib/components/data/svg-container"
+import { BalanceSVG, BinSVG, DistributeSVG, RandomSVG, RollBackSVG, SubsribedSVG } from "~/lib/components/data/svg-container"
 import { Draggable } from "~/lib/components/dnd/Draggable"
 import { useFetcher } from "@remix-run/react"
 import { TeamsManagementIntents, TournamentManagementIntents } from "../route"
@@ -59,8 +59,19 @@ export function OpponentsListSolo() {
         }
     }
 
+    async function removeUserFromTournament(userId: string) {
+        fetcher.submit(
+            {
+                intent: TournamentManagementIntents.REMOVE_PLAYER,
+                tournamentId: tournament?.id || "",
+                userId: userId
+            },
+            { method: "POST", encType: "application/json" }
+        )
+    }
+
     return (
-        <div className='is-flex-col grow'>
+        <div className='is-flex-col grow gap-2'>
             <DragOverlay style={{ opacity: ".75" }}>
                 {draggingPlayer != null ?
                     <UserTileRectangle userId={draggingPlayer} colorClass={draggingPlayer == user.id ? 'has-background-primary-accent' : "has-background-secondary-level"} />
@@ -74,11 +85,11 @@ export function OpponentsListSolo() {
                 <div className='is-flex-col grow has-background-primary-level'>
                     <div className="no-basis is-scrollable px-3 my-3" style={{ flexGrow: 99 }}>
                         <div className='is-flex wrap gap-3'>
-                            <SortableContext items={sortablePlayers} disabled={!(user.isAdmin && tournament.status == TournamentStatus.Balancing)}>
-                                {sortablePlayers.map(player =>
+                            <SortableContext items={sortablePlayers} disabled={!user.isAdmin}>
+                                {sortablePlayers.map((player, index) =>
                                     <div key={player.userId} className="grow">
                                         <Sortable id={player.userId}>
-                                            <PlayerTileWithCommands userId={player.userId} isDraggable={user.isAdmin && tournament.status == TournamentStatus.Balancing} />
+                                            <PlayerTileWithCommands userId={player.userId} command={removeUserFromTournament} commandSymbol={<BinSVG />} seed={(user.isAdmin && tournament.status == TournamentStatus.Balancing) ? index + 1 : undefined} isDraggable={user.isAdmin} />
                                         </Sortable>
                                     </div>
                                 )}
@@ -128,6 +139,7 @@ export function OpponentsListTeam() {
             },
             { method: "POST", encType: "application/json" }
         )
+        setShowNewTeam(false)
     }
     async function addPlayerToTeam(player: string, team: string) {
         fetcher.submit(
@@ -236,8 +248,8 @@ export function OpponentsListTeam() {
                 confirmCondition={() => newTeamName.toLowerCase() != "" && !(tournament.teams && tournament.teams.map(team => team.name.toLowerCase()).includes(newTeamName.toLowerCase()))}
                 cantConfirmTooltip={newTeamName.toLowerCase() == "" ? "Le nom d'équipe ne peut pas être vide" : "Nom d'équipe déjà utilisé"}
             />
-            <div className='is-flex-col p-3 grow'>
-                <div className='is-flex justify-space-between pb-2'>
+            <div className='is-flex-col grow gap-2'>
+                <div className='is-flex justify-space-between align-center'>
                     <div className='is-title medium is-uppercase'>équipes</div>
                     {(user.isAdmin || (tournament.settings[0].usersCanCreateTeams && notInTeamPlayers.includes(user.id) && tournament.status == TournamentStatus.Open)) && canAddTeam &&
                         <CustomButton callback={() => setShowNewTeam(true)} contentItems={[SubsribedSVG(), "New team"]} customClasses='small-button' colorClass='has-background-primary-accent' />
@@ -247,12 +259,13 @@ export function OpponentsListTeam() {
                     <div className="no-basis is-scrollable px-2 my-2" style={{ flexGrow: 99 }}>
                         <div className='is-flex wrap '>
                             <SortableContext items={sortableTeams} disabled={!user.isAdmin}>
-                                {sortableTeams.map(team =>
+                                {sortableTeams.map((team, index) =>
                                     team ?
-                                        <div key={team.name} className={`is-one-third p-1 ${(user.isAdmin && (tournament.status == TournamentStatus.Balancing)) ? 'is-draggable' : ''}`}>
+                                        <div key={team.name} className={`is-one-third p-1 ${user.isAdmin ? 'is-draggable' : ''}`}>
                                             <Sortable id={'team_' + team.name}>
                                                 <TeamTile
                                                     team={team}
+                                                    seed={tournament.status == TournamentStatus.Balancing && user.isAdmin ? index + 1 : undefined}
                                                     draggedPlayer={draggingPlayer}
                                                     addPlayerToTeam={addPlayerToTeam}
                                                     removePlayerFromTeams={removePlayerFromTeams}
@@ -277,11 +290,12 @@ export function OpponentsListTeam() {
 
 interface TeamTileProps {
     team: Team
+    seed?: number
     draggedPlayer: string | null
     addPlayerToTeam: (player: string, teamName: string) => void
     removePlayerFromTeams: (player: string) => void
 }
-function TeamTile({ team, draggedPlayer, addPlayerToTeam, removePlayerFromTeams }: TeamTileProps) {
+function TeamTile({ team, seed, draggedPlayer, addPlayerToTeam, removePlayerFromTeams }: TeamTileProps) {
     const tournament = useTournament()
     const user = useUser()
     const fetcher = useFetcher()
@@ -320,7 +334,7 @@ function TeamTile({ team, draggedPlayer, addPlayerToTeam, removePlayerFromTeams 
     return (
         <div ref={setNodeRef} className="is-flex-col has-background-secondary-level p-2">
             <div className='is-flex-row align-center justify-space-between'>
-                <div className='is-uppercase'>{team.name}</div>
+                <div className='is-uppercase'>{seed ? String(seed) + " - " : ""}{team.name}</div>
                 {user.isAdmin &&
                     <div className='is-flex-row align-center gap-1'>
                         <div className='is-clickable is-flex fade-on-mouse-out' {...clickorkey(() => setShowRenameTeam(true))}><SubsribedSVG /></div>
@@ -357,14 +371,20 @@ function TeamTile({ team, draggedPlayer, addPlayerToTeam, removePlayerFromTeams 
                 }
             </div>
             <div className="is-flex-col gap-1" style={{ opacity: (draggedPlayer && (isFull || team.members.includes(draggedPlayer.replace('player_', '')))) ? "50%" : "100%" }}>
-                {team.members.map(player =>
+                {team.members.map((player, index) =>
                     player ? <div key={player}>
                         {user.isAdmin ?
                             <Draggable id={'player_' + player} data={{ team: team.name }}>
-                                <PlayerTileWithCommands userId={player} isDraggable={true} baseColor="has-background-grey" />
+                                <PlayerTileWithCommands
+                                    userId={player}
+                                    command={removePlayerFromTeams}
+                                    commandSymbol={<RollBackSVG />}
+                                    isShiny={index == 0}
+                                    isDraggable={true}
+                                    baseColor={tournament.status == TournamentStatus.Balancing ? "has-background-grey" : undefined} />
                             </Draggable>
                             :
-                            <UserTileRectangle userId={player} />
+                            <UserTileRectangle userId={player} isShiny={index == 0} colorClass={player == user.id ? 'has-background-primary-accent' : undefined} />
                         }
                     </div> : null
                 )}
@@ -408,6 +428,7 @@ function OverlayTeamTile({ team }: OverlayTeamTileProps) {
 }
 
 function PlayerWithoutTeamArea() {
+    const user = useUser()
     const tournament = useTournament()
     const fetcher = useFetcher()
     const { setNodeRef } = useDroppable({
@@ -447,19 +468,29 @@ function PlayerWithoutTeamArea() {
             { method: "POST", encType: "application/json" }
         )
     }
+    async function removeUserFromTournament(userId: string) {
+        fetcher.submit(
+            {
+                intent: TournamentManagementIntents.REMOVE_PLAYER,
+                tournamentId: tournament?.id || "",
+                userId: userId
+            },
+            { method: "POST", encType: "application/json" }
+        )
+    }
 
     return (
         <>
-            <div className='is-flex align-center justify-space-between py-2'>
+            <div className='is-flex align-center justify-space-between '>
                 <div className='is-title medium is-uppercase'>Joueurs sans équipe</div>
-                <div className='is-flex'>
+                {user.isAdmin && <div className='is-flex'>
                     {notInTeamPlayers.length > 0 ?
                         <CustomButton callback={distributePlayers} tooltip='Répartir les joueurs sans équipe' contentItems={[DistributeSVG(), "Distribuer"]} customClasses='small-button px-1 ml-3' colorClass='has-background-primary-level' />
                         :
                         <CustomButton callback={balancePlayers} tooltip='Équilibrer les équipes' contentItems={[BalanceSVG(), "Équilibrer"]} customClasses='small-button px-1 ml-3' colorClass='has-background-primary-level' />
                     }
                     <CustomButton callback={randomizePlayers} tooltip='Mélanger les joueurs dans des équipes' contentItems={[RandomSVG(), "Mélanger"]} customClasses='small-button px-2 ml-3' colorClass='has-background-primary-level' />
-                </div>
+                </div>}
             </div>
             <div ref={setNodeRef} className='is-flex-col grow has-background-primary-level' style={{ minHeight: '10%', maxHeight: '15%' }}>
                 <div className='no-basis grow is-scrollable px-3 my-3'>
@@ -467,7 +498,7 @@ function PlayerWithoutTeamArea() {
                         {notInTeamPlayers.map(player =>
                             <div key={player} className="grow">
                                 <Draggable id={player} data={{ noTeam: true }}>
-                                    <PlayerTileWithCommands userId={player} isDraggable={true} />
+                                    <PlayerTileWithCommands userId={player} command={removeUserFromTournament} commandSymbol={<BinSVG />} isDraggable={true} />
                                 </Draggable>
                             </div>
                         )}
@@ -481,30 +512,21 @@ function PlayerWithoutTeamArea() {
 
 interface PlayerTileWithCommandsProps {
     userId: string
+    command: (userId: string) => void
+    commandSymbol: JSX.Element
+    seed?: number
     isDraggable?: boolean
     baseColor?: string
+    isShiny?: boolean
 }
-function PlayerTileWithCommands({ userId, isDraggable, baseColor }: PlayerTileWithCommandsProps) {
+function PlayerTileWithCommands({ userId, command, commandSymbol, isDraggable, baseColor, seed, isShiny }: PlayerTileWithCommandsProps) {
     const [hooveredPlayer, setHooveredPlayer] = useState(false)
     const user = useUser()
-    const tournament = useTournament()
-    const fetcher = useFetcher()
-
-    async function removeUserFromTournament(userId: string) {
-        fetcher.submit(
-            {
-                intent: TournamentManagementIntents.REMOVE_PLAYER,
-                tournamentId: tournament?.id || "",
-                userId: userId
-            },
-            { method: "POST", encType: "application/json" }
-        )
-    }
 
     return <div className={`is-flex align-center grow ${isDraggable ? 'is-draggable' : ''} ${userId == user.id ? 'has-background-primary-accent' : baseColor ? baseColor : "has-background-secondary-level"}`} onMouseEnter={() => setHooveredPlayer(true)} onMouseLeave={() => setHooveredPlayer(false)}>
-        <UserTileRectangle userId={userId} />
-        <div className="is-flex align-center is-clickable" style={{ width: "20px" }} {...clickorkey(() => removeUserFromTournament(userId))}>
-            {user.isAdmin && hooveredPlayer && <BinSVG />}
+        <UserTileRectangle userId={userId} initial={seed ? String(seed) : undefined} isShiny={isShiny} />
+        <div className="is-flex align-center is-clickable" style={{ width: "20px" }} {...clickorkey(() => command(userId))}>
+            {user.isAdmin && hooveredPlayer && commandSymbol}
         </div>
     </div>
 }
