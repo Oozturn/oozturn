@@ -6,11 +6,11 @@ import { UserContext } from "../contexts/UserContext"
 import { CloseCrossSVG } from "../data/svg-container"
 import { accentsList, modesList } from "../data/themes"
 import { CustomRadio } from "../elements/custom-radio"
-import { Intents } from "~/routes/api/route"
 import { UserAvatar } from "../elements/user-avatar"
 import lanConfig from "config.json"
 import { clickorkey } from "~/lib/utils/clickorkey"
 import { CustomButton } from "../elements/custom-button"
+import { Intents } from "~/api/api"
 
 interface EditProfileModalProps {
   show: boolean

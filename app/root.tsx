@@ -26,7 +26,7 @@ import { User } from "./lib/types/user"
 import "./styles/globals.scss"
 import 'react-contexify/ReactContexify.css'
 import { Notification } from "./lib/components/notification"
-import { useRevalidateOnLanUpdate } from "./routes/sse/hook"
+import { useRevalidateOnLanUpdate } from "./api/sse.hook"
 
 export async function loader({ request }: LoaderFunctionArgs): Promise<{
   lan: Lan

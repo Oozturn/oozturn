@@ -1,10 +1,10 @@
 import { useEffect } from "react"
 import { cssTransition, toast, ToastContainer } from "react-toastify"
 import { useEventSource } from "remix-utils/sse/react"
-import { SSE_NOTIFICATION_MESSAGE_EVENT } from "~/routes/sse/route"
 import 'react-toastify/dist/ReactToastify.css';
 import { notificationProps } from "../events/types";
 import { Link } from "@remix-run/react";
+import { SSE_NOTIFICATION_MESSAGE_EVENT } from "~/api/sse";
 
 export function Notification() {
   const message = useEventSource("/sse", { event: SSE_NOTIFICATION_MESSAGE_EVENT })
