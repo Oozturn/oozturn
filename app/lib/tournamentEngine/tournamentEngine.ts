@@ -1,6 +1,7 @@
 import { IdToString } from "../utils/tournaments"
 import { Duel } from "./tournament/duel"
 import { FFA } from "./tournament/ffa"
+import { GroupStage } from "./tournament/groupstage"
 import { Id } from "./tournament/match"
 import { Result } from "./tournament/tournament"
 import { BracketSettings, BracketType, Match, Player, Team, TournamentFullData, TournamentInfo, TournamentProperties, TournamentStatus } from "./types"
@@ -70,7 +71,7 @@ export class TournamentEngine implements TournamentSpecification {
 	private teams: Team[]
 
 	private settings: BracketSettings[]
-	private brackets: (Duel | FFA)[] = []
+	private brackets: (Duel | FFA | GroupStage)[] = []
 	private bracketsStates: BracketState[]
 
 	constructor(
@@ -282,10 +283,15 @@ export class TournamentEngine implements TournamentSpecification {
 			this.players = this.players.filter(player => this.teams.flatMap(team => team.members).includes(player.userId))
 		}
 		const opponentsLength = this.settings[0].useTeams ? this.teams?.length || 0 : this.players.length
-		if (this.settings[0].type == BracketType.Duel)
+		if (this.settings[0].type == BracketType.Duel) {
 			this.brackets = [new Duel(opponentsLength, this.settings[0])]
-		else
+		} else if (this.settings[0].type == BracketType.FFA) {
 			this.brackets = [new FFA(opponentsLength, this.settings[0])]
+		} else if (this.settings[0].type == BracketType.GroupStage) {
+			this.brackets = [new GroupStage(opponentsLength, this.settings[0])]
+		} else {
+			throw new Error(`Unknown BracketType : ${this.settings[0].type}`)
+		}
 		this.status = TournamentStatus.Running
 		if (!resume) this.bracketsStates = []
 		else this.bracketsStates.forEach(bs => bs.score.every(value => value != undefined) && this.applyState(bs))
@@ -302,7 +308,6 @@ export class TournamentEngine implements TournamentSpecification {
 	}
 
 	public score(matchId: Id, opponent: string, score: number, bracket: number = 0): void {
-		/** TODO: Handle there partial scoring */
 		const match = this.getMatch(matchId, bracket)
 		const opponentIndex = match.opponents.findIndex(o => o == opponent)
 		if (opponentIndex == -1)

@@ -227,6 +227,12 @@ export const sorted = function (m: Match) {
   return zip(m.p, m.m!).sort(compareZip).map(it => it[0])
 }
 
+// ensures first matches first and (for most part) forEach scorability
+// similarly how it's read in many cases: WB R2 G3, G1 R1 M1
+export const compareMatches = function (g1:{id:Id}, g2:{id:Id}) {
+  return (g1.id.s - g2.id.s) || (g1.id.r - g2.id.r) || (g1.id.m - g2.id.m);
+};
+
 // internal sorting of zipped player array with map score array : zip(m.p, m.m)
 // sorts by map score desc, then seed asc
 export const compareZip = function (z1: [number, number], z2: [number, number]) {
@@ -269,5 +275,28 @@ export const matchTieCompute = function (zipSlice: [number, number][], startIdx:
     callback(p, pos); // user have to find resultEntry himself from seed
   }
 }
+
+// tie position an assumed sorted resAry using a metric fn
+// the metric fn must be sufficiently linked to the sorting fn used
+export const resTieCompute = function <M,R>(resAry: R[], startPos: number, cb : (r:R, pos:number) => void, metric : (r:R) => M) {
+  var pos = startPos
+    , ties = 0
+    , points : M|number = -Infinity;
+
+  for (var i = 0; i < resAry.length; i += 1) {
+    var r = resAry[i];
+    var metr = metric(r);
+
+    if (metr === points) {
+      ties += 1;
+    }
+    else {
+      pos += ties + 1;
+      ties = 0;
+    }
+    points = metr;
+    cb(r, pos);
+  }
+};
 
 export const NONE = 0
