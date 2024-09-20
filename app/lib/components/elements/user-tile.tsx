@@ -29,19 +29,17 @@ export function UserTileRectangle({ userId, colorClass, height, maxLength, showT
     const maxTeamLength = (maxLength - height) * 1 / 3
     const maxUsernameLength = showTeam ? (maxLength - height) * 2 / 3 : maxLength - height
     return <div key={user.id} className={`is-flex grow gap-1 pr-3 align-center is-unselectable ${colorClass ? colorClass : ''}`} style={{ maxWidth: maxLength }}>
-        <div className='is-flex'>
-            {initial ?
-                <AvatarComponent
-                    useGravatar={false}
-                    color="#B3FFFFFF"
-                    background={accentsList.find(accent => accent.name == accentLocalStorage)?.primary as string}
-                    initials={initial}
-                    size={height}
-                />
-                :
-                <UserAvatar username={user.username} avatar={user.avatar} size={height} />
-            }
-        </div>
+        {initial ?
+            <AvatarComponent
+                useGravatar={false}
+                color="#B3FFFFFF"
+                background={accentsList.find(accent => accent.name == accentLocalStorage)?.primary as string}
+                initials={initial}
+                size={height}
+            />
+            :
+            <UserAvatar username={user.username} avatar={user.avatar} size={height} />
+        }
         {isShiny && <div className="is-flex has-text-primary-accent"><ShinySVG /></div>}
         <div style={{ maxWidth: maxUsernameLength + "px", overflow: "hidden", textOverflow: "ellipsis" }}>{user.username}</div>
         {showTeam && user.team && <div className='fade-text' style={{ maxWidth: maxTeamLength + "px", overflow: "hidden", textOverflow: "ellipsis" }}>[{user.team}]</div>}

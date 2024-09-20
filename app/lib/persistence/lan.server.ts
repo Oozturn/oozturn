@@ -4,6 +4,9 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { Lan } from "../types/lan"
 import { EventUpdateLan } from "../emitter.server"
+import { invalidateStats } from "../statistics/statistics.server"
+import { Achievement } from "../types/achievements"
+import { getAchievements } from "../statistics/achievements.server"
 
 declare global {
     // eslint-disable-next-line no-var
@@ -23,6 +26,8 @@ const defaultLan: Lan = {
     showPartialResults: false,
     weightTeamsResults: true,
     showTeamsResults: true,
+    showAchievements: true,
+    achievements: []
 }
 
 subscribeObjectManager("lan", {
@@ -51,4 +56,22 @@ export function getLan() {
 export function updateLan(partialLan: Partial<Lan>) {
     EventUpdateLan()
     global.lan = { ...lan, ...partialLan }
+    if (partialLan.weightTeamsResults != undefined
+        || partialLan.showPartialResults != undefined) {
+        invalidateStats()
+    }
+}
+
+export function updateAchievements(partialAchievements: Partial<Achievement>[]) {
+    partialAchievements.forEach(partialAchievement => {
+        if (!partialAchievement.type) return
+        const achievementIndex = global.lan.achievements.findIndex(a => a.type == partialAchievement.type)
+        const defaultValue = getAchievements().find(a => a.type == partialAchievement.type)
+        if (!defaultValue) return
+        if (achievementIndex != -1) {
+            global.lan.achievements[achievementIndex] = { ...global.lan.achievements[achievementIndex], ...partialAchievement }
+        } else {
+            global.lan.achievements.push({ ...defaultValue, ...partialAchievement })
+        }
+    })
 }

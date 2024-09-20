@@ -12,11 +12,11 @@ interface UserAvatarProps {
 
 export function UserAvatar({ username, avatar, size }: UserAvatarProps) {
 	const [accentLocalStorage,] = useLocalStorageState("accent", { defaultValue: "Switch" })
-	return <>
+	return <div className="is-flex">
 		{avatar ?
 			<img className="is-rounded" src={`/avatar/${avatar}`} alt="Avatar" width={size ? size : 128} />
 			:
 			<BaseAvatar username={username} color={accentsList.find(accent => accent.name == accentLocalStorage)?.primary as string} size={size ? size : 128} />
 		}
-	</>
+	</div>
 }

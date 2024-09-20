@@ -45,6 +45,15 @@ export interface TournamentInfo extends TournamentProperties {
 	teams: Team[]
 }
 
+export interface Result {
+	userId: string
+	position: number
+	globalTournamentPoints: number
+	wins: number
+	for: number | undefined
+	against: number | undefined
+}
+
 export interface Team {
 	seed: number
 	name: string
