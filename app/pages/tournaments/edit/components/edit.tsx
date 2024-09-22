@@ -64,6 +64,13 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
     const [tAdvancers, set_tAdvancers, modified_tAdvancers] = useStateMonitored(existingTournament ? existingTournament.settings[0].advancers || [3] : [3])
     const [tLimit, , modified_tLimit] = useStateMonitored(existingTournament ? existingTournament.settings[0].limit : 1)
 
+    // GroupStage options
+    const [tGroupSize, set_groupSize, modified_groupSize] = useStateMonitored(existingTournament ? existingTournament.settings[0].groupSize || 4 : 4)
+    const [tWinPoints, set_winPoints, modified_winPoints] = useStateMonitored(existingTournament ? existingTournament.settings[0].winPoints || 3 : 3)
+    const [tTiePoints, set_tiePoints, modified_tiePoints] = useStateMonitored(existingTournament ? existingTournament.settings[0].tiePoints || 1 : 1)
+    const [tScoresBreak, , modified_scoresBreak] = useStateMonitored(existingTournament ? existingTournament.settings[0].scoresBreak || true : true)
+    const [tMeetTwice, , modified_meetTwice] = useStateMonitored(existingTournament ? existingTournament.settings[0].meetTwice || false : false)
+
     // Teams options
     const [tUsersCanCreateTeams, set_tUsersCanCreateTeams, modified_tUsersCanCreateTeams] = useStateMonitored(existingTournament ? existingTournament.settings[0].usersCanCreateTeams : false)
     const [tTeamsMaxSize, set_tTeamsMaxSize, modified_tTeamsMaxSize] = useStateMonitored(existingTournament ? existingTournament.settings[0].teamsMaxSize : 8)
@@ -93,6 +100,12 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
             limit: tLimit,
             sizes: tSizes,
             advancers: tAdvancers,
+            // GroupStage
+            groupSize: tGroupSize,
+            winPoints: tWinPoints,
+            tiePoints: tTiePoints,
+            scoresBreak: tScoresBreak,
+            meetTwice: tMeetTwice,
         }
         fetcher.submit(
             {
@@ -122,13 +135,18 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
             short: modified_tShortBracket ? tShortBracket : undefined,
             sizes: modified_tSizes ? tSizes : undefined,
             advancers: modified_tAdvancers ? tAdvancers : undefined,
-            limit: modified_tLimit ? tLimit : undefined
+            limit: modified_tLimit ? tLimit : undefined,
+            groupSize: modified_groupSize ? tGroupSize : undefined,
+            winPoints: modified_winPoints ? tWinPoints : undefined,
+            tiePoints: modified_tiePoints ? tTiePoints : undefined,
+            scoresBreak: modified_scoresBreak ? tScoresBreak : undefined,
+            meetTwice: modified_meetTwice ? tMeetTwice : undefined,
         }
         fetcher.submit(
             {
                 tournamentId: tId,
                 tournamentProperties: JSON.stringify(partialProperties),
-                tournamentSettings: JSON.stringify([partialSettings])
+                tournamentSettings: JSON.stringify(partialSettings)
             },
             { method: "POST", encType: "application/json" }
         )
@@ -216,6 +234,13 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                             </div>
                             <div className='is-title medium'>CLASSEMENT</div>
                             <div className='px-4 is-size-7 has-text-centered'>Sélectionne le mode Classement si le jeu fait s’opposer plus de 2 camps et qu’il donne un résultat sous forme de classement.</div>
+                        </div>
+                        <div className='is-flex-col align-center gap-1 grow no-basis'>
+                            <div className={`svgSelection is-clickable ${tType == BracketType.GroupStage ? 'is-active' : ''}`} {...clickorkey(() => set_tType(BracketType.GroupStage))}>
+                                <DuelSVG />
+                            </div>
+                            <div className='is-title medium'>GroupStage</div>
+                            <div className='px-4 is-size-7 has-text-centered'>Round robin mode.</div>
                         </div>
                     </div>
 
@@ -346,6 +371,47 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                                     </div>
 
                                 </div>
+                            </div>
+                        </>
+                    }
+                    {/* Si GroupStage */}
+                    {tType == BracketType.GroupStage &&
+                        <>
+                        <div className='is-flex gap-3'>
+                            <div className='has-text-right is-one-fifth'>Group size :</div>
+                            <CustomSelect
+                                variable={tGroupSize}
+                                setter={(value: string) => {
+                                    if (Number(value) >= 1)
+                                        set_groupSize(Number(value))
+                                }}
+                                items={range(1, 10, 1).map(d => { return { label: String(d), value: d } })}
+                                itemsToShow={6}
+                            />
+                        </div>
+                            <div className='is-flex gap-3'>
+                                <div className='has-text-right is-one-fifth'>Win points :</div>
+                                <CustomSelect
+                                    variable={tWinPoints}
+                                    setter={(value: string) => {
+                                        if (Number(value) >= 1)
+                                            set_winPoints(Number(value))
+                                    }}
+                                    items={range(1, 10, 1).map(d => { return { label: String(d), value: d } })}
+                                    itemsToShow={6}
+                                />
+                            </div>
+                            <div className='is-flex gap-3'>
+                                <div className='has-text-right is-one-fifth'>Tie points :</div>
+                                <CustomSelect
+                                    variable={tTiePoints}
+                                    setter={(value: string) => {
+                                        if (Number(value) >= 1)
+                                            set_tiePoints(Number(value))
+                                    }}
+                                    items={range(1, 10, 1).map(d => { return { label: String(d), value: d } })}
+                                    itemsToShow={6}
+                                />
                             </div>
                         </>
                     }

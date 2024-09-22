@@ -70,6 +70,8 @@ export function OpponentsListSolo() {
         )
     }
 
+    const dndSensors = useSensors(useSensor(SmartDndPointerSensor, { activationConstraint: { distance: 10 } }))
+
     return (
         <div className='is-flex-col grow gap-2'>
             <DragOverlay style={{ opacity: ".75" }}>
@@ -81,6 +83,7 @@ export function OpponentsListSolo() {
             <DndContext
                 onDragStart={onDragStart}
                 onDragEnd={onDragEnd}
+                sensors={dndSensors}
             >
                 <div className='is-flex-col grow has-background-primary-level'>
                     <div className="no-basis is-scrollable px-3 my-3" style={{ flexGrow: 99 }}>
@@ -525,8 +528,10 @@ function PlayerTileWithCommands({ userId, command, commandSymbol, isDraggable, b
 
     return <div className={`is-flex align-center grow ${isDraggable ? 'is-draggable' : ''} ${userId == user.id ? 'has-background-primary-accent' : baseColor ? baseColor : "has-background-secondary-level"}`} onMouseEnter={() => setHooveredPlayer(true)} onMouseLeave={() => setHooveredPlayer(false)}>
         <UserTileRectangle userId={userId} initial={seed ? String(seed) : undefined} isShiny={isShiny} />
-        <div className="is-flex align-center is-clickable" style={{ width: "20px" }} {...clickorkey(() => command(userId))}>
-            {user.isAdmin && hooveredPlayer && commandSymbol}
-        </div>
+        {user.isAdmin &&
+            <div className="is-flex align-center is-clickable" style={{ width: "20px" }} {...clickorkey(() => command(userId))}>
+                {hooveredPlayer && commandSymbol}
+            </div>
+        }
     </div>
 }

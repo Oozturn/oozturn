@@ -218,6 +218,9 @@ $flex-gaps: (
     .no-basis {
         flex-basis: 0;
     }
+    .no-shrink {
+        flex-shrink: 0;
+    }
     &.wrap {
         flex-wrap: wrap;
     }
@@ -550,14 +553,6 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
     max-height: 56px;
     min-width: 200px;
 
-    .avatar {
-        height: 56px;
-        img {
-            height: 100%;
-            width: 100%;
-        }
-    }
-
 	&:before {
 		z-index: -1;
 		content: "";
@@ -597,19 +592,6 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
     width: calc(115% + 14.5px); // tan(27.5deg) * (56px / 2)
     border: solid var(--accent-secondary-color);
     border-width: 0 0 2px 2px;
-    .settings {
-        position: absolute;
-        top: 14px;
-        right: 14px;
-        height: 22px;
-    }
-    .avatar {
-        height: 96px;
-        img {
-            height: 100%;
-            width: 100%;
-        }
-    }
     .userteam {
         font-weight: 400;
     }
@@ -632,9 +614,6 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
             -ms-transform: skewX(-27.5deg);
             transform: skewX(-27.5deg);
         }
-    }
-    .logout {
-        font-weight: 400;
     }
 }
 
@@ -1326,168 +1305,52 @@ input[type=number] {
 ********** LEADERBOARD *********
 *******************************/
 
-.resultsPage {
-    gap: .75rem;
-    position: relative;
-}
 .leaderboard {
-    flex: 3;
-    position: relative;
-    .topLeaderboardList {
-        gap: .75rem;
-        .resultTile {
-            position: relative;
-            overflow: hidden;
-            padding-left: 0;
-            .place {
-                z-index: 2;
-                font-style: italic;
-                color: white;
-            }
-            .texts {
-                overflow: hidden;
-                flex-direction: column;
-                .secondaryText {
-                    font-size: 20px;
-                }
-            }
-            .resultTilemain{
-                width: 100%;
-                &:before {
-                    z-index: 1;
-                    content: "";
-                    position: absolute;
-                    height: 100%;
-                    width: 100%;
-                    -webkit-transform: skewX(-27.5deg);
-                    -moz-transform: skewX(-27.5deg);
-                    -ms-transform: skewX(-27.5deg);
-                    transform: skewX(-27.5deg);
-                    color: white;
-                }
-            }
-            &:first-child {
-                font-size: 28px;
-                font-weight: 800;
-                .resultTilemain {
-                    padding-left: 15% !important;
-                    height: 80px;
-                    &:before {
-                        left: -65%;
-                        background-color: var(--accent-primary-color);
-                    }
-                }
-                .info {
-                    padding-left: 32.5%;
-                    &:before {
-                        left: 30.5%;
-                        background-color: var(--accent-primary-color);
-                    }
-                }
-                .texts {
-                    padding-left: 10%;
-                }
-                .points {
-                    color: var(--accent-primary-color);
-                }
-            }
-            &:nth-child(2) {
-                font-size: 24px;
-                font-weight: 800;
-                .resultTilemain {
-                    padding-left: 7% !important;
-                    height: 65px;
-                    &:before {
-                        left: -74%;
-                        background-color: var(--accent-secondary-color);
-                    }
-                }
-                .info {
-                    padding-left: 24.5%;
-                    &:before {
-                        left: 22.5%;
-                        background-color: var(--accent-secondary-color);
-                    }
-                }
-                .texts {
-                    padding-right: 10%;
-                }
-                .points {
-                    color: var(--accent-secondary-color);
-                }
-            }
-            &:nth-child(3) {
-                font-size: 20px;
-                font-weight: 800;
-                .resultTilemain {
-                    padding-left: 2% !important;
-                    height: 55px;
-                    &:before {
-                        left: -82%;
-                        background-color: var(--grey);
-                    }
-                }
-                .info {
-                    padding-left: 17%;
-                    &:before {
-                        left: 15%;
-                        background-color: var(--grey);
-                    }
-                }
-                .texts {
-                    flex-direction: row;
-                    gap: 10%;
-                    padding-left: 18%;
-                    justify-content: start !important;
-                }
-                .points {
-                    color: var(--grey);
-                }
-            }
-        }
-    }
-    .leaderboardList {
-        gap: .75rem;
-        .resultTile {
-            .place {
-                width: 2.5rem;
-                text-align: end;
-                padding-right: .25rem;
-            }
-            .texts {
-                .mainText {
-                    padding-left: .5rem;
-                    flex:1;
-                }
-                .secondaryText {
-                    flex: 3;
-                    text-align: center;
-                    color: var(--text-color-70);
-                }
-            }
-            &:last-child {
-                margin-bottom: 2rem;
-            }
-        }
-    }
-    .info {
-        position: relative;
-        z-index: 1;
+    max-width: 62%;
+    .resultTile {
         &:before {
-            content:"";
             z-index: 1;
-            width:1px;
-            height: 100%;
+            content: "";
             position: absolute;
             top: 0;
-            left: 8.5%;
-            background-color: var(--text-color-70);
+            height: 0;
+            left: -100px;
+            -webkit-transform: skewX(-27.5deg);
+            -moz-transform: skewX(-27.5deg);
+            -ms-transform: skewX(-27.5deg);
+            transform: skewX(-27.5deg);
         }
-        transition: height ease-out .1s;
-        overflow: hidden;
-        padding-left: 10%;
-        font-size: 20px;
-        font-weight: 400;
+        &:first-child {
+            &:before {
+                width: 286px;
+                height: 80px;
+                background-color: var(--accent-primary-color);
+                
+            }
+            &.teamResult::before {
+                left: -165px;
+            }
+        }
+        &:nth-child(2) {
+            &:before {
+                width: 245px;
+                height: 65px;
+                background-color: var(--accent-secondary-color);
+            }
+            &.teamResult::before {
+                left: -165px;
+            }
+        }
+        &:nth-child(3) {
+            &:before {
+                width: 210px;
+                height: 55px;
+                background-color: var(--grey);
+            }
+            &.teamResult::before {
+                left: -165px;
+            }
+        }
     }
 }
 .achievements {

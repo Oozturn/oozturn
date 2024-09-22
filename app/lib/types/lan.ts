@@ -1,3 +1,5 @@
+import { Achievement } from "./achievements"
+
 export interface Lan {
     name: string
     motd: string
@@ -9,6 +11,8 @@ export interface Lan {
     showPartialResults: boolean
     weightTeamsResults: boolean
     showTeamsResults: boolean
+    showAchievements: boolean
+    achievements: Achievement[]
 }
 
 export interface DateType {

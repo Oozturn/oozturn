@@ -26,6 +26,8 @@ export default defineConfig({
         route("tournaments/new", "pages/tournaments/new/new.tsx")
         route("tournaments/edit/:id", "pages/tournaments/edit/edit.tsx")
         route("users", "pages/users/users.tsx")
+        route(":otherPage", "pages/404.tsx")
+        route("results", "pages/results/results.tsx")
       });
     },
   }), tsconfigPaths()],

@@ -6,6 +6,8 @@ import { DropDownArrowSVG, EditGearSVG, LogoFolded, LogoSideSVG } from "../data/
 import { UserAvatar } from "../elements/user-avatar"
 import EditProfileModal from "../user/edit-profile-modal"
 import { clickorkey } from "~/lib/utils/clickorkey"
+import { UserStats } from "~/lib/types/statistics"
+import { useStats } from "../contexts/StatsContext"
 
 
 export default function Navbar() {
@@ -62,7 +64,7 @@ export function UserProfile() {
     const submit = useSubmit()
     const me = useContext(UserContext)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const leaderboard: any[] = []
+    const userStats: UserStats | undefined = useStats().usersStats.find(us => us.userId == me?.id)
     const [showEdit, setShowEdit] = useState(false)
 
     if (!me) {
@@ -79,30 +81,26 @@ export function UserProfile() {
     return (
         <>
             <div className="navbar-item navbar-user p-0 m-0 is-flex">
-                <div className="navbar-item navbar-user-button is-clickable has-background-secondary-accent p-0 m-0 is-flex is-flex-grow-1">
-                    <div className="username mr-4 is-flex-grow-1 has-text-centered">{me.username}</div>
-                    <div className="arrow mr-4">
+                <div className="navbar-item navbar-user-button is-clickable has-background-secondary-accent p-0 m-0 is-flex grow gap-4">
+                    <div className="username grow has-text-centered">{me.username}</div>
+                    <div className="arrow">
                         <DropDownArrowSVG />
                     </div>
-                    <div className="avatar">
-                        <UserAvatar username={me.username} avatar={me.avatar} />
-                    </div>
+                    <UserAvatar username={me.username} avatar={me.avatar} size={56} />
                 </div>
-                <div className="navbarUserInfoTopBox has-background-secondary-level is-flex is-flex-direction-column is-align-items-center p-0">
-                    <div className="settings is-clickable fade-on-mouse-out" {...clickorkey(() => setShowEdit(true))}>
+                <div className="navbarUserInfoTopBox has-background-secondary-level is-flex-col align-center p-0">
+                    <div className="is-align-self-flex-end mr-4 mt-3 is-clickable fade-on-mouse-out" {...clickorkey(() => setShowEdit(true))}>
                         <EditGearSVG />
                     </div>
-                    <div className="avatar mt-6">
-                        <UserAvatar username={me.username} avatar={me.avatar} />
-                    </div>
+                    <UserAvatar username={me.username} avatar={me.avatar} size={96} />
                     <div>{me.username}</div>
-                    {me.team && <div className="userteam fade-text">{'[' + me.team + ']'}</div>}
-                    {leaderboard &&
-                        <div className="is-flex is-full-width mt-5 is-align-items-end">
-                            <div className="logout is-size-7 px-1 is-underlined is-clickable fade-on-mouse-out" {...clickorkey(handleLogout)}>Se déconnecter</div>
-                            <div className="is-flex-grow-1"></div>
-                            <div className="is-flex points is-align-items-start">
-                                <div>{leaderboard.find(p => p.player.username == me.username)?.points || 0}</div>
+                    {me.team && <div className="fade-text">{'[' + me.team + ']'}</div>}
+                    {userStats &&
+                        <div className="is-flex is-full-width mt-5 align-end">
+                            <div className="is-size-7 px-1 is-underlined is-clickable fade-on-mouse-out" {...clickorkey(handleLogout)}>Se déconnecter</div>
+                            <div className="grow"></div>
+                            <div className="is-flex points align-start">
+                                <div>{userStats.globalTournamentPoints || 0}</div>
                                 <div className="is-size-7 p-1">pts</div>
                             </div>
                         </div>

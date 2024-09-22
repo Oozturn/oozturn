@@ -120,7 +120,8 @@ function SectionViewer({ bracket, section }: { bracket: number, section: number 
 
     const sectionName = (() => {
         if (settings.type == BracketType.FFA) return ''
-        if (section == 1) return 'Tableau Principal'
+        if (settings.type == BracketType.GroupStage) return 'Poule ' + section
+        if (section == Duel.WB) return 'Tableau Principal'
         if (settings.last == Duel.LB) return 'Rattrapage'
         return 'Petite finale'
     })()

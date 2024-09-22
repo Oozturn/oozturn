@@ -3,8 +3,7 @@ import { Duel } from "./tournament/duel"
 import { FFA } from "./tournament/ffa"
 import { GroupStage } from "./tournament/groupstage"
 import { Id } from "./tournament/match"
-import { Result } from "./tournament/tournament"
-import { BracketSettings, BracketType, Match, Player, Team, TournamentFullData, TournamentInfo, TournamentProperties, TournamentStatus } from "./types"
+import { BracketSettings, BracketType, Match, Player, Result, Team, TournamentFullData, TournamentInfo, TournamentProperties, TournamentStatus } from "./types"
 
 /** States used to save brackets progression */
 interface BracketState {
@@ -74,6 +73,8 @@ export class TournamentEngine implements TournamentSpecification {
 	private brackets: (Duel | FFA | GroupStage)[] = []
 	private bracketsStates: BracketState[]
 
+	private results: Result[] = []
+
 	constructor(
 		id: string,
 		properties: TournamentProperties,
@@ -127,6 +128,31 @@ export class TournamentEngine implements TournamentSpecification {
 			throw new Error(`Impossible to apply score ${state.score} to match ${state.id} : ${unscorableReason}`)
 		this.brackets[state.bracket].score(state.id, state.score as number[])
 		if (this.brackets[state.bracket].isDone()) this.status = TournamentStatus.Done
+		this.updateResults()
+	}
+	private updateResults(): void {
+		this.results = []
+		this.brackets.at(-1)?.results().forEach(res => {
+			const concernedUsers: string[] = []
+			if (this.settings.at(-1)?.useTeams) {
+				const concernedPlayers = this.teams.find(team => team.seed == res.seed)?.members
+				if (concernedPlayers) concernedUsers.push(...concernedPlayers)
+			} else {
+				const concernedPlayer = this.players.find(player => player.seed == res.seed - 1)?.userId
+				if (concernedPlayer) concernedUsers.push(concernedPlayer)
+			}
+			concernedUsers.forEach(userId => {
+				const forfeitedPlayer = this.players.find(player => player.userId == userId)?.isForfeit
+				this.results.push({
+					userId: userId,
+					position: res.pos - 1,
+					globalTournamentPoints: (res.pos - 1 in this.properties.globalTournamentPoints.leaders ? this.properties.globalTournamentPoints.leaders[res.pos - 1] : this.properties.globalTournamentPoints.default) - (forfeitedPlayer ? this.properties.globalTournamentPoints.default : 0),
+					wins: res.wins,
+					for: res.for,
+					against: res.against
+				})
+			})
+		})
 	}
 
 	public getId(): string {
@@ -161,8 +187,11 @@ export class TournamentEngine implements TournamentSpecification {
 
 	public updateProperties(partialPropertiess: Partial<TournamentProperties>): void {
 		this.properties = { ...this.properties, ...partialPropertiess }
+		this.updateResults()
 	}
 	public updateSettings(partialSettings: Partial<BracketSettings>, bracket: number = 0): void {
+		if (![TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status))
+			throw new Error(`Impossible to change settings: tournament ${this.id} already started.`)
 		this.settings[bracket] = { ...this.settings[bracket], ...partialSettings }
 	}
 
@@ -387,6 +416,6 @@ export class TournamentEngine implements TournamentSpecification {
 		}
 	}
 	public getResults(): Result[] {
-		return this.brackets[this.brackets.length - 1].results()
+		return this.results
 	}
 }

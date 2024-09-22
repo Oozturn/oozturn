@@ -12,17 +12,20 @@ import { LanContext } from "./lib/components/contexts/LanContext"
 import { TournamentsContext } from "./lib/components/contexts/TournamentsContext"
 import { UserContext } from "./lib/components/contexts/UserContext"
 import { UsersContext } from "./lib/components/contexts/UsersContext"
+import { StatsContext } from "./lib/components/contexts/StatsContext"
 import Navbar from "./lib/components/layout/navbar"
 import { GetUserTheme, useIconUrl } from "./lib/components/tools/user-theme"
 import { getGames } from "./lib/persistence/games.server"
 import { getLan } from "./lib/persistence/lan.server"
 import { getTournaments } from "./lib/persistence/tournaments.server"
 import { getUsers } from "./lib/persistence/users.server"
+import { getStats } from "./lib/statistics/statistics.server"
 import { getUserFromRequest, isUserLoggedIn } from "./lib/session.server"
 import { Game } from "./lib/types/games"
 import { Lan } from "./lib/types/lan"
 import { TournamentInfo } from "./lib/tournamentEngine/types"
 import { User } from "./lib/types/user"
+import { Statistics } from "./lib/types/statistics"
 import "./styles/globals.scss"
 import 'react-contexify/ReactContexify.css'
 import { Notification } from "./lib/components/notification"
@@ -34,6 +37,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<{
   users: User[]
   tournaments: TournamentInfo[]
   games?: Game[]
+  stats?: Statistics
 }> {
   if (await isUserLoggedIn(request)) {
     return {
@@ -41,7 +45,8 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<{
       user: await getUserFromRequest(request),
       users: getUsers(),
       tournaments: getTournaments(),
-      games: getGames()
+      games: getGames(),
+      stats: getStats()
     }
   } else {
     return {
@@ -53,7 +58,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<{
 }
 
 export default function App() {
-  const { lan, user, users, tournaments, games } = useLoaderData<typeof loader>()
+  const { lan, user, users, tournaments, games, stats } = useLoaderData<typeof loader>()
   const iconUrl = useIconUrl()
   useRevalidateOnLanUpdate()
   return (
@@ -71,12 +76,14 @@ export default function App() {
             <UsersContext.Provider value={users}>
               <UserContext.Provider value={user}>
                 <TournamentsContext.Provider value={tournaments}>
-                  <GetUserTheme />
-                  <Navbar />
-                  <main className="main is-clipped">
-                    <Outlet />
-                  </main>
-                  <Notification/>
+                  <StatsContext.Provider value={stats}>
+                    <GetUserTheme />
+                    <Navbar />
+                    <main className="main is-clipped">
+                      <Outlet />
+                    </main>
+                    <Notification />
+                  </StatsContext.Provider>
                 </TournamentsContext.Provider>
               </UserContext.Provider>
             </UsersContext.Provider>

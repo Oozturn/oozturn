@@ -1,5 +1,5 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
-import { useFetcher, useNavigate } from "@remix-run/react"
+import { useFetcher, useLoaderData, useNavigate } from "@remix-run/react"
 import useLocalStorageState from "use-local-storage-state"
 import { useGames } from "~/lib/components/contexts/GamesContext"
 import { useLan } from "~/lib/components/contexts/LanContext"
@@ -8,7 +8,7 @@ import { CustomButton } from "~/lib/components/elements/custom-button"
 import { CustomCheckbox } from "~/lib/components/elements/custom-checkbox"
 import { CustomSelect } from "~/lib/components/elements/custom-select"
 import { EditGlobalTournamentPoints } from "~/lib/components/elements/global-tournament-points"
-import { getLan, updateLan } from "~/lib/persistence/lan.server"
+import { getLan, updateAchievements, updateLan } from "~/lib/persistence/lan.server"
 import { requireUserAdmin, requireUserLoggedIn } from "~/lib/session.server"
 import { Lan } from "~/lib/types/lan"
 import { autoSubmit } from "~/lib/utils/autosubmit"
@@ -16,8 +16,11 @@ import { Days, range } from "~/lib/utils/ranges"
 import { AdminSectionContext, Section, useAdminSection } from "./components/AdminSectionContext"
 import { UsersList } from "./components/users-list"
 import { addUsers, renameUser, resetUserPassword } from "./admin.queries.server"
-import { Fragment } from "react"
+import { Fragment, useRef, useState } from "react"
 import { clickorkey } from "~/lib/utils/clickorkey"
+import { CustomModalBinary } from "~/lib/components/elements/custom-modal"
+import { Achievement, AchievementDecriptors, AchievementType } from "~/lib/types/achievements"
+import { getAchievements } from "~/lib/statistics/achievements.server"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
@@ -29,13 +32,15 @@ export async function loader({
     request
 }: LoaderFunctionArgs): Promise<{
     lanName: string
+    achievements: Achievement[]
 }> {
     await requireUserAdmin(request)
-    return { lanName: getLan().name }
+    return { lanName: getLan().name, achievements: getAchievements() }
 }
 
 export enum AdminIntents {
     UPDATE_LAN = "update_lan",
+    UPDATE_ACHIEVEMENTS = "update_achievements",
     END_LAN = "end_lan",
 
     ADD_USERS = "add_users",
@@ -52,7 +57,6 @@ export enum AdminIntents {
     // UPDATE_SHOW_TEMPORARY_RESULTS,
     // UPDATE_SHOW_TEAMS_RESULTS,
     // UPDATE_WEIGHT_TEAMS_RESULTS,
-    // UPDATE_ACHIEVEMENTS,
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -71,7 +75,19 @@ export async function action({ request }: ActionFunctionArgs) {
             if (formData.get("lan_showPartialResults")) partialLan.showPartialResults = JSON.parse(String(formData.get("lan_showPartialResults")))
             if (formData.get("lan_weightTeamsResults")) partialLan.weightTeamsResults = JSON.parse(String(formData.get("lan_weightTeamsResults")))
             if (formData.get("lan_showTeamsResults")) partialLan.showTeamsResults = JSON.parse(String(formData.get("lan_showTeamsResults")))
+            if (formData.get("lan_showAchievements")) partialLan.showAchievements = JSON.parse(String(formData.get("lan_showAchievements")))
             updateLan(partialLan)
+            break
+        case AdminIntents.UPDATE_ACHIEVEMENTS:
+            updateAchievements(Array.from(formData.keys()).filter(k => k.includes("type")).map(k => {
+                k = k.split("_")[1]
+                return {
+                    type: k as AchievementType,
+                    name: String(formData.get("name_" + k)),
+                    description: String(formData.get("description_" + k)),
+                    active: Boolean(formData.get("active_" + k))
+                } as Partial<Achievement>
+            }))
             break
         case AdminIntents.RESET_USER_PASSWORD:
             await resetUserPassword(request, String(formData.get("userId")))
@@ -287,9 +303,9 @@ export function SectionGlobalTournamentSettings({ isActive }: { isActive: boolea
                 </div>
             </div>
             <div className='is-flex gap-3 align-center'>
-                <CustomCheckbox variable={lan.showTeamsResults} customClass='justify-flex-end is-one-fifth' setter={(value: boolean) => updateLan("lan_showTeamsResults", JSON.stringify(value))} />
+                <CustomCheckbox variable={lan.showAchievements} customClass='justify-flex-end is-one-fifth' setter={(value: boolean) => updateLan("lan_showAchievements", JSON.stringify(value))} />
                 <div>Afficher les achievements</div>
-                <CustomButton callback={() => { }} contentItems={["Edit achievements"]} colorClass="has-background-primary-level" />
+                <AchievementSelector />
             </div>
         </div>
     </div>
@@ -322,4 +338,61 @@ export function SectionCommunicationSettings({ isActive }: { isActive: boolean }
             Notifications options...
         </div>
     </div>
+}
+
+function AchievementSelector() {
+    const { achievements } = useLoaderData<typeof loader>()
+    const fetcher = useFetcher()
+    const [showEditAchievements, setShowEditAchievements] = useState(false)
+    const formRef = useRef(null)
+
+    function updateAchievements() {
+        fetcher.submit(formRef.current, { method: "POST" })
+    }
+
+    return <><CustomButton callback={() => setShowEditAchievements(true)} contentItems={["Edit achievements"]} colorClass="has-background-primary-level" />
+        <CustomModalBinary
+            show={showEditAchievements}
+            onHide={() => setShowEditAchievements(false)}
+            content={
+                <div className="grow is-flex-col align-stretch p-1" style={{ maxHeight: "60vh" }}>
+                    <div className="mb-3">Sélectionne et personalise les achievements de la LAN:</div>
+                    <fetcher.Form ref={formRef} className="is-flex-col gap-3 is-scrollable" method="POST">
+                        <input type="hidden" name="intent" value={AdminIntents.UPDATE_ACHIEVEMENTS} />
+                        {achievements.map(achievement =>
+                            <div key={achievement.type} className="is-flex-col gap-1">
+                                <input type="hidden" name={"type_" + achievement.type} value={achievement.type} />
+                                <div className="is-flex gap-2 align-center">
+                                    <CustomCheckbox variable={achievement.active} inFormName={"active_" + achievement.type} />
+                                    <div>{achievement.valueDescription} ({achievement.valueUseBest ? "Meilleur" : "Pire"} score)</div>
+                                </div>
+                                <div className="px-2 is-flex-col gap-1">
+                                    <div className="is-flex gap-2">
+                                        <div className="is-one-fifth">Titre</div>
+                                        <input
+                                            name={"name_" + achievement.type}
+                                            className="px-1 grow no-basis" type="text"
+                                            defaultValue={achievement.name}
+                                            placeholder={achievement.type}
+                                        />
+                                    </div>
+                                    <div className="is-flex gap-2">
+                                        <div className="is-one-fifth">Description</div>
+                                        <textarea
+                                            name={"description_" + achievement.type}
+                                            className="px-1 grow no-basis"
+                                            defaultValue={achievement.description}
+                                            placeholder={AchievementDecriptors.get(achievement.type) || ""}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </fetcher.Form>
+                </div>
+            }
+            cancelButton={true}
+            onConfirm={updateAchievements}
+        />
+    </>
 }
