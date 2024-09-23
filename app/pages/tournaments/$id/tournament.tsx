@@ -17,6 +17,7 @@ import { TournamentViewer } from "./components/tournamentViewer"
 import { getLan } from "~/lib/persistence/lan.server"
 import Dropdown from "~/lib/components/elements/custom-dropdown"
 import { useRevalidateOnTournamentUpdate } from "~/api/sse.hook"
+import useLocalStorageState from "use-local-storage-state"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
@@ -125,6 +126,7 @@ export enum MatchesIntents {
 
 export default function TournamentPage() {
     const { tournament } = useLoaderData<typeof loader>()
+    const [tournamentWideView, ] = useLocalStorageState<string[]>("tournamentWideView", { defaultValue: [] })
 
     useRevalidateOnTournamentUpdate(tournament.id)
     const user = useUser()
@@ -186,10 +188,12 @@ export default function TournamentPage() {
                     Tournoi {tournament.properties.name}
                 </div>
                 <div className="has-background-secondary-level is-flex-row grow p-3 gap-6 is-relative">
-                    <div className="is-flex-col justify-space-between" style={{ width: "30%", minWidth: "30%", maxWidth: "30%" }}>
-                        <TournamentInfoSettings />
-                        {user.isAdmin && tournament.status != TournamentStatus.Done && <TournamentCommands />}
-                    </div>
+                    {!tournamentWideView.includes(tournament.id) &&
+                        <div className="is-flex-col justify-space-between" style={{ width: "30%", minWidth: "30%", maxWidth: "30%" }}>
+                            <TournamentInfoSettings />
+                            {user.isAdmin && tournament.status != TournamentStatus.Done && <TournamentCommands />}
+                        </div>
+                    }
                     {[TournamentStatus.Open, TournamentStatus.Balancing].includes(tournament.status) ?
                         <div className="is-flex-col grow no-basis">
                             {tournament.settings[0].useTeams ?
@@ -300,7 +304,7 @@ function TournamentCommands() {
         />
 
         <CustomModalBinary show={showConfirmCancel} onHide={() => setShowConfirmCancel(false)} content={"Es-tu sûr de vouloir annuler ce tournoi ?"} cancelButton={true} onConfirm={cancelTournament} />
-        <CustomModalBinary show={showConfirmStart} onHide={() => setShowConfirmStart(false)} content={<>Es-tu sûr de vouloir démarrer ce tournoi ? <br/>{tournament.settings[0].useTeams ? "Les équipes vides et les joueurs sans équipes seront retirés du tournoi." : ""}</>} cancelButton={true} onConfirm={startTournament} />
+        <CustomModalBinary show={showConfirmStart} onHide={() => setShowConfirmStart(false)} content={<>Es-tu sûr de vouloir démarrer ce tournoi ? <br />{tournament.settings[0].useTeams ? "Les équipes vides et les joueurs sans équipes seront retirés du tournoi." : ""}</>} cancelButton={true} onConfirm={startTournament} />
         <CustomModalBinary show={showConfirmStop} onHide={() => setShowConfirmStop(false)} content={`Es-tu sûr de vouloir redémarrer ce tournoi ? Tu pourras éditer ${tournament.settings[0].useTeams ? "les équipes et " : ""}les inscriptions, mais toute sa progression sera perdue !`} cancelButton={true} onConfirm={stopTournament} />
     </div>
 }
