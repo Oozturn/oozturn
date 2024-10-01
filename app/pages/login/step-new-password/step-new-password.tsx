@@ -84,7 +84,7 @@ export default function LoginStepNewPassword() {
             <input
               id="confirmPassword"
               name="confirmPassword"
-              className={`input grow no-basis has-text-centered has-background-primary-level ${(password != confirmPassword) ? 'wrongConfirmPassword' : ''}`}
+              className={`input grow no-basis has-text-centered has-background-primary-level ${(password != confirmPassword) ? 'has-text-danger' : ''}`}
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}

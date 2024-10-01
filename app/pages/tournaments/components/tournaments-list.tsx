@@ -7,7 +7,6 @@ import { useRevalidateOnGlobalTournamentUpdate } from "~/api/sse.hook"
 
 
 export default function TournamentsList() {
-    
     useRevalidateOnGlobalTournamentUpdate()
 
     const user = useUser()
@@ -27,7 +26,8 @@ export default function TournamentsList() {
                     to={`/tournaments/${tournament.id}`}
                     key={tournament.id}
                     className={({ isActive }) => `tournamentTile has-background-secondary-level is-clickable ${isActive ? 'is-active' : ''}`}
-                    style={{ backgroundImage: (tournament.game == undefined || !gamesList.find(game => game.id == tournament.game)) ? "var(--generic-game-image) !important" : 'url(/igdb/' + gamesList.find(game => game.id == tournament.game)?.picture + '.jpg)' }}>
+                    style={{ backgroundImage: (tournament.game == undefined || !gamesList.find(game => game.id == tournament.game)) ? "var(--generic-game-image) !important" : 'url(/igdb/' + gamesList.find(game => game.id == tournament.game)?.picture + '.jpg)' }}
+                >
                     <div className='tournamentName'>{tournament.name}</div>
                     {tournament.players.find(p => p.userId == user.id) && <div className='subscribedIndicator' title='inscrit'></div>}
                     {tournament.status == TournamentStatus.Balancing && <div className='tournamentState'>En préparation</div>}

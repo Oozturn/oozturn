@@ -102,17 +102,17 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
               <div className="is-flex-col gap-2">
                 <div>Avatar :</div>
                 <div className="is-flex align-end gap-4">
-                  <div className="avatar mt-2 is-clickable" {...clickorkey(() => {fileInputRef.current && fileInputRef.current.click()})}>
+                  <div className="avatar is-clickable" {...clickorkey(() => {fileInputRef.current && fileInputRef.current.click()})}>
                     <UserAvatar username={me.username} avatar={me.avatar} size={196} />
                   </div>
-                  <div className="is-flex-col buttons-list">
-                    <fetcherRemoveAvatar.Form method="POST" action="/api">
+                  <div className="is-flex-col gap-3">
+                    {me.avatar && <fetcherRemoveAvatar.Form method="POST" action="/api">
                       <input type="hidden" name="intent" value={Intents.REMOVE_AVATAR} />
                       <button type="submit"
                         className="customButton fade-on-mouse-out is-unselectable has-background-primary-accent is-clickable">
-                        Reset avatar
+                        {"Supprimer l'avatar"}
                       </button>
-                    </fetcherRemoveAvatar.Form>
+                    </fetcherRemoveAvatar.Form>}
                     <fetcherUpdateAvatar.Form method="post" action="/api" encType="multipart/form-data">
                       <input name="intent" type="hidden" hidden value={Intents.UPLOAD_AVATAR} />
                       <input name="avatar" type="file" hidden ref={fileInputRef} id="selectAvatarInput" accept="image/jpeg,image/png,image/webp,image/gif"
@@ -120,7 +120,7 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
                       <button
                         onClick={event => { event.preventDefault(); fileInputRef.current?.click() }}
                         className="customButton fade-on-mouse-out is-unselectable has-background-secondary-accent is-clickable">
-                        Nouvel avatar
+                        {me.avatar ? "Changer d'avatar" : "Nouvel avatar"}
                       </button>
                     </fetcherUpdateAvatar.Form>
                   </div>
