@@ -5,51 +5,53 @@ import { getStats } from "./statistics.server";
 
 
 function getAchievementUser(achievement: AchievementType) {
-    let userStats: UserStats
+    let userStats: UserStats | undefined
     switch (achievement) {
         case AchievementType.tournamentWinner:
-            userStats = getStats().usersStats.sort((a, b) => b.wonTournaments - a.wonTournaments)[0]
-            if (userStats.wonTournaments == 0) break
-            return { userId: userStats.userId, value: userStats.wonTournaments}
+            userStats = getStats().usersStats.sort((a, b) => b.wonTournaments - a.wonTournaments).at(0)
+            if (!userStats?.wonTournaments) break
+            return { userId: userStats.userId, value: userStats.wonTournaments }
         case AchievementType.efficientWinner:
-            userStats = getStats().usersStats.sort((a, b) => b.wonTournaments / b.playedTournaments - a.wonTournaments / a.playedTournaments)[0]
-            if (userStats.wonTournaments == 0) break
-            return { userId: userStats.userId, value: userStats.wonTournaments / userStats.playedTournaments}
+            userStats = getStats().usersStats.sort((a, b) => b.wonTournaments / b.playedTournaments - a.wonTournaments / a.playedTournaments).at(0)
+            if (!userStats?.wonTournaments) break
+            return { userId: userStats.userId, value: userStats.wonTournaments / userStats.playedTournaments }
         case AchievementType.neverFirst:
-            userStats = getStats().usersStats.sort((a, b) => b.secondPlaces - a.secondPlaces)[0]
-            if (userStats.secondPlaces == 0) break
-            return { userId: userStats.userId, value: userStats.secondPlaces}
+            userStats = getStats().usersStats.sort((a, b) => b.secondPlaces - a.secondPlaces).at(0)
+            if (!userStats?.secondPlaces) break
+            return { userId: userStats.userId, value: userStats.secondPlaces }
         case AchievementType.worstPlayerEver:
-            userStats = getStats().usersStats.sort((a, b) => a.globalTournamentPoints - b.globalTournamentPoints)[0]
-            return { userId: userStats.userId, value: userStats.globalTournamentPoints}
+            userStats = getStats().usersStats.sort((a, b) => a.globalTournamentPoints - b.globalTournamentPoints).at(0)
+            if (!userStats) break
+            return { userId: userStats.userId, value: userStats.globalTournamentPoints }
         case AchievementType.chiefWinner:
-            userStats = getStats().usersStats.sort((a, b) => b.winLossMeanRatio - a.winLossMeanRatio)[0]
-            if (userStats.winLossMeanRatio == 0) break
-            return { userId: userStats.userId, value: userStats.winLossMeanRatio}
+            userStats = getStats().usersStats.sort((a, b) => b.winLossMeanRatio - a.winLossMeanRatio).at(0)
+            if (!userStats?.winLossMeanRatio) break
+            return { userId: userStats.userId, value: userStats.winLossMeanRatio }
         case AchievementType.chiefLooser:
-            userStats = getStats().usersStats.sort((a, b) => a.winLossMeanRatio - b.winLossMeanRatio)[0]
-            return { userId: userStats.userId, value: userStats.winLossMeanRatio}
+            userStats = getStats().usersStats.sort((a, b) => a.winLossMeanRatio - b.winLossMeanRatio).at(0)
+            if (!userStats) break
+            return { userId: userStats.userId, value: userStats.winLossMeanRatio }
         case AchievementType.compulsivePlayer:
-            userStats = getStats().usersStats.sort((a, b) => b.playedMatches - a.playedMatches)[0]
-            if (userStats.playedMatches == 0) break
-            return { userId: userStats.userId, value: userStats.playedMatches}
+            userStats = getStats().usersStats.sort((a, b) => b.playedMatches - a.playedMatches).at(0)
+            if (!userStats?.playedMatches) break
+            return { userId: userStats.userId, value: userStats.playedMatches }
         case AchievementType.david:
-            userStats = getStats().usersStats.sort((a, b) => b.winsAgainstBetterSeed - a.winsAgainstBetterSeed)[0]
-            if (userStats.winsAgainstBetterSeed == 0) break
-            return { userId: userStats.userId, value: userStats.winsAgainstBetterSeed}
+            userStats = getStats().usersStats.sort((a, b) => b.winsAgainstBetterSeed - a.winsAgainstBetterSeed).at(0)
+            if (!userStats?.winsAgainstBetterSeed) break
+            return { userId: userStats.userId, value: userStats.winsAgainstBetterSeed }
         case AchievementType.underPressure:
-            userStats = getStats().usersStats.sort((a, b) => b.secondChances - a.secondChances)[0]
-            if (userStats.secondChances == 0) break
-            return { userId: userStats.userId, value: userStats.secondChances}
+            userStats = getStats().usersStats.sort((a, b) => b.secondChances - a.secondChances).at(0)
+            if (!userStats?.secondChances) break
+            return { userId: userStats.userId, value: userStats.secondChances }
         case AchievementType.tryHarder:
-            userStats = getStats().usersStats.sort((a, b) => b.hardVictories - a.hardVictories)[0]
-            if (userStats.hardVictories == 0) break
-            return { userId: userStats.userId, value: userStats.hardVictories}
+            userStats = getStats().usersStats.sort((a, b) => b.hardVictories - a.hardVictories).at(0)
+            if (!userStats?.hardVictories) break
+            return { userId: userStats.userId, value: userStats.hardVictories }
 
         default:
             break
     }
-    return { userId: undefined, value: undefined}
+    return { userId: undefined, value: undefined }
 }
 
 export function getAchievements(): Achievement[] {
@@ -63,7 +65,7 @@ export function getAchievements(): Achievement[] {
             description: lanAchievements.find(a => a.type == achievementType)?.description || AchievementDecriptors.get(achievementType) || "",
             userId: achievementUser.userId,
             value: achievementUser.value,
-            ... (AchievementValueDecriptor.get(achievementType) || {valueDescription: "", valueUseBest: true})
+            ... (AchievementValueDecriptor.get(achievementType) || { valueDescription: "", valueUseBest: true })
         }
     })
 }

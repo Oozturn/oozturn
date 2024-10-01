@@ -95,16 +95,16 @@ export function UserProfile() {
                     <UserAvatar username={me.username} avatar={me.avatar} size={96} />
                     <div>{me.username}</div>
                     {me.team && <div className="fade-text">{'[' + me.team + ']'}</div>}
-                    {userStats &&
-                        <div className="is-flex is-full-width mt-5 align-end">
-                            <div className="is-size-7 px-1 is-underlined is-clickable fade-on-mouse-out" {...clickorkey(handleLogout)}>Se déconnecter</div>
-                            <div className="grow"></div>
+                    <div className="is-flex is-full-width mt-5 align-end">
+                        <div className="is-size-7 px-1 is-underlined is-clickable fade-on-mouse-out" {...clickorkey(handleLogout)}>Se déconnecter</div>
+                        <div className="grow"></div>
+                        {userStats &&
                             <div className="is-flex points align-start">
                                 <div>{userStats.globalTournamentPoints || 0}</div>
                                 <div className="is-size-7 p-1">pts</div>
                             </div>
-                        </div>
-                    }
+                        }
+                    </div>
                     <div className="m-1"></div>
 
                 </div>
