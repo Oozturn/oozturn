@@ -117,18 +117,18 @@ export class GroupStage extends Tournament {
         }
     }
 
-    // helper method to be compatible with TieBreaker
-    rawPositions(resAry: Result[]) {
-        return resultsByGroup(resAry, this.numGroups).map((grp) => {
-            // NB: need to create the empty arrays to let result function as a lookup
-            var seedAry: number[][] = replicate(grp.length, () => []);
-            for (var k = 0; k < grp.length; k += 1) {
-                var p = grp[k];
-                insert(seedAry[p.gpos - 1], p.seed); // insert ensures ascending order
-            }
-            return seedAry;
-        });
-    };
+    // // helper method to be compatible with TieBreaker
+    // rawPositions(resAry: Result[]) {
+    //     return resultsByGroup(resAry, this.numGroups).map((grp) => {
+    //         // NB: need to create the empty arrays to let result function as a lookup
+    //         var seedAry: number[][] = replicate(grp.length, () => []);
+    //         for (var k = 0; k < grp.length; k += 1) {
+    //             var p = grp[k];
+    //             insert(seedAry[p.gpos - 1], p.seed); // insert ensures ascending order
+    //         }
+    //         return seedAry;
+    //     });
+    // };
 
     // no one-round-at-a-time restrictions so can always rescore
     protected safe(match: Match): boolean {

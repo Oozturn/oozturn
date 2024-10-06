@@ -129,9 +129,9 @@ export function OpponentsListTeam() {
     }, [tournament])
 
     const notInTeamPlayers = tournament.players.filter(player => !(tournament.teams ? tournament.teams.flatMap(team => team?.members) : [] as string[]).includes(player.userId)).map(player => player.userId)
-    const canAddTeam = (tournament.settings[0].type == BracketType.Duel) || (tournament.settings[0].type == BracketType.FFA) && ((tournament.teams || []).length < GetFFAMaxPlayers(tournament.settings[0].sizes || [], tournament.settings[0].advancers || []))
+    const canAddTeam = (tournament.bracketSettings[0].type == BracketType.Duel) || (tournament.bracketSettings[0].type == BracketType.FFA) && ((tournament.teams || []).length < GetFFAMaxPlayers(tournament.bracketSettings[0].sizes || [], tournament.bracketSettings[0].advancers || []))
 
-    tournament.settings[0].type
+    tournament.bracketSettings[0].type
 
     async function newTeam(team: string = newTeamName) {
         fetcher.submit(
@@ -185,7 +185,7 @@ export function OpponentsListTeam() {
                 over.id = (over.id as string).replace('team_', '')
                 if (active.data.current && (over.id != active.data.current.team)) {
                     const targetTeam = tournament.teams?.find(t => t.name == over.id)
-                    if (targetTeam && tournament.settings[0].teamsMaxSize && targetTeam.members.length < tournament.settings[0].teamsMaxSize) {
+                    if (targetTeam && tournament.bracketSettings[0].teamsMaxSize && targetTeam.members.length < tournament.bracketSettings[0].teamsMaxSize) {
                         await removePlayerFromTeams(playerName)
                         await addPlayerToTeam(playerName, targetTeam.name)
                     }
@@ -254,7 +254,7 @@ export function OpponentsListTeam() {
             <div className='is-flex-col grow gap-2'>
                 <div className='is-flex justify-space-between align-center'>
                     <div className='is-title medium is-uppercase'>équipes</div>
-                    {(user.isAdmin || (tournament.settings[0].usersCanCreateTeams && notInTeamPlayers.includes(user.id) && tournament.status == TournamentStatus.Open)) && canAddTeam &&
+                    {(user.isAdmin || (tournament.bracketSettings[0].usersCanCreateTeams && notInTeamPlayers.includes(user.id) && tournament.status == TournamentStatus.Open)) && canAddTeam &&
                         <CustomButton callback={() => setShowNewTeam(true)} contentItems={[SubsribedSVG(), "New team"]} customClasses='small-button' colorClass='has-background-primary-accent' />
                     }
                 </div>
@@ -309,7 +309,7 @@ function TeamTile({ team, seed, draggedPlayer, addPlayerToTeam, removePlayerFrom
         id: "team_" + team.name,
     })
 
-    const isFull = !(tournament.settings[0].useTeams && tournament.settings[0].teamsMaxSize && team.members.length < tournament.settings[0].teamsMaxSize)
+    const isFull = !(tournament.bracketSettings[0].useTeams && tournament.bracketSettings[0].teamsMaxSize && team.members.length < tournament.bracketSettings[0].teamsMaxSize)
     const couldJoin = !team.members.includes(user.id)
 
     async function renameTeam(oldTeamName: string, newTeamName: string) {

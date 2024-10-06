@@ -2,7 +2,7 @@ import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction, redirect } from "
 import { getLan } from "~/lib/persistence/lan.server"
 import { newTournament } from "~/lib/persistence/tournaments.server"
 import { requireUserAdmin } from "~/lib/session.server"
-import { BracketSettings, TournamentProperties } from "~/lib/tournamentEngine/types"
+import { BracketSettings, TournamentProperties, TournamentSettings } from "~/lib/tournamentEngine/types"
 import TournamentEdit from "../edit/components/edit"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -22,9 +22,10 @@ export async function action({ request }: ActionFunctionArgs) {
   requireUserAdmin(request)
   const jsonData = await request.json()
   const tournamentId = jsonData.tournamentId as string
-  const tournamentSettings = JSON.parse(jsonData.tournamentSettings) as BracketSettings[]
+  const tournamentSettings = JSON.parse(jsonData.tournamentSettings) as TournamentSettings
+  const tournamentBracketSettings = JSON.parse(jsonData.tournamentBracketSettings) as BracketSettings[]
   const tournamentProperties = JSON.parse(jsonData.tournamentProperties) as TournamentProperties
-  newTournament(tournamentId, tournamentProperties, tournamentSettings)
+  newTournament(tournamentId, tournamentProperties, tournamentSettings, tournamentBracketSettings)
   return redirect("/tournaments/" + tournamentId)
 }
 

@@ -162,9 +162,9 @@ export class Duel extends Tournament {
   static restore(numPlayers: number, opts: DuelOpts, state: StateElt[], data?: { id: Id, data: never }[]) {
     const trn = new Duel(numPlayers, opts)
     // score the tournament from the valid score calls in state that we generate
-    state.forEach(function (o) {
+    state.forEach((o) => {
       if (o.type === 'score') {
-        trn.score(o.id, o.score)
+        trn.score(o.id!, o.score!)
       }
     })
     // also re-attach match data to the appropriate matches if passed in

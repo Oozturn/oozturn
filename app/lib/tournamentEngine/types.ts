@@ -3,6 +3,7 @@ import { DuelOpts } from "./tournament/duel"
 import { FFAOpts } from "./tournament/ffa"
 import { GroupStageOpts } from "./tournament/groupstage"
 import { Id } from "./tournament/match"
+import { Result as InternalResult } from "./tournament/tournament"
 
 export enum TournamentStatus {
 	Open = "OPEN",
@@ -10,6 +11,12 @@ export enum TournamentStatus {
 	Running = "RUNNING",
 	Paused = "PAUSED",
 	Validating = "VALIDATING",
+	Done = "DONE",
+}
+
+export enum BracketStatus {
+	Pending = "PENDING",
+	Running = "RUNNING",
 	Done = "DONE",
 }
 
@@ -22,10 +29,9 @@ export enum BracketType {
 
 /** Concatenation of all supported bracket type options */
 export interface BracketSettings extends DuelOpts, FFAOpts, GroupStageOpts {
+	// Used to select the players that will play in next bracket
+	size?: number
 	type: BracketType
-	useTeams: boolean
-	usersCanCreateTeams?: boolean
-	teamsMaxSize?: number
 }
 
 /** Tournament not critical properties. These can be edited at any time before the tournament ends */
@@ -36,6 +42,20 @@ export interface TournamentProperties {
 	globalTournamentPoints: globalTournamentPoints
 	comments: string
 }
+
+/** Tournament critical settings. Can't be changed */
+export interface TournamentSettings {
+	useTeams: boolean
+	usersCanCreateTeams?: boolean
+	teamsMaxSize?: number
+}
+
+export interface Seeding {
+	id:string
+	seed:number
+}
+
+export type BracketResult = InternalResult & { id: string }
 
 /** Regroups identification, status and not critical properties of a tournament */
 export interface TournamentInfo extends TournamentProperties {
@@ -55,13 +75,11 @@ export interface Result {
 }
 
 export interface Team {
-	seed: number
 	name: string
 	members: string[]
 }
 
 export interface Player {
-	seed: number
 	userId: string
 	isForfeit: boolean
 	result?: number
@@ -81,7 +99,8 @@ export interface TournamentFullData {
 	id: string
 	status: TournamentStatus
 	properties: TournamentProperties
-	settings: BracketSettings[]
+	settings: TournamentSettings
+	bracketSettings: BracketSettings[]
 	players: Player[]
 	teams: Team[]
 	matches: Match[]

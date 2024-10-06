@@ -50,19 +50,19 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
     const [tStartTime, set_tStartTime, modified_tStartTime] = useStateMonitored(existingTournament ? existingTournament.properties.startTime : lan.startDate)
     const [tComments, set_tComments, modified_tComments] = useStateMonitored(existingTournament ? existingTournament.properties.comments : "")
 
-    const [tType, set_tType, modified_tType] = useStateMonitored(existingTournament ? existingTournament.settings[0].type : BracketType.Duel)
-    const [tUseTeams, set_tUseTeams, modified_tUseTeams] = useStateMonitored(existingTournament ? existingTournament.settings[0].useTeams : false)
-    const [tLowerScoreIsBetter, set_tLowerScoreIsBetter, modified_tLowerScoreIsBetter] = useStateMonitored(existingTournament ? existingTournament.settings[0].lowerScoreIsBetter : false)
+    const [tType, set_tType, modified_tType] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].type : BracketType.Duel)
+    const [tUseTeams, set_tUseTeams, modified_tUseTeams] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].useTeams : false)
+    const [tLowerScoreIsBetter, set_tLowerScoreIsBetter, modified_tLowerScoreIsBetter] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].lowerScoreIsBetter : false)
 
     // Duel options
-    const [tLast, set_tLast, modified_tLast] = useStateMonitored(existingTournament ? existingTournament.settings[0].last : undefined)
-    const [tShortBracket, set_tShortBracket, modified_tShortBracket] = useStateMonitored(existingTournament ? existingTournament.settings[0].short : undefined)
+    const [tLast, set_tLast, modified_tLast] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].last : undefined)
+    const [tShortBracket, set_tShortBracket, modified_tShortBracket] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].short : undefined)
 
     // FFA options
-    const [tNbRounds, set_tNbRounds] = useState(existingTournament ? existingTournament.settings[0].sizes?.length || 2 : 2)
-    const [tSizes, set_tSizes, modified_tSizes] = useStateMonitored(existingTournament ? existingTournament.settings[0].sizes || [6, 6] : [6, 6])
-    const [tAdvancers, set_tAdvancers, modified_tAdvancers] = useStateMonitored(existingTournament ? existingTournament.settings[0].advancers || [3] : [3])
-    const [tLimit, , modified_tLimit] = useStateMonitored(existingTournament ? existingTournament.settings[0].limit : 1)
+    const [tNbRounds, set_tNbRounds] = useState(existingTournament ? existingTournament.bracketSettings[0].sizes?.length || 2 : 2)
+    const [tSizes, set_tSizes, modified_tSizes] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].sizes || [6, 6] : [6, 6])
+    const [tAdvancers, set_tAdvancers, modified_tAdvancers] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].advancers || [3] : [3])
+    const [tLimit, , modified_tLimit] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].limit : 1)
 
     // GroupStage options
     const [tGroupSize, set_groupSize, modified_groupSize] = useStateMonitored(existingTournament ? existingTournament.settings[0].groupSize || 4 : 4)
@@ -72,8 +72,8 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
     const [tMeetTwice, , modified_meetTwice] = useStateMonitored(existingTournament ? existingTournament.settings[0].meetTwice || false : false)
 
     // Teams options
-    const [tUsersCanCreateTeams, set_tUsersCanCreateTeams, modified_tUsersCanCreateTeams] = useStateMonitored(existingTournament ? existingTournament.settings[0].usersCanCreateTeams : false)
-    const [tTeamsMaxSize, set_tTeamsMaxSize, modified_tTeamsMaxSize] = useStateMonitored(existingTournament ? existingTournament.settings[0].teamsMaxSize : 8)
+    const [tUsersCanCreateTeams, set_tUsersCanCreateTeams, modified_tUsersCanCreateTeams] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].usersCanCreateTeams : false)
+    const [tTeamsMaxSize, set_tTeamsMaxSize, modified_tTeamsMaxSize] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].teamsMaxSize : 8)
 
 
     const fetcher = useFetcher()
