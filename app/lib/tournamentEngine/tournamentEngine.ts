@@ -169,8 +169,9 @@ export class TournamentEngine implements TournamentSpecification {
 		this.resultsCache.clear()
 	}
 	public updateSettings(partialSettings: Partial<TournamentSettings>): void {
+		if (![TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status))
+			throw new Error(`Impossible to change settings: tournament ${this.id} already started.`)
 		this.settings = { ...this.settings, ...partialSettings }
-		this.resultsCache.clear()
 	}
 	public updateBracketSettings(partialSettings: Partial<BracketSettings>, bracket: number = this.activeBracket): void {
 		if (![TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status))
