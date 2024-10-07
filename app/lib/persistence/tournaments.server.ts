@@ -3,8 +3,8 @@ import { dbFolderPath, subscribeObjectManager, writeSafe } from "./db.server"
 import * as fs from 'fs'
 import * as path from 'path'
 import { TournamentEngine, TournamentStorage } from "../tournamentEngine/tournamentEngine"
-import { BracketSettings, TournamentInfo, TournamentProperties } from "../tournamentEngine/types"
-import { EventUpdateTournamentBracket, EventUpdateTournamentInfo, EventUpdateTournaments } from "../emitter.server"
+import { BracketSettings, TournamentInfo, TournamentProperties, TournamentSettings } from "../tournamentEngine/types"
+import { EventUpdateTournamentBracket, EventUpdateTournamentInfo, EventUpdateTournaments, EventUpdateTournamentSettings } from "../emitter.server"
 
 declare global {
     // eslint-disable-next-line no-var
@@ -43,9 +43,9 @@ export function getTournaments(): TournamentInfo[] {
     return global.tournaments.map(t => t.getInfo())
 }
 
-export function newTournament(tournamentId: string, properties: TournamentProperties, settings: BracketSettings[]) {
+export function newTournament(tournamentId: string, properties: TournamentProperties, settings:TournamentSettings, bracketSettings: BracketSettings[]) {
     if (global.tournaments.find(t => t.getId() == tournamentId)) throw new Error(`Tournament ${tournamentId} already exists`)
-    global.tournaments.push(new TournamentEngine(tournamentId, properties, settings))
+    global.tournaments.push(TournamentEngine.create(tournamentId, properties, settings, bracketSettings))
     EventUpdateTournaments()
 }
 
@@ -63,10 +63,17 @@ export function updateTournamentProperties(tournamentId: string, partialProperti
     EventUpdateTournamentInfo(tournamentId)
 }
 
-export function updateTournamentSettings(tournamentId: string, partialSettings: Partial<BracketSettings>) {
+export function updateTournamentSettings(tournamentId: string, partialSettings: Partial<TournamentSettings>) {
     const tournament = global.tournaments.find(tournament => tournament.getId() == tournamentId)
     if (!tournament) throw new Error(`Tournament ${tournamentId} not found`)
     tournament.updateSettings(partialSettings)
+    EventUpdateTournamentSettings(tournamentId)
+}
+
+export function updateTournamentBracketSettings(tournamentId: string, bracket: number, partialSettings: Partial<BracketSettings>) {
+    const tournament = global.tournaments.find(tournament => tournament.getId() == tournamentId)
+    if (!tournament) throw new Error(`Tournament ${tournamentId} not found`)
+    tournament.updateBracketSettings(partialSettings, bracket)
     EventUpdateTournamentBracket(tournamentId)
 }
 

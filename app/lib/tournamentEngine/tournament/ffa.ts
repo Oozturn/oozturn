@@ -188,7 +188,7 @@ export class FFA extends Tournament {
     // score the tournament from the valid score calls in state that we generate
     state.forEach(function (o) {
       if (o.type === 'score') {
-        trn.score(o.id, o.score)
+        trn.score(o.id!, o.score!)
       }
     })
     // also re-attach match data to the appropriate matches if passed in

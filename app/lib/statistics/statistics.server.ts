@@ -1,6 +1,7 @@
 import { Duel } from "../tournamentEngine/tournament/duel";
-import { BracketType, Player, TournamentStatus } from "../tournamentEngine/types";
+import { BracketType, TournamentStatus } from "../tournamentEngine/types";
 import { Statistics } from "../types/statistics";
+import { range } from "../utils/ranges";
 
 declare global {
     // eslint-disable-next-line no-var
@@ -64,12 +65,6 @@ export function updateStats() {
         
         if (tournament.getStatus() != TournamentStatus.Done && !global.lan.showPartialResults) return
 
-        const getPlayerOpponentId = (player: Player) => {
-            return tournament.getSettings(0).useTeams ? tournament.getTeams().find(t => t.members.includes(player.userId))?.name || "" : player.userId
-        }
-        const getPlayerOpponentSeed = (player: Player) => {
-            return tournament.getSettings(0).useTeams ? tournament.getTeams().find(t => t.members.includes(player.userId))?.seed || -2 : player.seed
-        }
         const tournamentResults = tournament.getResults()
         tournament.getPlayers().forEach(player => {
             const userStat = global.stats.usersStats.find(us => us.userId == player.userId)
@@ -87,26 +82,28 @@ export function updateStats() {
             userStat.playedTournaments += 1
 
             let LBwins = 0
-            tournament.getMatches().forEach(match => {
-                if (!match.opponents.includes(getPlayerOpponentId(player)) || !match.score.every(s => s != undefined)) return
-
-                userStat.playedMatches += 1
-
-                const matchResult = match.opponents.map((opponent, index) => { return { opponent: opponent, seed: getPlayerOpponentSeed(player), score: match.score[index] } })
-                const playerMatchResult = matchResult.find(mr => mr.seed == getPlayerOpponentSeed(player))
-                if (tournament.getSettings(0).lowerScoreIsBetter)
-                    userStat.winsAgainstBetterSeed += matchResult.filter(mr => mr.score && (mr.score > (playerMatchResult?.score || 0)) && mr.seed > getPlayerOpponentSeed(player)).length
-                else
-                    userStat.winsAgainstBetterSeed += matchResult.filter(mr => mr.score && (mr.score < (playerMatchResult?.score || 0)) && mr.seed > getPlayerOpponentSeed(player)).length
-
-                if (tournament.getSettings(match.bracket).type == BracketType.Duel && tournament.getSettings(match.bracket).last == Duel.LB) {
-                    if (match.id.s == Duel.LB && match.score[match.opponents.findIndex(o => o == getPlayerOpponentId(player))] == Math.max(...match.score.map(s => s || 0))) {
-                        LBwins += 1
+            range(0, tournament.getInfo().bracketsCount - 1, 1).forEach(bracket => {
+                tournament.getMatches(bracket).forEach(match => {
+                    if (!match.opponents.includes(tournament.getOpponentId(player)) || !match.score.every(s => s != undefined)) return
+                    
+                    userStat.playedMatches += 1
+                    
+                    const matchResult = match.opponents.map((opponent, index) => { return { opponent: opponent, seed: tournament.getOpponentSeed(player.userId, bracket), score: match.score[index] } })
+                    const playerMatchResult = matchResult.find(mr => mr.seed == tournament.getOpponentSeed(player.userId, bracket))
+                    if (tournament.getSettings(0).lowerScoreIsBetter)
+                        userStat.winsAgainstBetterSeed += matchResult.filter(mr => mr.score && (mr.score > (playerMatchResult?.score || 0)) && mr.seed > tournament.getOpponentSeed(player.userId, bracket)).length
+                    else
+                        userStat.winsAgainstBetterSeed += matchResult.filter(mr => mr.score && (mr.score < (playerMatchResult?.score || 0)) && mr.seed > tournament.getOpponentSeed(player.userId, bracket)).length
+                    
+                    if (tournament.getSettings(match.bracket).type == BracketType.Duel && tournament.getSettings(match.bracket).last == Duel.LB) {
+                        if (match.id.s == Duel.LB && match.score[match.opponents.findIndex(o => o == tournament.getOpponentId(player))] == Math.max(...match.score.map(s => s || 0))) {
+                            LBwins += 1
+                        }
                     }
-                }
+                })
             })
             userStat.LBWonMatches += LBwins
-            if (LBwins && tournament.getMatches().filter(m => m.isFinale && m.opponents.includes(getPlayerOpponentId(player))))
+            if (LBwins && tournament.getMatches().filter(m => m.isFinale && m.opponents.includes(tournament.getOpponentId(player))))
                 userStat.secondChances += 1
             if (LBwins && playerResults.position == 1)
                 userStat.hardVictories += 1

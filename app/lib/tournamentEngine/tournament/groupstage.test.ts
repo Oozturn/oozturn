@@ -28,6 +28,7 @@ const checkSameStateAndMatch = function (
   }
 }
 
+//Not working because roundrobin version is not the same
 describe.skip('GroupState 10 players', () => {
   checkSameStateAndMatch([3, {}])
 });

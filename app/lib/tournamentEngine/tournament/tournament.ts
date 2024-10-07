@@ -17,9 +17,9 @@ export interface Result {
 }
 
 export interface StateElt {
-  type: 'score'
-  id: Id
-  score: number[]
+  type: 'score' | 'next' | 'done'
+  id?: Id
+  score?: number[]
 }
 
 export interface TournamentOpts {
@@ -27,12 +27,12 @@ export interface TournamentOpts {
 }
 
 export abstract class Tournament {
-  private name: string
+  protected name: string
   /** list of tournament matches */
   public matches: Match[]
   public state: StateElt[]
   private numPlayers: number
-  private opts!: TournamentOpts
+  protected opts!: TournamentOpts
 
   constructor(name: string, numPlayers: number, ms: Match[]) {
     this.name = name
@@ -229,7 +229,7 @@ export const sorted = function (m: Match) {
 
 // ensures first matches first and (for most part) forEach scorability
 // similarly how it's read in many cases: WB R2 G3, G1 R1 M1
-export const compareMatches = function (g1:{id:Id}, g2:{id:Id}) {
+export const compareMatches = function (g1: { id: Id }, g2: { id: Id }) {
   return (g1.id.s - g2.id.s) || (g1.id.r - g2.id.r) || (g1.id.m - g2.id.m);
 };
 
@@ -278,10 +278,10 @@ export const matchTieCompute = function (zipSlice: [number, number][], startIdx:
 
 // tie position an assumed sorted resAry using a metric fn
 // the metric fn must be sufficiently linked to the sorting fn used
-export const resTieCompute = function <M,R>(resAry: R[], startPos: number, cb : (r:R, pos:number) => void, metric : (r:R) => M) {
+export const resTieCompute = function <M, R>(resAry: R[], startPos: number, cb: (r: R, pos: number) => void, metric: (r: R) => M) {
   var pos = startPos
     , ties = 0
-    , points : M|number = -Infinity;
+    , points: M | number = -Infinity;
 
   for (var i = 0; i < resAry.length; i += 1) {
     var r = resAry[i];

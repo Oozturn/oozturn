@@ -132,7 +132,7 @@ export default function TournamentPage() {
     const users = useUsers()
 
 
-    const canAddPlayers = tournament.settings[0].type == BracketType.Duel || (tournament.players.length < GetFFAMaxPlayers(tournament.settings[0].sizes || [], tournament.settings[0].advancers || []) * (tournament.settings[0].useTeams ? tournament.settings[0].teamsMaxSize || 1 : 1))
+    const canAddPlayers = tournament.bracketSettings[0].type == BracketType.Duel || (tournament.players.length < GetFFAMaxPlayers(tournament.bracketSettings[0].sizes || [], tournament.bracketSettings[0].advancers || []) * (tournament.settings.useTeams ? tournament.settings.teamsMaxSize || 1 : 1))
 
     const joinTournament = () => {
         fetcher.submit(
@@ -192,7 +192,7 @@ export default function TournamentPage() {
                     </div>
                     {[TournamentStatus.Open, TournamentStatus.Balancing].includes(tournament.status) ?
                         <div className="is-flex-col grow no-basis">
-                            {tournament.settings[0].useTeams ?
+                            {tournament.settings.useTeams ?
                                 <OpponentsListTeam />
                                 :
                                 <OpponentsListSolo />
@@ -300,7 +300,7 @@ function TournamentCommands() {
         />
 
         <CustomModalBinary show={showConfirmCancel} onHide={() => setShowConfirmCancel(false)} content={"Es-tu sûr de vouloir annuler ce tournoi ?"} cancelButton={true} onConfirm={cancelTournament} />
-        <CustomModalBinary show={showConfirmStart} onHide={() => setShowConfirmStart(false)} content={<>Es-tu sûr de vouloir démarrer ce tournoi ? <br/>{tournament.settings[0].useTeams ? "Les équipes vides et les joueurs sans équipes seront retirés du tournoi." : ""}</>} cancelButton={true} onConfirm={startTournament} />
-        <CustomModalBinary show={showConfirmStop} onHide={() => setShowConfirmStop(false)} content={`Es-tu sûr de vouloir redémarrer ce tournoi ? Tu pourras éditer ${tournament.settings[0].useTeams ? "les équipes et " : ""}les inscriptions, mais toute sa progression sera perdue !`} cancelButton={true} onConfirm={stopTournament} />
+        <CustomModalBinary show={showConfirmStart} onHide={() => setShowConfirmStart(false)} content={<>Es-tu sûr de vouloir démarrer ce tournoi ? <br/>{tournament.settings.useTeams ? "Les équipes vides et les joueurs sans équipes seront retirés du tournoi." : ""}</>} cancelButton={true} onConfirm={startTournament} />
+        <CustomModalBinary show={showConfirmStop} onHide={() => setShowConfirmStop(false)} content={`Es-tu sûr de vouloir redémarrer ce tournoi ? Tu pourras éditer ${tournament.settings.useTeams ? "les équipes et " : ""}les inscriptions, mais toute sa progression sera perdue !`} cancelButton={true} onConfirm={stopTournament} />
     </div>
 }

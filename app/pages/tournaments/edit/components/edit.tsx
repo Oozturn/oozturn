@@ -3,7 +3,7 @@ import { Days, range } from "~/lib/utils/ranges"
 import { GetFFAMaxPlayers } from "~/lib/utils/tournaments"
 import { useFetcher } from "@remix-run/react"
 import { Duel } from "~/lib/tournamentEngine/tournament/duel"
-import { BracketSettings, BracketType, TournamentFullData, TournamentProperties } from "~/lib/tournamentEngine/types"
+import { BracketSettings, BracketType, TournamentFullData, TournamentProperties, TournamentSettings } from "~/lib/tournamentEngine/types"
 import { globalTournamentPoints } from "~/lib/types/lan"
 import { clickorkey } from "~/lib/utils/clickorkey"
 import { useLan } from "~/lib/components/contexts/LanContext"
@@ -50,30 +50,30 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
     const [tStartTime, set_tStartTime, modified_tStartTime] = useStateMonitored(existingTournament ? existingTournament.properties.startTime : lan.startDate)
     const [tComments, set_tComments, modified_tComments] = useStateMonitored(existingTournament ? existingTournament.properties.comments : "")
 
-    const [tType, set_tType, modified_tType] = useStateMonitored(existingTournament ? existingTournament.settings[0].type : BracketType.Duel)
-    const [tUseTeams, set_tUseTeams, modified_tUseTeams] = useStateMonitored(existingTournament ? existingTournament.settings[0].useTeams : false)
-    const [tLowerScoreIsBetter, set_tLowerScoreIsBetter, modified_tLowerScoreIsBetter] = useStateMonitored(existingTournament ? existingTournament.settings[0].lowerScoreIsBetter : false)
+    const [tType, set_tType, modified_tType] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].type : BracketType.Duel)
+    const [tUseTeams, set_tUseTeams, modified_tUseTeams] = useStateMonitored(existingTournament ? existingTournament.settings.useTeams : false)
+    const [tLowerScoreIsBetter, set_tLowerScoreIsBetter, modified_tLowerScoreIsBetter] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].lowerScoreIsBetter : false)
 
     // Duel options
-    const [tLast, set_tLast, modified_tLast] = useStateMonitored(existingTournament ? existingTournament.settings[0].last : undefined)
-    const [tShortBracket, set_tShortBracket, modified_tShortBracket] = useStateMonitored(existingTournament ? existingTournament.settings[0].short : undefined)
+    const [tLast, set_tLast, modified_tLast] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].last : undefined)
+    const [tShortBracket, set_tShortBracket, modified_tShortBracket] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].short : undefined)
 
     // FFA options
-    const [tNbRounds, set_tNbRounds] = useState(existingTournament ? existingTournament.settings[0].sizes?.length || 2 : 2)
-    const [tSizes, set_tSizes, modified_tSizes] = useStateMonitored(existingTournament ? existingTournament.settings[0].sizes || [6, 6] : [6, 6])
-    const [tAdvancers, set_tAdvancers, modified_tAdvancers] = useStateMonitored(existingTournament ? existingTournament.settings[0].advancers || [3] : [3])
-    const [tLimit, , modified_tLimit] = useStateMonitored(existingTournament ? existingTournament.settings[0].limit : 1)
+    const [tNbRounds, set_tNbRounds] = useState(existingTournament ? existingTournament.bracketSettings[0].sizes?.length || 2 : 2)
+    const [tSizes, set_tSizes, modified_tSizes] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].sizes || [6, 6] : [6, 6])
+    const [tAdvancers, set_tAdvancers, modified_tAdvancers] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].advancers || [3] : [3])
+    const [tLimit, , modified_tLimit] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].limit : 1)
 
     // GroupStage options
-    const [tGroupSize, set_groupSize, modified_groupSize] = useStateMonitored(existingTournament ? existingTournament.settings[0].groupSize || 4 : 4)
-    const [tWinPoints, set_winPoints, modified_winPoints] = useStateMonitored(existingTournament ? existingTournament.settings[0].winPoints || 3 : 3)
-    const [tTiePoints, set_tiePoints, modified_tiePoints] = useStateMonitored(existingTournament ? existingTournament.settings[0].tiePoints || 1 : 1)
-    const [tScoresBreak, , modified_scoresBreak] = useStateMonitored(existingTournament ? existingTournament.settings[0].scoresBreak || true : true)
-    const [tMeetTwice, , modified_meetTwice] = useStateMonitored(existingTournament ? existingTournament.settings[0].meetTwice || false : false)
+    const [tGroupSize, set_groupSize, modified_groupSize] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].groupSize || 4 : 4)
+    const [tWinPoints, set_winPoints, modified_winPoints] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].winPoints || 3 : 3)
+    const [tTiePoints, set_tiePoints, modified_tiePoints] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].tiePoints || 1 : 1)
+    const [tScoresBreak, , modified_scoresBreak] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].scoresBreak || true : true)
+    const [tMeetTwice, , modified_meetTwice] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].meetTwice || false : false)
 
     // Teams options
-    const [tUsersCanCreateTeams, set_tUsersCanCreateTeams, modified_tUsersCanCreateTeams] = useStateMonitored(existingTournament ? existingTournament.settings[0].usersCanCreateTeams : false)
-    const [tTeamsMaxSize, set_tTeamsMaxSize, modified_tTeamsMaxSize] = useStateMonitored(existingTournament ? existingTournament.settings[0].teamsMaxSize : 8)
+    const [tUsersCanCreateTeams, set_tUsersCanCreateTeams, modified_tUsersCanCreateTeams] = useStateMonitored(existingTournament ? existingTournament.settings.usersCanCreateTeams : false)
+    const [tTeamsMaxSize, set_tTeamsMaxSize, modified_tTeamsMaxSize] = useStateMonitored(existingTournament ? existingTournament.settings.teamsMaxSize : 8)
 
 
     const fetcher = useFetcher()
@@ -86,12 +86,14 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
             globalTournamentPoints: tGlobalTournamentPoints,
             comments: tComments,
         }
-        const settings: BracketSettings = {
-            // Common
-            type: tType,
+        const settings: TournamentSettings = {
             useTeams: tUseTeams,
             usersCanCreateTeams: tUsersCanCreateTeams,
             teamsMaxSize: tTeamsMaxSize,
+        }
+        const bracketSettings: BracketSettings = {
+            // Common
+            type: tType,
             lowerScoreIsBetter: tLowerScoreIsBetter,
             // Duel
             short: tShortBracket,
@@ -111,7 +113,8 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
             {
                 tournamentId: id,
                 tournamentProperties: JSON.stringify(properties),
-                tournamentSettings: JSON.stringify([settings])
+                tournamentSettings: JSON.stringify(settings),
+                tournamentBracketSettings: JSON.stringify([bracketSettings])
             },
             { method: "POST", encType: "application/json" }
         )
@@ -125,11 +128,13 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
             globalTournamentPoints: modified_tGlobalTournamentPoints ? tGlobalTournamentPoints : undefined,
             comments: modified_tComments ? tComments : undefined
         }
-        const partialSettings: Partial<BracketSettings> = {
-            type: modified_tType ? tType : undefined,
+        const partialTournamentSettings: Partial<TournamentSettings> = {
             useTeams: modified_tUseTeams ? tUseTeams : undefined,
             usersCanCreateTeams: modified_tUsersCanCreateTeams ? tUsersCanCreateTeams : undefined,
             teamsMaxSize: modified_tTeamsMaxSize ? tTeamsMaxSize : undefined,
+        }
+        const partialBracketSettings: Partial<BracketSettings> = {
+            type: modified_tType ? tType : undefined,
             lowerScoreIsBetter: modified_tLowerScoreIsBetter ? tLowerScoreIsBetter : undefined,
             last: modified_tLast ? tLast : undefined,
             short: modified_tShortBracket ? tShortBracket : undefined,
@@ -146,7 +151,8 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
             {
                 tournamentId: tId,
                 tournamentProperties: JSON.stringify(partialProperties),
-                tournamentSettings: JSON.stringify(partialSettings)
+                tournamentSettings: JSON.stringify(partialTournamentSettings),
+                tournamentBracketSettings: JSON.stringify([partialBracketSettings])
             },
             { method: "POST", encType: "application/json" }
         )

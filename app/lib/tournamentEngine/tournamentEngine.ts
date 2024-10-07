@@ -3,11 +3,11 @@ import { Duel } from "./tournament/duel"
 import { FFA } from "./tournament/ffa"
 import { GroupStage } from "./tournament/groupstage"
 import { Id } from "./tournament/match"
-import { BracketSettings, BracketType, Match, Player, Result, Team, TournamentFullData, TournamentInfo, TournamentProperties, TournamentStatus } from "./types"
+import { BracketResult, BracketSettings, BracketStatus, BracketType, Match, Player, Result, Seeding, Team, TournamentFullData, TournamentInfo, TournamentProperties, TournamentSettings, TournamentStatus } from "./types"
+import TTLCache from '@isaacs/ttlcache'
 
 /** States used to save brackets progression */
 interface BracketState {
-	bracket: number
 	id: Id
 	score: (number | undefined)[]
 }
@@ -17,7 +17,15 @@ export interface TournamentStorage {
 	players: Player[]
 	teams: Team[]
 	properties: TournamentProperties
-	settings: BracketSettings[]
+	settings: TournamentSettings
+	activeBracket: number
+	brackets: BracketStorage[]
+}
+
+export interface BracketStorage {
+	seedings: Seeding[]
+	status: BracketStatus
+	settings: BracketSettings,
 	states: BracketState[]
 }
 
@@ -28,8 +36,9 @@ interface TournamentSpecification {
 	getSettings(bracket?: number): BracketSettings
 	getFullData(): TournamentFullData
 
-	updateProperties(partialPropertiess: Partial<TournamentProperties>): void
-	updateSettings(partialSettings: Partial<BracketSettings>, bracket?: number): void
+	updateProperties(partialProperties: Partial<TournamentProperties>): void
+	updateSettings(partialSettings: Partial<TournamentSettings>): void
+	updateBracketSettings(partialSettings: Partial<BracketSettings>, bracket?: number): void
 
 	getPlayers(): Player[]
 	addPlayer(userId: string): void
@@ -53,7 +62,10 @@ interface TournamentSpecification {
 	togglePauseTournament(): void
 	stopTournament(): void
 
-	score(matchId: Id, opponent: string, score: number, bracket?: number): void
+	score(matchId: Id, opponent: string, score: number): void
+
+	getOpponentId(opponent: (Player | Team)): string
+	getOpponentSeed(opponentId: string, bracket?: number): number
 
 	getMatches(bracket?: number): Match[]
 	getMatch(id: Id, bracket?: number): Match
@@ -62,38 +74,49 @@ interface TournamentSpecification {
 
 export class TournamentEngine implements TournamentSpecification {
 
-	private id: string
-	private status: TournamentStatus
-	private properties: TournamentProperties
+	private id!: string
+	private status!: TournamentStatus
+	private properties!: TournamentProperties
+	private settings!: TournamentSettings
 
-	private players: Player[]
-	private teams: Team[]
+	private players!: Player[]
+	private teams!: Team[]
 
-	private settings: BracketSettings[]
-	private brackets: (Duel | FFA | GroupStage)[] = []
-	private bracketsStates: BracketState[]
+	private activeBracket!: number
+	private brackets!: Bracket[]
+	private resultsCache = new TTLCache<number,Result[]>({ ttl: 1000 * 60 })
 
-	private results: Result[] = []
-
-	constructor(
+	public static create(
 		id: string,
 		properties: TournamentProperties,
-		settings: BracketSettings[],
-		status?: TournamentStatus,
-		players?: Player[],
-		teams?: Team[],
-		bracketsStates?: BracketState[]
+		settings: TournamentSettings,
+		bracketSettings: BracketSettings[]
 	) {
-		this.id = id
-		this.status = status || TournamentStatus.Open
-		this.properties = properties
-		this.settings = settings
-		this.players = players || []
-		this.teams = teams || []
-		this.bracketsStates = bracketsStates || []
-		if (![TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status))
-			this.startTournament(true)
+		const tournament = new TournamentEngine()
+		tournament.id = id
+		tournament.properties = properties
+		tournament.settings = settings
+		tournament.status = TournamentStatus.Open
+		tournament.players = []
+		tournament.teams = []
+		tournament.activeBracket = 0
+		tournament.brackets = bracketSettings.map(bracketSetting => Bracket.create(bracketSetting))
+		return tournament
 	}
+
+	public static fromStorage(tournamentStorage: TournamentStorage): TournamentEngine {
+		const tournament = new TournamentEngine()
+		tournament.id = tournamentStorage.id
+		tournament.properties = tournamentStorage.properties
+		tournament.settings = tournamentStorage.settings
+		tournament.status = tournamentStorage.status
+		tournament.players = tournamentStorage.players
+		tournament.teams = tournamentStorage.teams
+		tournament.activeBracket = tournamentStorage.activeBracket
+		tournament.brackets = tournamentStorage.brackets.map(bracket => Bracket.fromStorage(bracket))
+		return tournament
+	}
+
 	public getStorage(): TournamentStorage {
 		return {
 			id: this.id,
@@ -101,58 +124,10 @@ export class TournamentEngine implements TournamentSpecification {
 			players: this.players,
 			teams: this.teams,
 			properties: this.properties,
-			settings: [this.getSettings()],
-			states: this.bracketsStates
+			settings: this.settings,
+			brackets: this.brackets.map(bracket => bracket.getStorage()),
+			activeBracket: this.activeBracket,
 		}
-	}
-	public static fromStorage(tournamentStorage: TournamentStorage): TournamentEngine {
-		return new TournamentEngine(
-			tournamentStorage.id,
-			tournamentStorage.properties,
-			tournamentStorage.settings,
-			tournamentStorage.status,
-			tournamentStorage.players,
-			tournamentStorage.teams,
-			tournamentStorage.states
-		)
-	}
-
-	private reSeedOpponents(opponents: Team[] | Player[]): void {
-		opponents.forEach((opponent, index) => opponent.seed = index)
-	}
-	private applyState(state: BracketState): void {
-		if (state.score.some(value => value === undefined))
-			throw new Error(`Tried to apply an incomplete state: ${state}`)
-		const unscorableReason = this.brackets[state.bracket].unscorable(state.id, state.score as number[], false)
-		if (unscorableReason != null)
-			throw new Error(`Impossible to apply score ${state.score} to match ${state.id} : ${unscorableReason}`)
-		this.brackets[state.bracket].score(state.id, state.score as number[])
-		if (this.brackets[state.bracket].isDone()) this.status = TournamentStatus.Done
-		this.updateResults()
-	}
-	private updateResults(): void {
-		this.results = []
-		this.brackets.at(-1)?.results().forEach(res => {
-			const concernedUsers: string[] = []
-			if (this.settings.at(-1)?.useTeams) {
-				const concernedPlayers = this.teams.find(team => team.seed == res.seed)?.members
-				if (concernedPlayers) concernedUsers.push(...concernedPlayers)
-			} else {
-				const concernedPlayer = this.players.find(player => player.seed == res.seed - 1)?.userId
-				if (concernedPlayer) concernedUsers.push(concernedPlayer)
-			}
-			concernedUsers.forEach(userId => {
-				const forfeitedPlayer = this.players.find(player => player.userId == userId)?.isForfeit
-				this.results.push({
-					userId: userId,
-					position: res.pos - 1,
-					globalTournamentPoints: (res.pos - 1 in this.properties.globalTournamentPoints.leaders ? this.properties.globalTournamentPoints.leaders[res.pos - 1] : this.properties.globalTournamentPoints.default) - (forfeitedPlayer ? this.properties.globalTournamentPoints.default : 0),
-					wins: res.wins,
-					for: res.for,
-					against: res.against
-				})
-			})
-		})
 	}
 
 	public getId(): string {
@@ -165,13 +140,15 @@ export class TournamentEngine implements TournamentSpecification {
 		return {
 			id: this.id,
 			status: this.status,
+			bracketsCount: this.brackets.length,
+			currentBracket: this.activeBracket,
 			players: this.players,
 			teams: this.teams,
 			...this.properties
 		}
 	}
-	public getSettings(bracket: number = 0): BracketSettings {
-		return this.settings[bracket]
+	public getSettings(bracket: number = this.activeBracket): BracketSettings {
+		return this.brackets[bracket].settings
 	}
 	public getFullData(): TournamentFullData {
 		return {
@@ -179,20 +156,26 @@ export class TournamentEngine implements TournamentSpecification {
 			status: this.status,
 			properties: this.properties,
 			settings: this.settings,
+			bracketSettings: this.brackets.map(bracket => bracket.settings),
 			players: this.players,
 			teams: this.teams,
 			matches: this.getMatches()
 		}
 	}
 
-	public updateProperties(partialPropertiess: Partial<TournamentProperties>): void {
-		this.properties = { ...this.properties, ...partialPropertiess }
-		this.updateResults()
+	public updateProperties(partialProperties: Partial<TournamentProperties>): void {
+		this.properties = { ...this.properties, ...partialProperties }
+		this.resultsCache.clear()
 	}
-	public updateSettings(partialSettings: Partial<BracketSettings>, bracket: number = 0): void {
+	public updateSettings(partialSettings: Partial<TournamentSettings>): void {
+		this.settings = { ...this.settings, ...partialSettings }
+		this.resultsCache.clear()
+	}
+	public updateBracketSettings(partialSettings: Partial<BracketSettings>, bracket: number = this.activeBracket): void {
 		if (![TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status))
 			throw new Error(`Impossible to change settings: tournament ${this.id} already started.`)
-		this.settings[bracket] = { ...this.settings[bracket], ...partialSettings }
+		const currentSettings = this.brackets[bracket].settings
+		this.brackets[bracket].settings = { ...currentSettings, ...partialSettings }
 	}
 
 	public getPlayers(): Player[] {
@@ -201,7 +184,7 @@ export class TournamentEngine implements TournamentSpecification {
 	public addPlayer(userId: string): void {
 		if (this.players.find(player => player.userId == userId))
 			throw new Error(`Player ${userId} already in tournament ${this.id}`)
-		this.players.push({ seed: this.players.length, userId: userId, isForfeit: false })
+		this.players.push({ userId: userId, isForfeit: false })
 	}
 	public removePlayer(userId: string): void {
 		const index = this.players.findIndex(player => player.userId == userId)
@@ -211,7 +194,6 @@ export class TournamentEngine implements TournamentSpecification {
 		const team = this.teams.find(team => team.members.includes(userId))
 		if (team)
 			team.members.splice(team.members.findIndex(m => m == userId), 1)
-		this.reSeedOpponents(this.players)
 	}
 	public reorderPlayers(oldIndex: number, newIndex: number): void {
 		if (this.players.length <= oldIndex || this.players.length <= newIndex || oldIndex < 0 || newIndex < 0 || oldIndex == newIndex) {
@@ -219,7 +201,6 @@ export class TournamentEngine implements TournamentSpecification {
 		}
 		const player = this.players.splice(oldIndex, 1)[0]
 		this.players.splice(newIndex, 0, player)
-		this.reSeedOpponents(this.players)
 	}
 
 	public getTeams(): Team[] {
@@ -228,14 +209,13 @@ export class TournamentEngine implements TournamentSpecification {
 	public addTeam(teamName: string): void {
 		if (this.teams.find(team => team.name == teamName))
 			throw new Error(`Team ${teamName} already exists in tournament ${this.id}`)
-		this.teams.push({ seed: this.teams.length, name: teamName, members: [] })
+		this.teams.push({ name: teamName, members: [] })
 	}
 	public removeTeam(teamName: string): void {
 		const index = this.teams.findIndex(team => team.name == teamName)
 		if (index == -1)
 			throw new Error(`Team ${teamName} not found in tournament ${this.id}`)
 		this.teams.splice(index, 1)
-		this.reSeedOpponents(this.teams)
 	}
 	public renameTeam(teamName: string, newTeamName: string): void {
 		const team = this.teams.find(team => team.name == teamName)
@@ -266,7 +246,6 @@ export class TournamentEngine implements TournamentSpecification {
 		}
 		const team = this.teams.splice(oldIndex, 1)[0]
 		this.teams.splice(newIndex, 0, team)
-		this.reSeedOpponents(this.teams)
 	}
 	public distributePlayersOnTeams(): void {
 		if (!this.teams.length)
@@ -274,7 +253,7 @@ export class TournamentEngine implements TournamentSpecification {
 		const notInTeamPlayers = this.players.filter(player => !this.teams.flatMap(team => team.members).includes(player.userId))
 		while (notInTeamPlayers.length) {
 			const teams = this.teams.map(t => t).sort((a, b) => a.members.length - b.members.length)
-			if (this.settings[0].teamsMaxSize && teams[0].members.length >= this.settings[0].teamsMaxSize) break
+			if (this.settings.teamsMaxSize && teams[0].members.length >= this.settings.teamsMaxSize) break
 			notInTeamPlayers.splice(0, Math.max(1, teams[1].members.length - teams[0].members.length)).forEach(p => this.addPlayerToTeam(teams[0].name, p.userId))
 		}
 	}
@@ -303,27 +282,16 @@ export class TournamentEngine implements TournamentSpecification {
 			throw new Error(`Tournament ${this.id} not in Running or Paused mode`)
 		this.status = this.status == TournamentStatus.Open ? TournamentStatus.Balancing : TournamentStatus.Open
 	}
-	public startTournament(resume: boolean = false): void {
-		if (!resume && ![TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status))
+	public startTournament(): void {
+		if (![TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status))
 			throw new Error(`Tournament ${this.id} not in Open or Balance mode`)
-		/** TODO: Edit here the case of multi staged tournaments */
-		if (this.settings[0].useTeams) {
+		if (this.settings.useTeams) {
 			this.teams = this.teams.filter(team => team.members.length > 0)
 			this.players = this.players.filter(player => this.teams.flatMap(team => team.members).includes(player.userId))
 		}
-		const opponentsLength = this.settings[0].useTeams ? this.teams?.length || 0 : this.players.length
-		if (this.settings[0].type == BracketType.Duel) {
-			this.brackets = [new Duel(opponentsLength, this.settings[0])]
-		} else if (this.settings[0].type == BracketType.FFA) {
-			this.brackets = [new FFA(opponentsLength, this.settings[0])]
-		} else if (this.settings[0].type == BracketType.GroupStage) {
-			this.brackets = [new GroupStage(opponentsLength, this.settings[0])]
-		} else {
-			throw new Error(`Unknown BracketType : ${this.settings[0].type}`)
-		}
+		const opponents = this.settings.useTeams ? this.teams : this.players
+		this.brackets[0].start(opponents)
 		this.status = TournamentStatus.Running
-		if (!resume) this.bracketsStates = []
-		else this.bracketsStates.forEach(bs => bs.score.every(value => value != undefined) && this.applyState(bs))
 	}
 	public togglePauseTournament(): void {
 		if (![TournamentStatus.Paused, TournamentStatus.Running].includes(this.status))
@@ -336,19 +304,242 @@ export class TournamentEngine implements TournamentSpecification {
 		this.status = TournamentStatus.Open
 	}
 
-	public score(matchId: Id, opponent: string, score: number, bracket: number = 0): void {
-		const match = this.getMatch(matchId, bracket)
+	public score(matchId: Id, opponent: string, score: number): void {
+		const currentBracket = this.brackets[this.activeBracket]
+		currentBracket.score(matchId, opponent, score)
+		this.resultsCache.delete(this.activeBracket)
+		if (currentBracket.isDone()) {
+			if (this.activeBracket == this.brackets.length - 1) {
+				// last bracket done
+				this.status = TournamentStatus.Done
+			} else {
+				this.startNextBracket()
+			}
+
+		}
+	}
+
+	public getOpponentId(opponent: (Player | Team)): string {
+		return getOpponentId(opponent)
+	}
+
+	public getOpponentSeed(opponentId: string, bracket: number = this.activeBracket): number {
+		return this.brackets[bracket].getOpponentSeed(opponentId) || -1
+	}
+
+	private startNextBracket() {
+		const previousBracket = this.brackets[this.activeBracket]
+		this.activeBracket++
+		const nextBracket = this.brackets[this.activeBracket]
+
+		let nextOpponents
+		if(this.settings.useTeams) {
+			nextOpponents = this.teams.slice()
+		} else {
+			nextOpponents = this.players.slice()
+		}
+
+		const results = previousBracket.results()
+		nextOpponents.sort(usingResults(results))
+
+		if(nextBracket.settings.size) {
+			nextOpponents = nextOpponents.slice(0, nextBracket.settings.size)
+		}
+
+		nextBracket.start(nextOpponents)
+	}
+
+	public getMatches(bracket: number = this.activeBracket): Match[] {
+		if ([TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status)) return []
+
+		return this.brackets[bracket].getMatches().map(match => <Match>{
+			...match,
+			bracket: bracket
+		})
+	}
+	public getMatch(id: Id, bracket: number = this.activeBracket): Match {
+		if ([TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status))
+			throw new Error(`Tournament ${this.id} not started yet`)
+		return <Match>{
+			...this.brackets[bracket].getMatch(id),
+			bracket: bracket
+		}
+	}
+	public getResults(bracket: number = this.activeBracket): Result[] {
+		if(!this.resultsCache.has(bracket)) {
+			this.computeResults(bracket)
+		}
+		return this.resultsCache.get(bracket)!
+	}
+
+	private computeResults(bracket: number) {
+		const results : Result[] = []
+		this.brackets[bracket].results().forEach(res => {
+			const concernedUsers: string[] = []
+			if (this.settings.useTeams) {
+				const concernedPlayers = this.teams.find(team => team.name == res.id)?.members
+				if (concernedPlayers) concernedUsers.push(...concernedPlayers)
+			} else {
+				concernedUsers.push(res.id)
+			}
+			concernedUsers.forEach(userId => {
+				const forfeitedPlayer = this.players.find(player => player.userId == userId)?.isForfeit
+				results.push({
+					userId: userId,
+					position: res.pos,
+					globalTournamentPoints: (res.pos - 1 in this.properties.globalTournamentPoints.leaders ? this.properties.globalTournamentPoints.leaders[res.pos - 1] : this.properties.globalTournamentPoints.default) - (forfeitedPlayer ? this.properties.globalTournamentPoints.default : 0),
+					wins: res.wins,
+					for: res.for,
+					against: res.against
+				})
+			})
+		})
+		this.resultsCache.set(bracket, results)
+	}
+}
+
+class Bracket {
+	static create(bracketSetting: BracketSettings): Bracket {
+		const bracket = new Bracket()
+		bracket.settings = bracketSetting
+		return bracket
+	}
+
+	static fromStorage(bracketStorage: BracketStorage): Bracket {
+		const bracket = new Bracket()
+		bracket.settings = bracketStorage.settings
+		bracket.states = bracketStorage.states
+		bracket.status = bracketStorage.status
+		bracket.seedings = new Map(bracketStorage.seedings.map(seeding => [seeding.seed, seeding.id]))
+
+		if (bracket.status != BracketStatus.Pending) {
+			bracket.initInternalBracket(bracket.seedings.size)
+			bracket.states.forEach(bs => bs.score.every(value => value != undefined) && bracket.applyState(bs))
+		}
+
+		return bracket
+	}
+
+	private internalBracket!: (Duel | FFA | GroupStage)
+	private states: BracketState[] = []
+	private seedings: Map<number, string> = new Map()
+	private status = BracketStatus.Pending
+	settings!: BracketSettings
+
+	getStorage(): BracketStorage {
+		return {
+			status: this.status,
+			settings: this.settings,
+			states: this.states,
+			seedings: [...this.seedings.entries()].map(entry => { return { seed: entry[0], id: entry[1] } })
+		}
+	}
+
+	start(opponents: Player[] | Team[]) {
+		this.initInternalBracket(opponents.length)
+		this.seedOpponents(opponents)
+		this.status = BracketStatus.Running
+	}
+
+	seedOpponents(opponents: Player[] | Team[]) {
+		this.seedings = new Map()
+		let seed = 1
+		opponents.forEach(opponent => {
+			const id = isPlayer(opponent) ? opponent.userId : opponent.name
+			// this.seedings.push({ id: id, seed: seed })
+			this.seedings.set(seed, id)
+			seed++
+		})
+	}
+
+	getOpponentSeed(opponentId: string) {
+		for (const [key, value] of this.seedings.entries()) {
+			if (value === opponentId)
+				return key;
+		}
+	}
+
+	initInternalBracket(opponentCount: number) {
+		if (this.settings.type == BracketType.Duel) {
+			this.internalBracket = new Duel(opponentCount, this.settings)
+		} else if (this.settings.type == BracketType.FFA) {
+			this.internalBracket = new FFA(opponentCount, this.settings)
+		} else if (this.settings.type == BracketType.GroupStage) {
+			this.internalBracket = new GroupStage(opponentCount, this.settings)
+		} else {
+			throw new Error(`Unknown BracketType : ${this.settings.type}`)
+		}
+	}
+
+	results(): BracketResult[] {
+		return this.internalBracket.results()
+			.map(result => {
+				return {
+					...result,
+					id: this.seedings.get(result.seed)!
+				}
+			})
+	}
+
+	getMatch(id: Id) {
+		const match = this.internalBracket.findMatch(id)
+		return {
+			id: match.id,
+			opponents: match.p.map(p =>
+				this.seedings.get(p)
+			),
+			score: match.m || this.states.find(bs => bs.id == match.id)?.score || match.p.map(() => undefined),
+			scorable: this.internalBracket.unscorable(match.id, match.p.map((_, i) => i), false) == null
+		}
+	}
+
+	getMatches() {
+		const WBR1matches = this.internalBracket.matches.filter(m => m.id.s == 1 && m.id.r == 1)
+		const bracket_power = Math.log(2 * WBR1matches.length) / Math.log(2)
+		const finalsList: string[] = []
+		if (this.settings.type == BracketType.Duel) {
+			if (this.settings.last == Duel.WB) {
+				finalsList.push(IdToString({ s: Duel.WB, r: bracket_power, m: 1 }))
+			}
+			else {
+				finalsList.push(IdToString({ s: Duel.LB, r: 2 * bracket_power - 1, m: 1 }))
+				if (!this.settings.short)
+					finalsList.push(IdToString({ s: Duel.LB, r: 2 * bracket_power, m: 1 }))
+			}
+		}
+		if (this.settings.type == BracketType.FFA) {
+			finalsList.push(IdToString({ s: 1, r: Math.max(...this.internalBracket.matches.map(m => m.id.r)), m: 1 }))
+		}
+
+		const notUsedFinale = this.internalBracket.isDone() && this.internalBracket.matches.find(match => !match.m)?.id || undefined
+
+		return this.internalBracket.matches.filter(match => !notUsedFinale || (notUsedFinale && IdToString(notUsedFinale) != IdToString(match.id))).map(match => {
+			return {
+				id: match.id,
+				opponents: match.p.map(p =>
+					this.seedings.get(p)
+				),
+				score: match.m || this.states.find(bs => IdToString(bs.id) == IdToString(match.id))?.score || match.p.map(() => undefined),
+				scorable: this.internalBracket.unscorable(match.id, match.p.map((_, i) => i), false) == null,
+				isFinale: finalsList.includes(IdToString(match.id))
+			}
+		}
+		)
+	}
+
+	score(matchId: Id, opponent: string, score: number): void {
+		const match = this.getMatch(matchId)
 		const opponentIndex = match.opponents.findIndex(o => o == opponent)
 		if (opponentIndex == -1)
 			throw new Error(`Unknown opponent in match ${IdToString(matchId)}: ${opponent}`)
-		const state = this.bracketsStates.find(bs => IdToString(bs.id) == IdToString(matchId) && bracket == bs.bracket)
+		const state = this.states.find(bs => IdToString(bs.id) == IdToString(matchId))
 		if (!state) {
-			this.bracketsStates.push({ bracket: bracket, id: matchId, score: match.opponents.map(o => o == opponent ? score : undefined) })
+			this.states.push({ id: matchId, score: match.opponents.map(o => o == opponent ? score : undefined) })
 			return
 		}
 		const futureScore = state.score.map((s, i) => i == opponentIndex ? score : s)
 		if (futureScore.every(value => value != undefined)) {
-			const unscorableReason = this.brackets[bracket].unscorable(matchId, futureScore as number[], false)
+			const unscorableReason = this.internalBracket.unscorable(matchId, futureScore as number[], false)
 			if (unscorableReason != null)
 				throw new Error(`Impossible to apply score ${futureScore} to match ${matchId} : ${unscorableReason}`)
 		}
@@ -358,64 +549,43 @@ export class TournamentEngine implements TournamentSpecification {
 		}
 	}
 
-	public getMatches(bracket: number = 0): Match[] {
-
-		if ([TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status)) return []
-
-		const WBR1matches = this.brackets[bracket].matches.filter(m => m.id.s == 1 && m.id.r == 1)
-		const bracket_power = Math.log(2 * WBR1matches.length) / Math.log(2)
-		const finalsList: string[] = []
-		if (this.settings[bracket].type == BracketType.Duel) {
-			if (this.settings[bracket].last == Duel.WB) {
-				finalsList.push(IdToString({ s: Duel.WB, r: bracket_power, m: 1 }))
-			}
-			else {
-				finalsList.push(IdToString({ s: Duel.LB, r: 2 * bracket_power - 1, m: 1 }))
-				if (!this.settings[bracket].short)
-					finalsList.push(IdToString({ s: Duel.LB, r: 2 * bracket_power, m: 1 }))
-			}
+	isDone() {
+		if (this.status == BracketStatus.Done) {
+			return true
 		}
-		if (this.settings[bracket].type == BracketType.FFA) {
-			finalsList.push(IdToString({ s: 1, r: Math.max(...this.brackets[bracket].matches.map(m => m.id.r)), m: 1 }))
+		const isDone = this.internalBracket.isDone()
+		if (isDone) {
+			this.status = BracketStatus.Done
 		}
-
-		const notUsedFinale = this.brackets[bracket].isDone() && this.brackets[bracket].matches.find(match => !match.m)?.id || undefined
-
-		if ([TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status)) return []
-		return this.brackets[bracket].matches.filter(match => !notUsedFinale || (notUsedFinale && IdToString(notUsedFinale) != IdToString(match.id))).map(match =>
-			<Match>{
-				bracket: bracket,
-				id: match.id,
-				opponents: match.p.map(p =>
-					this.settings[bracket].useTeams ?
-						this.teams.find(team => team.seed + 1 == p)?.name
-						:
-						this.players.find(player => player.seed + 1 == p)?.userId
-				),
-				score: match.m || this.bracketsStates.find(bs => IdToString(bs.id) == IdToString(match.id) && (bracket) == bs.bracket)?.score || match.p.map(() => undefined),
-				scorable: this.brackets[bracket].unscorable(match.id, match.p.map((_, i) => i), false) == null,
-				isFinale: finalsList.includes(IdToString(match.id))
-			}
-		)
+		return isDone
 	}
-	public getMatch(id: Id, bracket: number = 0): Match {
-		if ([TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status))
-			throw new Error(`Tournament ${this.id} not started yet`)
-		const match = this.brackets[bracket].findMatch(id)
-		return <Match>{
-			bracket: bracket,
-			id: match.id,
-			opponents: match.p.map(p =>
-				this.settings[bracket].useTeams ?
-					this.teams.find(team => team.seed + 1 == p)?.name
-					:
-					this.players.find(player => player.seed + 1 == p)?.userId
-			),
-			score: match.m || this.bracketsStates.find(bs => bs.id == match.id)?.score || match.p.map(() => undefined),
-			scorable: this.brackets[bracket].unscorable(match.id, match.p.map((_, i) => i), false) == null
-		}
+
+	applyState(state: BracketState): void {
+		if (state.score.some(value => value === undefined))
+			throw new Error(`Tried to apply an incomplete state: ${state}`)
+		const unscorableReason = this.internalBracket.unscorable(state.id, state.score as number[], false)
+		if (unscorableReason != null)
+			throw new Error(`Impossible to apply score ${state.score} to match ${state.id} : ${unscorableReason}`)
+		this.internalBracket.score(state.id, state.score as number[])
 	}
-	public getResults(): Result[] {
-		return this.results
+}
+
+function isPlayer(value: Player | Team): value is Player {
+	return Object.prototype.hasOwnProperty.call(value, 'userId');
+}
+
+function getOpponentId(opponent: Player | Team) {
+	if(isPlayer(opponent)) {
+		return opponent.userId
+	} else {
+		return opponent.name
+	}
+}
+
+function usingResults(results: BracketResult[]) : (((a: Team, b: Team) => number) & ((a: Player, b: Player) => number)) {
+	return (a, b) => {
+		const resultA = results.find(r => r.id == getOpponentId(a))!
+		const resultB = results.find(r => r.id == getOpponentId(b))!
+		return resultA?.pos - resultB?.pos
 	}
 }
