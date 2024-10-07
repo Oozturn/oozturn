@@ -185,7 +185,7 @@ export function OpponentsListTeam() {
                 over.id = (over.id as string).replace('team_', '')
                 if (active.data.current && (over.id != active.data.current.team)) {
                     const targetTeam = tournament.teams?.find(t => t.name == over.id)
-                    if (targetTeam && tournament.bracketSettings[0].teamsMaxSize && targetTeam.members.length < tournament.bracketSettings[0].teamsMaxSize) {
+                    if (targetTeam && tournament.settings.teamsMaxSize && targetTeam.members.length < tournament.settings.teamsMaxSize) {
                         await removePlayerFromTeams(playerName)
                         await addPlayerToTeam(playerName, targetTeam.name)
                     }
@@ -254,7 +254,7 @@ export function OpponentsListTeam() {
             <div className='is-flex-col grow gap-2'>
                 <div className='is-flex justify-space-between align-center'>
                     <div className='is-title medium is-uppercase'>équipes</div>
-                    {(user.isAdmin || (tournament.bracketSettings[0].usersCanCreateTeams && notInTeamPlayers.includes(user.id) && tournament.status == TournamentStatus.Open)) && canAddTeam &&
+                    {(user.isAdmin || (tournament.settings.usersCanCreateTeams && notInTeamPlayers.includes(user.id) && tournament.status == TournamentStatus.Open)) && canAddTeam &&
                         <CustomButton callback={() => setShowNewTeam(true)} contentItems={[SubsribedSVG(), "New team"]} customClasses='small-button' colorClass='has-background-primary-accent' />
                     }
                 </div>
@@ -309,7 +309,7 @@ function TeamTile({ team, seed, draggedPlayer, addPlayerToTeam, removePlayerFrom
         id: "team_" + team.name,
     })
 
-    const isFull = !(tournament.bracketSettings[0].useTeams && tournament.bracketSettings[0].teamsMaxSize && team.members.length < tournament.bracketSettings[0].teamsMaxSize)
+    const isFull = !(tournament.settings.useTeams && tournament.settings.teamsMaxSize && team.members.length < tournament.settings.teamsMaxSize)
     const couldJoin = !team.members.includes(user.id)
 
     async function renameTeam(oldTeamName: string, newTeamName: string) {

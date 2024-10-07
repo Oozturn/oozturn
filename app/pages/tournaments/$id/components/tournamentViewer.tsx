@@ -219,7 +219,7 @@ function MatchTile({ matchId }: { matchId: Id }) {
 
                     return <div key={IdToString(matchId) + '-' + String(index)} className="is-flex-row align-end justify-space-between gap-2" onMouseEnter={() => setHightlightOpponent(opponent || "")} onMouseLeave={() => setHightlightOpponent("")}>
                         {opponent != undefined ?
-                            tournament.bracketSettings[0].useTeams ?
+                            tournament.settings.useTeams ?
                                 <FakeUserTileRectangle userName={opponent} initial={opponent[0]} maxLength={245} colorClass={getOpponentColorClass(opponent)} />
                                 :
                                 <UserTileRectangle userId={opponent} maxLength={245} showTeam={false} colorClass={getOpponentColorClass(opponent)} />

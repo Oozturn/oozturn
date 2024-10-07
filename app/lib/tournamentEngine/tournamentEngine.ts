@@ -36,7 +36,8 @@ interface TournamentSpecification {
 	getSettings(bracket?: number): BracketSettings
 	getFullData(): TournamentFullData
 
-	updateProperties(partialPropertiess: Partial<TournamentProperties>): void
+	updateProperties(partialProperties: Partial<TournamentProperties>): void
+	updateSettings(partialSettings: Partial<TournamentSettings>): void
 	updateBracketSettings(partialSettings: Partial<BracketSettings>, bracket?: number): void
 
 	getPlayers(): Player[]
@@ -62,6 +63,9 @@ interface TournamentSpecification {
 	stopTournament(): void
 
 	score(matchId: Id, opponent: string, score: number): void
+
+	getOpponentId(opponent: (Player | Team)): string
+	getOpponentSeed(opponentId: string, bracket?: number): number
 
 	getMatches(bracket?: number): Match[]
 	getMatch(id: Id, bracket?: number): Match
@@ -136,6 +140,8 @@ export class TournamentEngine implements TournamentSpecification {
 		return {
 			id: this.id,
 			status: this.status,
+			bracketsCount: this.brackets.length,
+			currentBracket: this.activeBracket,
 			players: this.players,
 			teams: this.teams,
 			...this.properties
@@ -157,15 +163,19 @@ export class TournamentEngine implements TournamentSpecification {
 		}
 	}
 
-	public updateProperties(partialPropertiess: Partial<TournamentProperties>): void {
-		this.properties = { ...this.properties, ...partialPropertiess }
+	public updateProperties(partialProperties: Partial<TournamentProperties>): void {
+		this.properties = { ...this.properties, ...partialProperties }
+		this.resultsCache.clear()
+	}
+	public updateSettings(partialSettings: Partial<TournamentSettings>): void {
+		this.settings = { ...this.settings, ...partialSettings }
 		this.resultsCache.clear()
 	}
 	public updateBracketSettings(partialSettings: Partial<BracketSettings>, bracket: number = this.activeBracket): void {
 		if (![TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status))
 			throw new Error(`Impossible to change settings: tournament ${this.id} already started.`)
-		const currentSettings = this.brackets[this.activeBracket].settings
-		this.brackets[this.activeBracket].settings = { ...currentSettings, ...partialSettings }
+		const currentSettings = this.brackets[bracket].settings
+		this.brackets[bracket].settings = { ...currentSettings, ...partialSettings }
 	}
 
 	public getPlayers(): Player[] {
@@ -309,6 +319,14 @@ export class TournamentEngine implements TournamentSpecification {
 		}
 	}
 
+	public getOpponentId(opponent: (Player | Team)): string {
+		return getOpponentId(opponent)
+	}
+
+	public getOpponentSeed(opponentId: string, bracket: number = this.activeBracket): number {
+		return this.brackets[bracket].getOpponentSeed(opponentId) || -1
+	}
+
 	private startNextBracket() {
 		const previousBracket = this.brackets[this.activeBracket]
 		this.activeBracket++
@@ -434,6 +452,13 @@ class Bracket {
 		})
 	}
 
+	getOpponentSeed(opponentId: string) {
+		for (const [key, value] of this.seedings.entries()) {
+			if (value === opponentId)
+				return key;
+		}
+	}
+
 	initInternalBracket(opponentCount: number) {
 		if (this.settings.type == BracketType.Duel) {
 			this.internalBracket = new Duel(opponentCount, this.settings)
@@ -546,7 +571,7 @@ class Bracket {
 }
 
 function isPlayer(value: Player | Team): value is Player {
-	return value.hasOwnProperty('userId');
+	return Object.prototype.hasOwnProperty.call(value, 'userId');
 }
 
 function getOpponentId(opponent: Player | Team) {

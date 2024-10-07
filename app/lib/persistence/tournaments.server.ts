@@ -4,7 +4,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { TournamentEngine, TournamentStorage } from "../tournamentEngine/tournamentEngine"
 import { BracketSettings, TournamentInfo, TournamentProperties, TournamentSettings } from "../tournamentEngine/types"
-import { EventUpdateTournamentBracket, EventUpdateTournamentInfo, EventUpdateTournaments } from "../emitter.server"
+import { EventUpdateTournamentBracket, EventUpdateTournamentInfo, EventUpdateTournaments, EventUpdateTournamentSettings } from "../emitter.server"
 
 declare global {
     // eslint-disable-next-line no-var
@@ -63,10 +63,17 @@ export function updateTournamentProperties(tournamentId: string, partialProperti
     EventUpdateTournamentInfo(tournamentId)
 }
 
-export function updateTournamentSettings(tournamentId: string, partialSettings: Partial<BracketSettings>) {
+export function updateTournamentSettings(tournamentId: string, partialSettings: Partial<TournamentSettings>) {
     const tournament = global.tournaments.find(tournament => tournament.getId() == tournamentId)
     if (!tournament) throw new Error(`Tournament ${tournamentId} not found`)
-    tournament.updateBracketSettings(partialSettings)
+    tournament.updateSettings(partialSettings)
+    EventUpdateTournamentSettings(tournamentId)
+}
+
+export function updateTournamentBracketSettings(tournamentId: string, bracket: number, partialSettings: Partial<BracketSettings>) {
+    const tournament = global.tournaments.find(tournament => tournament.getId() == tournamentId)
+    if (!tournament) throw new Error(`Tournament ${tournamentId} not found`)
+    tournament.updateBracketSettings(partialSettings, bracket)
     EventUpdateTournamentBracket(tournamentId)
 }
 

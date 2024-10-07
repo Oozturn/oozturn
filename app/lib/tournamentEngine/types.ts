@@ -60,6 +60,8 @@ export type BracketResult = InternalResult & { id: string }
 /** Regroups identification, status and not critical properties of a tournament */
 export interface TournamentInfo extends TournamentProperties {
 	id: string
+	bracketsCount: number
+	currentBracket: number
 	status: TournamentStatus
 	players: Player[]
 	teams: Team[]

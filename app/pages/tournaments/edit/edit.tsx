@@ -2,9 +2,9 @@ import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction, redirect } from "
 import { useLoaderData } from "@remix-run/react"
 import TournamentEdit from "./components/edit"
 import { getLan } from "~/lib/persistence/lan.server"
-import { getTournament, updateTournamentProperties, updateTournamentSettings } from "~/lib/persistence/tournaments.server"
+import { getTournament, updateTournamentProperties, updateTournamentSettings, updateTournamentBracketSettings } from "~/lib/persistence/tournaments.server"
 import { requireUserLoggedIn } from "~/lib/session.server"
-import { BracketSettings, TournamentFullData, TournamentProperties } from "~/lib/tournamentEngine/types"
+import { BracketSettings, TournamentFullData, TournamentProperties, TournamentSettings } from "~/lib/tournamentEngine/types"
 
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -29,8 +29,12 @@ export async function action({ request }: ActionFunctionArgs) {
     requireUserLoggedIn(request)
     const jsonData = await request.json()
     const tournamentId = jsonData.tournamentId as string
-    const partialTournamentSettings = JSON.parse(jsonData.tournamentSettings) as Partial<BracketSettings>
+    const partialTournamentSettings = JSON.parse(jsonData.tournamentSettings) as Partial<TournamentSettings>
+    const partialTournamentBracketSettings = JSON.parse(jsonData.tournamentSettings) as Partial<BracketSettings>[]
     const partialTournamentProperties = JSON.parse(jsonData.tournamentProperties) as Partial<TournamentProperties>
+    partialTournamentBracketSettings.forEach((ptbs, index) => {    
+        updateTournamentBracketSettings(tournamentId, index, ptbs)
+    });
     updateTournamentSettings(tournamentId, partialTournamentSettings)
     updateTournamentProperties(tournamentId, partialTournamentProperties)
     return redirect("/tournaments/" + tournamentId)

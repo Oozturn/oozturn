@@ -16,8 +16,8 @@ export default function TournamentInfoSettings() {
         {/* Type de matchs */}
         <div className="is-flex gap-3 wrap">
           <div className='has-text-right is-one-quarter'>Matchs :</div>
-          {tournament.bracketSettings[0].type == BracketType.Duel && <div>Affrontements de deux {tournament.bracketSettings[0].useTeams ? "équipes" : "joueurs"}</div>}
-          {tournament.bracketSettings[0].type == BracketType.FFA && <div>FFA en {tournament.bracketSettings[0].useTeams ? "équipe" : "solo"}</div>}
+          {tournament.bracketSettings[0].type == BracketType.Duel && <div>Affrontements de deux {tournament.settings.useTeams ? "équipes" : "joueurs"}</div>}
+          {tournament.bracketSettings[0].type == BracketType.FFA && <div>FFA en {tournament.settings.useTeams ? "équipe" : "solo"}</div>}
         </div>
         {/* Points rapportés */}
         <div className="is-flex gap-3 wrap">
@@ -31,13 +31,13 @@ export default function TournamentInfoSettings() {
             <div>{tournament.players.length}</div>
             {tournament.bracketSettings[0].type == BracketType.FFA && tournament.bracketSettings[0].sizes && tournament.bracketSettings[0].advancers &&
               <div className='fade-text ml-1'>
-                / {GetFFAMaxPlayers(tournament.bracketSettings[0].sizes, tournament.bracketSettings[0].advancers) * (tournament.bracketSettings[0].useTeams ? tournament.bracketSettings[0].teamsMaxSize || 1 : 1)} max
+                / {GetFFAMaxPlayers(tournament.bracketSettings[0].sizes, tournament.bracketSettings[0].advancers) * (tournament.settings.useTeams ? tournament.settings.teamsMaxSize || 1 : 1)} max
               </div>
             }
           </div>
         </div>
         {/* Équipes créées */}
-        {tournament.bracketSettings[0].useTeams &&
+        {tournament.settings.useTeams &&
 
           <div className="is-flex gap-3 wrap">
             <div className='has-text-right is-one-quarter'>Équipes :</div>

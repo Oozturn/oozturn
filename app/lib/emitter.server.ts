@@ -18,6 +18,9 @@ export function EventUpdateTournamentInfo(tournamentId: string) {
 export function EventUpdateTournamentBracket(tournamentId: string) {
     emitter.emit(EVENT_UPDATE_TOURNAMENT, <tournamentUpdateEventProps>{updateType: TOURNAMENT_UPDATE_TYPES.UPDATE_BRACKET,  tournamentId: tournamentId})
 }
+export function EventUpdateTournamentSettings(tournamentId: string) {
+    emitter.emit(EVENT_UPDATE_TOURNAMENT, <tournamentUpdateEventProps>{updateType: TOURNAMENT_UPDATE_TYPES.UPDATE_SETTINGS,  tournamentId: tournamentId})
+}
 export function EventUpdateTournaments() {
     emitter.emit(EVENT_UPDATE_TOURNAMENTS)
 }

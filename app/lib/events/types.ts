@@ -20,5 +20,6 @@ export enum TOURNAMENT_UPDATE_TYPES {
     END = "endTournament",
     NEW = "newTournament",
     UPDATE_INFO = "updateTournamentInfo",
+    UPDATE_SETTINGS = "updateTournamentSettings",
     UPDATE_BRACKET = "updateTournamentBracket"
 }

@@ -35,7 +35,7 @@ export default function Users() {
       {users.sort((a, b) => a.username.toLowerCase().localeCompare(b.username.toLowerCase())).map(user => {
         const userStatsIndex = usersStats.findIndex(us => us.userId == user.id)
         return <Fragment key={user.id}>
-          <UserTileUsersPage userId={user.id} tournaments={usersStats[userStatsIndex]?.tournaments || 0} leaderboardPlace={userStatsIndex == -1 ? usersStats.length + 1 : userStatsIndex + 1} points={usersStats[userStatsIndex]?.globalTournamentPoints || 0} />
+          <UserTileUsersPage userId={user.id} tournaments={usersStats[userStatsIndex]?.playedTournaments || 0} leaderboardPlace={userStatsIndex == -1 ? usersStats.length + 1 : userStatsIndex + 1} points={usersStats[userStatsIndex]?.globalTournamentPoints || 0} />
         </Fragment>
       })}
     </div>
