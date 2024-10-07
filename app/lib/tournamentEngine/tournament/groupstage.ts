@@ -1,5 +1,4 @@
 import { replicate } from "./interlude/autonomy"
-import { insert } from "./interlude/interlude"
 import { Match } from "./match"
 import { group as grouper } from "./scheduling/group"
 import { robin } from "./scheduling/robin"
@@ -44,22 +43,22 @@ const mapEven = function (n: number) {
     return n * 2;
 };
 
-var makeMatches = function (numPlayers: number, groupSize: number, hasAway: boolean) {
-    var groups = grouper(numPlayers, groupSize);
-    var matches = [];
-    for (var g = 0; g < groups.length; g += 1) {
-        var group = groups[g];
+const makeMatches = function (numPlayers: number, groupSize: number, hasAway: boolean) {
+    const groups = grouper(numPlayers, groupSize);
+    const matches = [];
+    for (let g = 0; g < groups.length; g += 1) {
+        const group = groups[g];
         // make robin rounds for the group
-        var rnds = robin(group.length, group);
-        for (var r = 0; r < rnds.length; r += 1) {
-            var rnd = rnds[r];
-            for (var m = 0; m < rnd.length; m += 1) {
-                var plsH = rnd[m];
+        const rnds = robin(group.length, group);
+        for (let r = 0; r < rnds.length; r += 1) {
+            const rnd = rnds[r];
+            for (let m = 0; m < rnd.length; m += 1) {
+                const plsH = rnd[m];
                 if (!hasAway) { // players only meet once
                     matches.push({ id: new Id(g + 1, r + 1, m + 1), p: plsH });
                 }
                 else { // players meet twice
-                    var plsA = plsH.slice().reverse();
+                    const plsA = plsH.slice().reverse();
                     matches.push({ id: new Id(g + 1, mapOdd(r + 1), m + 1), p: plsH });
                     matches.push({ id: new Id(g + 1, mapEven(r + 1), m + 1), p: plsA });
                 }
@@ -97,7 +96,7 @@ export class GroupStage extends Tournament {
         invalid(numPlayers, opts)
 
         //create matches
-        var matches = makeMatches(numPlayers, opts.groupSize, opts.meetTwice);
+        const matches = makeMatches(numPlayers, opts.groupSize, opts.meetTwice);
 
         super('GroupStage', numPlayers, matches)
         this.numGroups = Math.max(...matches.map(it => it.id.s))
@@ -109,8 +108,8 @@ export class GroupStage extends Tournament {
 
     //helper
     groupFor(playerId: number) {
-        for (var i = 0; i < this.matches.length; i += 1) {
-            var m = this.matches[i];
+        for (let i = 0; i < this.matches.length; i += 1) {
+            const m = this.matches[i];
             if (m.p.indexOf(playerId) >= 0) {
                 return m.id.s;
             }
@@ -131,7 +130,7 @@ export class GroupStage extends Tournament {
     // };
 
     // no one-round-at-a-time restrictions so can always rescore
-    protected safe(match: Match): boolean {
+    protected safe(): boolean {
         return true
     }
 
@@ -149,8 +148,8 @@ export class GroupStage extends Tournament {
         if (!m.m) {
             return resAry;
         }
-        var p0 = resultEntry(resAry, m.p[0]);
-        var p1 = resultEntry(resAry, m.p[1]);
+        const p0 = resultEntry(resAry, m.p[0]);
+        const p1 = resultEntry(resAry, m.p[1]);
 
         if (m.m[0] === m.m[1]) {
             p0.pts += this.tiePoints;
@@ -159,8 +158,8 @@ export class GroupStage extends Tournament {
             p1.draws += 1;
         }
         else {
-            var w = (m.m[0] > m.m[1]) ? p0 : p1;
-            var l = (m.m[0] > m.m[1]) ? p1 : p0;
+            const w = (m.m[0] > m.m[1]) ? p0 : p1;
+            const l = (m.m[0] > m.m[1]) ? p1 : p0;
             w.wins += 1;
             w.pts += this.winPoints;
             l.losses += 1;
@@ -173,12 +172,12 @@ export class GroupStage extends Tournament {
     }
 
     protected sort(resAry: Result[]): Result[] {
-        var scoresBreak = this.scoresBreak;
+        const scoresBreak = this.scoresBreak;
         resAry.sort(compareResults);
 
         // tieCompute within groups to get the `gpos` attribute
         // at the same time build up array of xplacers
-        var xarys: Result[][] = replicate(this.groupSize, () => []);
+        const xarys: Result[][] = replicate(this.groupSize, () => []);
         resultsByGroup(resAry, this.numGroups).forEach(function (g) { // g sorted as res is
             tieCompute(g, 0, scoresBreak, (r: Result, pos: number) => {
                 r.gpos = pos;
@@ -188,7 +187,7 @@ export class GroupStage extends Tournament {
 
         if (this.isDone()) {
             // position based entirely on x-placement (ignore pts/scorediff across grps)
-            var posctr = 1;
+            let posctr = 1;
             xarys.forEach(function (xplacers) {
                 xplacers.forEach(function (r) {
                     r.pos = posctr;
@@ -199,7 +198,7 @@ export class GroupStage extends Tournament {
         return resAry.sort(finalCompare); // ensure sorted by pos primarily
     }
 
-    protected progress(match: Match): void {
+    protected progress(): void {
 
     }
 }
@@ -218,9 +217,9 @@ const invalid = function (np: number, opts: GroupStageOpts) {
 }
 
 const resultsByGroup = function (results: Result[], numGroups: number) {
-    var grps: Result[][] = replicate(numGroups, () => []);
-    for (var k = 0; k < results.length; k += 1) {
-        var p = results[k];
+    const grps: Result[][] = replicate(numGroups, () => []);
+    for (let k = 0; k < results.length; k += 1) {
+        const p = results[k];
         grps[p.grp - 1].push(p);
     }
     return grps;
@@ -229,7 +228,7 @@ const resultsByGroup = function (results: Result[], numGroups: number) {
 const tieCompute = function (resAry: Result[], startPos: number, scoresBreak: boolean, cb: (r: Result, pos: number) => void) {
     // provide the metric for resTieCompute which look factors: points and score diff
     resTieCompute(resAry, startPos, cb, function metric(r: Result) {
-        var val = 'PTS' + r.pts;
+        let val = 'PTS' + r.pts;
         if (scoresBreak) {
             val += 'DIFF' + (r.for! - r.against!);
         }
@@ -238,8 +237,8 @@ const tieCompute = function (resAry: Result[], startPos: number, scoresBreak: bo
 };
 
 const compareResults = function (x: Result, y: Result) {
-    var xScore = x.for! - x.against!;
-    var yScore = y.for! - y.against!;
+    const xScore = x.for! - x.against!;
+    const yScore = y.for! - y.against!;
     return (y.pts - x.pts) || (yScore - xScore) || (x.seed - y.seed);
 };
 

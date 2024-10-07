@@ -279,13 +279,13 @@ export const matchTieCompute = function (zipSlice: [number, number][], startIdx:
 // tie position an assumed sorted resAry using a metric fn
 // the metric fn must be sufficiently linked to the sorting fn used
 export const resTieCompute = function <M, R>(resAry: R[], startPos: number, cb: (r: R, pos: number) => void, metric: (r: R) => M) {
-  var pos = startPos
+  let pos = startPos
     , ties = 0
     , points: M | number = -Infinity;
 
-  for (var i = 0; i < resAry.length; i += 1) {
-    var r = resAry[i];
-    var metr = metric(r);
+  for (let i = 0; i < resAry.length; i += 1) {
+    const r = resAry[i];
+    const metr = metric(r);
 
     if (metr === points) {
       ties += 1;
