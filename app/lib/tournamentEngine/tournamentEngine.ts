@@ -1,10 +1,11 @@
+import TTLCache from '@isaacs/ttlcache'
+import { BiDirectionalMap } from "../utils/BiDirectionalMap"
 import { IdToString } from "../utils/tournaments"
 import { Duel } from "./tournament/duel"
 import { FFA } from "./tournament/ffa"
 import { GroupStage } from "./tournament/groupstage"
 import { Id } from "./tournament/match"
 import { BracketResult, BracketSettings, BracketStatus, BracketType, Match, Player, Result, Seeding, Team, TournamentFullData, TournamentInfo, TournamentProperties, TournamentSettings, TournamentStatus } from "./types"
-import TTLCache from '@isaacs/ttlcache'
 
 /** States used to save brackets progression */
 interface BracketState {
@@ -410,7 +411,7 @@ class Bracket {
 		bracket.settings = bracketStorage.settings
 		bracket.states = bracketStorage.states
 		bracket.status = bracketStorage.status
-		bracket.seedings = new Map(bracketStorage.seedings.map(seeding => [seeding.seed, seeding.id]))
+		bracket.seedings = new BiDirectionalMap(bracketStorage.seedings.map(seeding => [seeding.seed, seeding.id]))
 
 		if (bracket.status != BracketStatus.Pending) {
 			bracket.initInternalBracket(bracket.seedings.size)
@@ -422,7 +423,7 @@ class Bracket {
 
 	private internalBracket!: (Duel | FFA | GroupStage)
 	private states: BracketState[] = []
-	private seedings: Map<number, string> = new Map()
+	private seedings: BiDirectionalMap<number, string> = new BiDirectionalMap()
 	private status = BracketStatus.Pending
 	settings!: BracketSettings
 
@@ -442,21 +443,17 @@ class Bracket {
 	}
 
 	seedOpponents(opponents: Player[] | Team[]) {
-		this.seedings = new Map()
+		this.seedings = new BiDirectionalMap()
 		let seed = 1
 		opponents.forEach(opponent => {
 			const id = isPlayer(opponent) ? opponent.userId : opponent.name
-			// this.seedings.push({ id: id, seed: seed })
 			this.seedings.set(seed, id)
 			seed++
 		})
 	}
 
 	getOpponentSeed(opponentId: string) {
-		for (const [key, value] of this.seedings.entries()) {
-			if (value === opponentId)
-				return key;
-		}
+		return this.seedings.getLeft(opponentId)
 	}
 
 	initInternalBracket(opponentCount: number) {
@@ -476,7 +473,7 @@ class Bracket {
 			.map(result => {
 				return {
 					...result,
-					id: this.seedings.get(result.seed)!
+					id: this.seedings.getRight(result.seed)!
 				}
 			})
 	}
@@ -486,7 +483,7 @@ class Bracket {
 		return {
 			id: match.id,
 			opponents: match.p.map(p =>
-				this.seedings.get(p)
+				this.seedings.getRight(p)
 			),
 			score: match.m || this.states.find(bs => bs.id == match.id)?.score || match.p.map(() => undefined),
 			scorable: this.internalBracket.unscorable(match.id, match.p.map((_, i) => i), false) == null
@@ -517,7 +514,7 @@ class Bracket {
 			return {
 				id: match.id,
 				opponents: match.p.map(p =>
-					this.seedings.get(p)
+					this.seedings.getRight(p)
 				),
 				score: match.m || this.states.find(bs => IdToString(bs.id) == IdToString(match.id))?.score || match.p.map(() => undefined),
 				scorable: this.internalBracket.unscorable(match.id, match.p.map((_, i) => i), false) == null,
