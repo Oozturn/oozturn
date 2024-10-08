@@ -30,6 +30,7 @@ import "./styles/globals.scss"
 import 'react-contexify/ReactContexify.css'
 import { Notification } from "./lib/components/notification"
 import { useRevalidateOnLanUpdate } from "./api/sse.hook"
+import Footer from "./lib/components/layout/footer"
 
 export async function loader({ request }: LoaderFunctionArgs): Promise<{
   lan: Lan
@@ -82,6 +83,7 @@ export default function App() {
                     <main className="main is-clipped">
                       <Outlet />
                     </main>
+                    <Footer />
                     <Notification />
                   </StatsContext.Provider>
                 </TournamentsContext.Provider>
