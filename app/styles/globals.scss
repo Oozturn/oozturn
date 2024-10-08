@@ -422,7 +422,8 @@ input.threeDigitsWidth {
 .Toastify__toast {
     box-shadow: none !important;
     padding: 0 !important;
-    background-color: var(--background-secondary-level) !important;
+    background-color: transparent !important;
+    // background-color: var(--background-secondary-level) !important;
     color: var(--text-color) !important;
     height: 100% !important;
     min-height: unset !important;
