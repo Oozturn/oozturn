@@ -42,9 +42,9 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
     }
   }
 
-  async function handleChangeMdp() {
+  async function handleChangePassword() {
     onHide()
-    navigate("/login/step-new-password")
+    navigate("/login/step-new-password", { state: {edit: true} })
   }
 
   return (
@@ -83,7 +83,7 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
                 </div>
               </fetcherUpdateTeam.Form>
               {lanConfig.security.authentication_needed &&
-              <CustomButton callback={handleChangeMdp} colorClass="has-background-secondary-accent" contentItems={["Changer mdp"]}/>
+              <CustomButton callback={handleChangePassword} colorClass="has-background-secondary-accent" contentItems={["Changer mdp"]}/>
                 // <button
                 //   onClick={handleChangeMdp}
                 //   className="customButton fade-on-mouse-out is-unselectable has-background-primary-level is-clickable">

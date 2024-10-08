@@ -4,6 +4,9 @@ import { requireUserLoggedIn } from "~/lib/session.server"
 import { adminLogin } from "./admin-login.queries.server"
 import { getLan } from "~/lib/persistence/lan.server"
 import lanConfig from "config.json"
+import { useEffect, useState } from "react"
+import { notifyError } from "~/lib/components/notification"
+import { EyeSVG } from "~/lib/components/data/svg-container"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
@@ -47,19 +50,25 @@ function AdminLoginNoPassword() {
 
 function AdminLoginForm() {
     const actionResult = useActionData<typeof action>()
+    const [showPassword, setShowPassword] = useState(false)
+
+    useEffect(() => {
+        if (actionResult?.error) {
+            notifyError("Raté. Mais c'était bien tenté.")
+            return
+        }
+    }, [actionResult])
     return (
         <div className="is-flex-col is-full-height align-center justify-center">
             <Form method="POST" className="p-4 has-background-secondary-level is-flex-col align-center gap-4 is-relative">
                 <div>Mot de passe administrateur</div>
-                {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
-                <input id='password' name="password" autoFocus className="input is-radiusless has-background-primary-level" type="password" placeholder="Mot de passe" required />
-                <button type='submit' className="customButton has-background-primary-accent">Soumettre</button>
-                {actionResult?.error && (
-                    <p className="fade-text" style={{ position: "absolute", bottom: "-2rem", width: "500%", textAlign: "center" }}>
-                        Raté. Mais c&apos;était bien tenté.
-                    </p>
-                )}
-            </Form>
-        </div>
+                <div className="is-flex align-center gap-2 has-background-primary-level">
+                    {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
+                    <input id='password' name="password" autoFocus className="input is-radiusless has-background-primary-level" type={showPassword ? "text" : "password"} placeholder="Mot de passe" required />
+                    <div className="pr-2" onMouseEnter={() => setShowPassword(true)} onMouseLeave={() => setShowPassword(false)}><EyeSVG /></div>
+                </div>
+                <button type='submit' className="customButton has-background-primary-accent is-clickable">Soumettre</button>
+            </Form >
+        </div >
     )
 }
