@@ -84,6 +84,10 @@ export class GroupStage extends Tournament {
     private winPoints: number
     private tiePoints: number
     private scoresBreak: boolean
+    private lowerScoreIsBetter: boolean
+    private leftScoreBetterThanRight = (s1: number, s2: number) => s1 > s2
+    private diffScore = (s1: number, s2: number) => s1 - s2
+
 
     constructor(numPlayers: number, opts: GroupStageOpts) {
         //init default
@@ -92,6 +96,7 @@ export class GroupStage extends Tournament {
         opts.winPoints = Number.isFinite(opts.winPoints) ? opts.winPoints : 3;
         opts.tiePoints = Number.isFinite(opts.tiePoints) ? opts.tiePoints : 1;
         opts.scoresBreak = Boolean(opts.scoresBreak);
+        opts.lowerScoreIsBetter = opts.lowerScoreIsBetter || false
         //check params
         invalid(numPlayers, opts)
 
@@ -104,6 +109,11 @@ export class GroupStage extends Tournament {
         this.winPoints = opts.winPoints!;
         this.tiePoints = opts.tiePoints!;
         this.scoresBreak = opts.scoresBreak;
+        this.lowerScoreIsBetter = opts.lowerScoreIsBetter
+        if(this.lowerScoreIsBetter) {
+            this.leftScoreBetterThanRight = (s1, s2) => s2 > s1
+            this.diffScore = (s1, s2) => s2 - s1
+        }
     }
 
     //helper
@@ -115,19 +125,6 @@ export class GroupStage extends Tournament {
             }
         }
     }
-
-    // // helper method to be compatible with TieBreaker
-    // rawPositions(resAry: Result[]) {
-    //     return resultsByGroup(resAry, this.numGroups).map((grp) => {
-    //         // NB: need to create the empty arrays to let result function as a lookup
-    //         var seedAry: number[][] = replicate(grp.length, () => []);
-    //         for (var k = 0; k < grp.length; k += 1) {
-    //             var p = grp[k];
-    //             insert(seedAry[p.gpos - 1], p.seed); // insert ensures ascending order
-    //         }
-    //         return seedAry;
-    //     });
-    // };
 
     // no one-round-at-a-time restrictions so can always rescore
     protected safe(): boolean {
@@ -158,8 +155,8 @@ export class GroupStage extends Tournament {
             p1.draws += 1;
         }
         else {
-            const w = (m.m[0] > m.m[1]) ? p0 : p1;
-            const l = (m.m[0] > m.m[1]) ? p1 : p0;
+            const w = (this.leftScoreBetterThanRight(m.m[0], m.m[1])) ? p0 : p1;
+            const l = (this.leftScoreBetterThanRight(m.m[0], m.m[1])) ? p1 : p0;
             w.wins += 1;
             w.pts += this.winPoints;
             l.losses += 1;
@@ -173,13 +170,13 @@ export class GroupStage extends Tournament {
 
     protected sort(resAry: Result[]): Result[] {
         const scoresBreak = this.scoresBreak;
-        resAry.sort(compareResults);
+        resAry.sort(this.compareResults);
 
         // tieCompute within groups to get the `gpos` attribute
         // at the same time build up array of xplacers
         const xarys: Result[][] = replicate(this.groupSize, () => []);
-        resultsByGroup(resAry, this.numGroups).forEach(function (g) { // g sorted as res is
-            tieCompute(g, 0, scoresBreak, (r: Result, pos: number) => {
+        resultsByGroup(resAry, this.numGroups).forEach((g) => { // g sorted as res is
+            this.tieCompute(g, 0, scoresBreak, (r: Result, pos: number) => {
                 r.gpos = pos;
                 xarys[pos - 1].push(r);
             });
@@ -195,12 +192,33 @@ export class GroupStage extends Tournament {
                 posctr += xplacers.length;
             });
         }
-        return resAry.sort(finalCompare); // ensure sorted by pos primarily
+        return resAry.sort(this.finalCompare); // ensure sorted by pos primarily
     }
 
     protected progress(): void {
 
     }
+
+    private compareResults = (x: Result, y: Result) => {
+        const xScore = x.for! - x.against!;
+        const yScore = y.for! - y.against!;
+        return (y.pts - x.pts) || this.diffScore(yScore, xScore) || (x.seed - y.seed);
+    }
+
+    private finalCompare = (x: Result, y: Result) => {
+        return (x.pos - y.pos) || this.compareResults(x, y);
+    }
+
+    private tieCompute = (resAry: Result[], startPos: number, scoresBreak: boolean, cb: (r: Result, pos: number) => void) => {
+        // provide the metric for resTieCompute which look factors: points and score diff
+        resTieCompute(resAry, startPos, cb, (r: Result) => {
+            let val = 'PTS' + r.pts;
+            if (scoresBreak) {
+                val += 'DIFF' + (this.diffScore(r.for!, r.against!));
+            }
+            return val;
+        });
+    };
 }
 
 const invalid = function (np: number, opts: GroupStageOpts) {
@@ -224,26 +242,3 @@ const resultsByGroup = function (results: Result[], numGroups: number) {
     }
     return grps;
 };
-
-const tieCompute = function (resAry: Result[], startPos: number, scoresBreak: boolean, cb: (r: Result, pos: number) => void) {
-    // provide the metric for resTieCompute which look factors: points and score diff
-    resTieCompute(resAry, startPos, cb, function metric(r: Result) {
-        let val = 'PTS' + r.pts;
-        if (scoresBreak) {
-            val += 'DIFF' + (r.for! - r.against!);
-        }
-        return val;
-    });
-};
-
-const compareResults = function (x: Result, y: Result) {
-    const xScore = x.for! - x.against!;
-    const yScore = y.for! - y.against!;
-    return (y.pts - x.pts) || (yScore - xScore) || (x.seed - y.seed);
-};
-
-const finalCompare = function (x: Result, y: Result) {
-    return (x.pos - y.pos) || compareResults(x, y);
-};
-
-

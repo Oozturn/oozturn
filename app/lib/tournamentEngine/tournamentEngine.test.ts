@@ -114,7 +114,6 @@ describe('GroupStage 6/3', () => {
         tournamentEngine.addPlayer(p + "")
     }
     tournamentEngine.startTournament()
-    tournamentEngine.getMatches()
 
     scorer({ s: 1, r: 1, m: 1 }, [1, 0]) // 3 > 6 
     scorer({ s: 1, r: 2, m: 1 }, [0, 1]) // 6 < 1
@@ -132,6 +131,81 @@ describe('GroupStage 6/3', () => {
 
     test("storage", () => {
         validateStorage(tournamentEngine)
+    })
+})
+
+describe('GroupStage 4/2, lowerScoreIsBetter', () => {
+    const tournamentEngine = TournamentEngine.create("id", {
+        name: "test",
+        startTime: { day: 0, hour: 0, min: 0 },
+        comments: '',
+        globalTournamentPoints: {
+            default: 0,
+            leaders: []
+        },
+    }, {
+        useTeams: false
+    },
+        [{
+            type: BracketType.GroupStage,
+            groupSize: 2,
+            lowerScoreIsBetter: true
+        }])
+    const scorer = createScorer(tournamentEngine)
+    const playerCount = 4
+    for (let p = 1; p <= playerCount; p++) {
+        tournamentEngine.addPlayer(p + "")
+    }
+    tournamentEngine.startTournament()
+
+    scorer({ s: 1, r: 1, m: 1 }, [0, 1]) // 1 > 4
+    scorer({ s: 2, r: 1, m: 1 }, [0, 1]) // 2 > 3
+
+    test('result', () => {
+        expect(tournamentEngine.getResults()).toMatchObject([
+            ...[1, 2, 3, 4].map(i => { return { userId: i + "", position: i - (i + 1) % 2 } })
+        ])
+        expect(tournamentEngine.getStatus()).toBe(TournamentStatus.Done)
+    })
+})
+
+describe('GroupStage 6/2, lowerScoreIsBetter with points draw and score break', () => {
+    const tournamentEngine = TournamentEngine.create("id", {
+        name: "test",
+        startTime: { day: 0, hour: 0, min: 0 },
+        comments: '',
+        globalTournamentPoints: {
+            default: 0,
+            leaders: []
+        },
+    }, {
+        useTeams: false
+    },
+        [{
+            type: BracketType.GroupStage,
+            groupSize: 3,
+            lowerScoreIsBetter: true,
+            scoresBreak:true
+        }])
+    const scorer = createScorer(tournamentEngine)
+    const playerCount = 6
+    for (let p = 1; p <= playerCount; p++) {
+        tournamentEngine.addPlayer(p + "")
+    }
+    tournamentEngine.startTournament()
+
+    scorer({ s: 1, r: 1, m: 1 }, [2, 0]) // 3 << 6 
+    scorer({ s: 1, r: 2, m: 1 }, [4, 0]) // 6 <<< 1
+    scorer({ s: 1, r: 3, m: 1 }, [1, 0]) // 1 < 3
+    scorer({ s: 2, r: 1, m: 1 }, [2, 0]) // 4 << 5
+    scorer({ s: 2, r: 2, m: 1 }, [4, 0]) // 5 <<< 2
+    scorer({ s: 2, r: 3, m: 1 }, [1, 0]) // 2 < 4
+
+    test('result', () => {
+        expect(tournamentEngine.getResults()).toMatchObject([
+            ...[1, 2, 3, 4, 5, 6].map(i => { return { userId: i + "", position: i - (i + 1) % 2 } })
+        ])
+        expect(tournamentEngine.getStatus()).toBe(TournamentStatus.Done)
     })
 })
 
