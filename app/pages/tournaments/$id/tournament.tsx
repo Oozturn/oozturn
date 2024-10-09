@@ -132,7 +132,13 @@ export default function TournamentPage() {
     const users = useUsers()
 
 
-    const canAddPlayers = tournament.bracketSettings[0].type == BracketType.Duel || (tournament.players.length < GetFFAMaxPlayers(tournament.bracketSettings[0].sizes || [], tournament.bracketSettings[0].advancers || []) * (tournament.settings.useTeams ? tournament.settings.teamsMaxSize || 1 : 1))
+    const canAddPlayers = function (){
+        if (tournament.bracketsCount == 2) return true
+        if (tournament.bracketSettings[0].type != BracketType.FFA) return true
+        const maxPlayers = GetFFAMaxPlayers(tournament.bracketSettings[0].sizes || [], tournament.bracketSettings[0].advancers || [])
+        if (tournament.players.length < maxPlayers * (tournament.settings.useTeams ? tournament.settings.teamsMaxSize || 1 : 1)) return true
+        return false
+    }()
 
     const joinTournament = () => {
         fetcher.submit(
@@ -300,7 +306,7 @@ function TournamentCommands() {
         />
 
         <CustomModalBinary show={showConfirmCancel} onHide={() => setShowConfirmCancel(false)} content={"Es-tu sûr de vouloir annuler ce tournoi ?"} cancelButton={true} onConfirm={cancelTournament} />
-        <CustomModalBinary show={showConfirmStart} onHide={() => setShowConfirmStart(false)} content={<>Es-tu sûr de vouloir démarrer ce tournoi ? <br/>{tournament.settings.useTeams ? "Les équipes vides et les joueurs sans équipes seront retirés du tournoi." : ""}</>} cancelButton={true} onConfirm={startTournament} />
+        <CustomModalBinary show={showConfirmStart} onHide={() => setShowConfirmStart(false)} content={<>Es-tu sûr de vouloir démarrer ce tournoi ? <br />{tournament.settings.useTeams ? "Les équipes vides et les joueurs sans équipes seront retirés du tournoi." : ""}</>} cancelButton={true} onConfirm={startTournament} />
         <CustomModalBinary show={showConfirmStop} onHide={() => setShowConfirmStop(false)} content={`Es-tu sûr de vouloir redémarrer ce tournoi ? Tu pourras éditer ${tournament.settings.useTeams ? "les équipes et " : ""}les inscriptions, mais toute sa progression sera perdue !`} cancelButton={true} onConfirm={stopTournament} />
     </div>
 }

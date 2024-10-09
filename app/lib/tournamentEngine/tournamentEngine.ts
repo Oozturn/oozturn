@@ -162,7 +162,7 @@ export class TournamentEngine implements TournamentSpecification {
 			bracketSettings: this.brackets.map(bracket => bracket.settings),
 			players: this.players,
 			teams: this.teams,
-			matches: this.getMatches()
+			matches: this.getMatches(0).concat(this.brackets.length == 2 ? this.getMatches(1) : [])
 		}
 	}
 
@@ -507,7 +507,7 @@ class Bracket {
 					finalsList.push(IdToString({ s: Duel.LB, r: 2 * bracket_power, m: 1 }))
 			}
 		}
-		if (this.settings.type == BracketType.FFA) {
+		if (this.settings.type == BracketType.FFA && this.internalBracket.rounds(1).length > 1) {
 			finalsList.push(IdToString({ s: 1, r: Math.max(...this.internalBracket.matches.map(m => m.id.r)), m: 1 }))
 		}
 
