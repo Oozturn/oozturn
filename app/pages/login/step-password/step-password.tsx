@@ -1,12 +1,13 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction, json, redirect } from "@remix-run/node"
 import { Form, useActionData, useLoaderData } from "@remix-run/react"
-import { useRef, useState } from "react"
-import { LogoUnfolded } from "~/lib/components/data/svg-container"
+import { useEffect, useRef, useState } from "react"
+import { EyeSVG, LogoUnfolded } from "~/lib/components/data/svg-container"
 import { CustomButton } from "~/lib/components/elements/custom-button"
 import { getLan } from "~/lib/persistence/lan.server"
 import { checkPassword, hasPassword } from "~/lib/persistence/password.server"
 import { getUserId, updateSessionWithPasswordAuth } from "~/lib/session.server"
 import lanConfig from "config.json"
+import { notifyError } from "~/lib/components/notification"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -56,7 +57,15 @@ export default function LoginStepPassword() {
   const { username } = useLoaderData<typeof loader>()
   const actionResult = useActionData<typeof action>()
   const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   const formRef = useRef(null)
+
+  useEffect(() => {
+    if (actionResult?.errors?.password) {
+      notifyError(actionResult.errors.password)
+      return
+    }
+  }, [actionResult])
 
   return (
     <div className="is-flex-col align-center justify-center is-relative">
@@ -66,21 +75,24 @@ export default function LoginStepPassword() {
       <div className="is-flex-col align-center gap-5 p-4 has-background-secondary-level " style={{ maxWidth: "50vw" }}>
         <div className="has-text-centered is-size-3">Bienvenue <i style={{ color: "var(--accent-primary-color)" }}>{username}</i> ! </div>
         <Form ref={formRef} method="post" className="is-flex-col gap-6 is-full-width align-stretch">
-          <div className="is-flex-col align-center gap-2">
+          <div className="is-flex-col align-stretch gap-2">
             <div>Mot de passe :</div>
-            <input
-              id="password"
-              name="password"
-              className="input grow no-basis has-text-centered has-background-primary-level"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Mot de passe"
-              required
-              // eslint-disable-next-line jsx-a11y/no-autofocus
-              autoFocus
-              onKeyDown={(e) => { if (e.key === 'Enter') { !password && e.preventDefault() } }}
-            />
+            <div className="is-flex align-center gap-2 has-background-primary-level">
+              <input
+                id="password"
+                name="password"
+                className="input grow no-basis has-text-centered has-background-primary-level"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Mot de passe"
+                required
+                // eslint-disable-next-line jsx-a11y/no-autofocus
+                autoFocus
+                onKeyDown={(e) => { if (e.key === 'Enter') { !password && e.preventDefault() } }}
+              />
+              <div className="pr-2" onMouseEnter={() => setShowPassword(true)} onMouseLeave={() => setShowPassword(false)}><EyeSVG /></div>
+            </div>
           </div>
           <CustomButton
             active={!!password}
@@ -91,11 +103,6 @@ export default function LoginStepPassword() {
           />
         </Form>
       </div>
-      {actionResult?.errors?.password && (
-        <p className="has-text-danger" style={{ position: "absolute", bottom: "-2rem", width: "500%", textAlign: "center" }}>
-          {actionResult.errors.password}
-        </p>
-      )}
     </div>
   )
 }

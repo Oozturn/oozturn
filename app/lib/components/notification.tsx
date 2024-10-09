@@ -43,3 +43,10 @@ export function Notification() {
     />
   )
 }
+
+export function notifyError(message: string) {
+  toast.error(message)
+}
+export function notifyInfo(message: string) {
+  toast.info(message)
+}

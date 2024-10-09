@@ -282,9 +282,18 @@ textarea {
     padding-right: .5rem;
 }
 
-input.threeDigitsWidth {
+.threeDigitsWidth {
     width: 2.5rem;
 }
+
+.is-scrollable {
+    overflow: auto;
+}
+
+.enable-line-break {
+    white-space: pre-wrap;
+}
+
 
 .customButton {
     height: var(--button-height);
@@ -422,7 +431,8 @@ input.threeDigitsWidth {
 .Toastify__toast {
     box-shadow: none !important;
     padding: 0 !important;
-    background-color: var(--background-secondary-level) !important;
+    background-color: transparent !important;
+    // background-color: var(--background-secondary-level) !important;
     color: var(--text-color) !important;
     height: 100% !important;
     min-height: unset !important;
@@ -523,7 +533,7 @@ input.threeDigitsWidth {
 }
 
 /******************************* 
-******** NAVBAR & FOOTER *******
+******** NAVBAR ****************
 *******************************/
 
 .navbar {
@@ -629,28 +639,7 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
     .avatar {
         height: 196px;
         width: 196px;
-        background-color: var(--grey);
-        img {
-            height: 100%;
-            width: 100%;
-        }
     }
-    .buttons-list {
-        gap: .75rem;
-    }
-}
-
-.pagefooter {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    // height: $footer-height;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    // background-color: var(--background-secondary-level);
-    color: var(--text-color-70);
-    font-size: 16px;
 }
 
 
@@ -800,10 +789,6 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
     }
 }
 
-.wrongConfirmPassword {
-    color: $danger;
-}
-
 /******************************* 
 ************  HOME  ************
 *******************************/
@@ -914,11 +899,6 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
         overflow: hidden;
         background-color: var(--background-primary-level);
         transition: ease-out .125s;
-        .avatar {
-            border: 1px solid var(--accent-primary-color);
-            height: 40px;
-            width: 40px;
-        }
         &.is-active {
             flex: 0 0 140px;
             background-color: var(--accent-secondary-color);
@@ -1064,28 +1044,6 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
     right: 0;
     border-top: solid 2px var(--background-secondary-level);
     border-left: solid 2px var(--background-secondary-level);
-
-    .opponentName {
-        position: relative;
-        z-index: 1;
-        color: var(--accent-primary-color);
-        background: var(--background-primary-level);
-    }
-
-    .opponentInfo {
-        position: relative;
-        top: 0;
-
-        &:before {
-            content: "";
-            width: 1px;
-            position: absolute;
-            left: 0.25rem;
-            top: 0;
-            height: 100%;
-            background-color: var(--accent-primary-color);
-        }
-    }
 }
 
 @keyframes toptobottom {
@@ -1099,192 +1057,6 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
 
 .animateFromTopToBottom {
     animation: 10s toptobottom cubic-bezier(.5, 0, .5, 1) infinite alternate;
-}
-
-.tournamentInfoRunning {
-    flex-grow: 1;
-    background-color: var(--background-secondary-level);
-    display: flex;
-    align-items: stretch;
-    gap: .75rem;
-    padding: .75rem;
-    padding-top: 0;
-    position: relative;
-    .playersManagement {
-        padding: .5rem;
-        gap: .5rem;
-        max-height: 15.5rem;
-        overflow: auto;
-        .tile {
-            line-height: 2.5rem;
-            gap: .5rem;
-            :first-child {
-                text-align: center;
-                flex: 1;
-            }
-            :nth-child(2) {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 2.5rem;
-            }
-        }
-    }
-    .comments {
-        overflow: auto;
-    }
-    .tournamentResults {
-        padding: .5rem;
-        gap: .5rem;
-        max-height: 15.5rem;
-        overflow: auto;
-        .tile {
-            line-height: 2.5rem;
-            :first-child {
-                text-align: center;
-                flex: 1;
-            }
-            :nth-child(2) {
-                flex: 3;
-            }
-            :last-child {
-                flex: 2;
-                padding-right: 1rem;
-                text-align: end;
-            }
-        }
-    }
-    .bracketNavHelpers {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        display: flex;
-        gap: 2rem;
-        color: var(--text-color-70);
-        padding: .5rem 1rem;
-        background-color: var(--background-primary-level);
-    }
-    
-    .bracketView {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        min-height: calc(100vh - 2.25rem - 60px - ($navbar-height + $footer-height));
-        max-height: calc(100vh - 2.25rem - 60px - ($navbar-height + $footer-height));
-        flex: 1;
-        padding: .5rem;
-        width: 100px;
-        .react-transform-wrapper {
-            height: 100%;
-            width: 100%;
-        }
-        .bracketViewBackground {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            right: 0;
-        }
-        .bracket {
-            display: flex;
-            justify-content: flex-start;
-            gap: 3rem;
-        }
-        .round {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            gap: 1rem;
-        }
-        .match {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-grow: 1;
-        }
-        .match-id {
-            width: 40px;
-            font-weight: 600;
-            text-align: center;
-            transform: rotate(-90deg);
-        }
-        .fastForwardMatch {
-            height: calc(75px + 1rem);
-            // width: 220px;
-        }
-        .opponentsView {
-            position: relative;
-            line-height: 24px;
-            padding: .25rem;
-            padding-left: .75rem;
-            padding-right: .5rem;
-            background-color: var(--background-secondary-level);
-            &.FFA {
-                width: 300px;
-                max-width: 300px;
-            }
-            &.Duel {
-                width: 15rem;
-                
-            }
-            &.finale {
-                background-color: var(--accent-primary-color);
-            }
-            .final-title {
-                position: absolute;
-                top: -40px;
-                left: 0;
-            }
-            .final-desc {
-                position: absolute;
-                bottom: -55px;
-                left: 0;
-            }
-            .highlightOpponent {
-                color: var(--accent-primary-color);
-                font-weight: 800;
-            }
-            &.finale .highlightOpponent {
-                color: var(--accent-secondary-color);
-            }
-            .playerLine {
-                display: flex;
-                align-items: center;
-                height: 37.5px;
-                line-height: 37.5px;
-                font-size: 20px;
-                .playerName {
-                    flex: 2;
-                    display: block;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
-                }
-                input {
-                    font-size: 20px;
-                    font-weight: 400;
-                    width: 2rem;
-                    text-align: center;
-                }
-                .playerScore {
-                    flex: 1;
-                    width: 2rem;
-                    height: calc(37.5px - .5rem);
-                    line-height: calc(37.5px - .5rem);
-                    text-align: center;
-                }
-                .playerPosition {
-                    flex: 1;
-                    height: calc(37.5px - .5rem);
-                    line-height: calc(37.5px - .5rem);
-                    text-align: center;
-                    &.pass {
-                        color: var(--accent-primary-color)
-                    }
-                }
-            }
-        }
-    }
 }
 
 /* Chrome, Safari, Edge, Opera */
@@ -1353,97 +1125,3 @@ input[type=number] {
         }
     }
 }
-.achievements {
-    flex: 5;
-    position: relative;
-    .achievementsList {
-        gap: 1.5rem;
-        position: relative;
-    }
-    .achievementTile {
-        .name {
-            width: 25%;
-        }
-        .content {
-            flex: 1;
-        }
-    }
-}
-
-.is-scrollable {
-    overflow: auto;
-}
-
-.short-input {
-    width: 4em;
-}
-
-.enable-line-break {
-    white-space: pre-wrap;
-}
-
-.is-flex-basis-0 {
-    flex-basis: 0;
-}
-
-// .round-viewer {
-//     flex: 1;
-//     flex-basis: content;
-// }
-
-// Nav
-
-// .navbar {
-//     height: 5.6vh;
-// }
-// .navbar a {
-//     color: $grey-lightest;
-// }
-
-// .navbar-menu.is-active {
-//     padding: 0;
-// }
-
-// .navbar-dropdown a {
-//     color: $grey-dark;
-// // }
-
-// .navbar-item.has-dropdown:hover .navbar-link {
-//     color: $grey-lightest;
-//     background-color: $primary;
-// }
-// a.navbar-item:hover {
-//     background-color: $primary;
-// }
-
-.editProfileWrench {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-}
-
-// Tounaments
-
-
-.tournament-state-indicator, .tournament-player-indicator {
-    position: absolute;
-    right: -95%;
-    width: 100%;
-    text-align: center;
-    transition: .2s;
-    z-index: 1;
-}
-
-.tournament-state-indicator {
-    bottom: 0;
-}
-
-.tournament-player-indicator {
-    top: 0;
-}
-
-.tournament-state-indicator:hover, .tournament-player-indicator:hover {
-    right: 0;
-    transition: .2s;
-}
-

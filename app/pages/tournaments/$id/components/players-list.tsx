@@ -143,6 +143,7 @@ export function OpponentsListTeam() {
             { method: "POST", encType: "application/json" }
         )
         setShowNewTeam(false)
+        setNewTeamName("")
     }
     async function addPlayerToTeam(player: string, team: string) {
         fetcher.submit(
@@ -230,7 +231,7 @@ export function OpponentsListTeam() {
             </DragOverlay>
             <CustomModalBinary
                 show={showNewTeam}
-                onHide={() => setShowNewTeam(false)}
+                onHide={() => { setShowNewTeam(false); setNewTeamName("") }}
                 cancelButton={false}
                 content={
                     <div className='is-flex align-stretch pt-5 pl-5 pb-4'>

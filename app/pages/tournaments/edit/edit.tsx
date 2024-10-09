@@ -30,7 +30,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const jsonData = await request.json()
     const tournamentId = jsonData.tournamentId as string
     const partialTournamentSettings = JSON.parse(jsonData.tournamentSettings) as Partial<TournamentSettings>
-    const partialTournamentBracketSettings = JSON.parse(jsonData.tournamentSettings) as Partial<BracketSettings>[]
+    const partialTournamentBracketSettings = JSON.parse(jsonData.tournamentBracketSettings) as Partial<BracketSettings>[]
     const partialTournamentProperties = JSON.parse(jsonData.tournamentProperties) as Partial<TournamentProperties>
     partialTournamentBracketSettings.forEach((ptbs, index) => {    
         updateTournamentBracketSettings(tournamentId, index, ptbs)
