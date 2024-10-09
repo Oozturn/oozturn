@@ -100,6 +100,8 @@ export interface Match {
 export interface TournamentFullData {
 	id: string
 	status: TournamentStatus
+	bracketsCount: number
+	currentBracket: number
 	properties: TournamentProperties
 	settings: TournamentSettings
 	bracketSettings: BracketSettings[]

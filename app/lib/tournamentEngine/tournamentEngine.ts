@@ -155,6 +155,8 @@ export class TournamentEngine implements TournamentSpecification {
 		return {
 			id: this.id,
 			status: this.status,
+			bracketsCount: this.brackets.length,
+			currentBracket: this.activeBracket,
 			properties: this.properties,
 			settings: this.settings,
 			bracketSettings: this.brackets.map(bracket => bracket.settings),
