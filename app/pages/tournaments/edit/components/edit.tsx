@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Days, range } from "~/lib/utils/ranges"
-import { BracketSettings, BracketType, TournamentFullData, TournamentProperties, TournamentSettings } from "~/lib/tournamentEngine/types"
+import { BracketSettings, BracketType, TournamentFullData, TournamentProperties, TournamentSettings, TournamentStatus } from "~/lib/tournamentEngine/types"
 import { clickorkey } from "~/lib/utils/clickorkey"
 import { useLan } from "~/lib/components/contexts/LanContext"
 import { useGames } from "~/lib/components/contexts/GamesContext"
@@ -58,6 +58,8 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
     const [tNbRounds, set_tNbRounds] = useState(existingTournament ? existingTournament.bracketSettings[0].sizes?.length || 2 : 2)
     const finaleSizes = () => { return tFinaleSettings.sizes || [3] }
     const finaleAdvancers = () => { return tFinaleSettings.advancers || [3] }
+
+    const runningTournament = existingTournament && ![TournamentStatus.Open, TournamentStatus.Balancing].includes(existingTournament.status)
     
 
     const fetcher = useFetcher()
@@ -67,7 +69,7 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
             name: "",
             startTime: lan.startDate,
             globalTournamentPoints: lan.globalTournamentDefaultPoints,
-            comments: "tComments",
+            comments: "",
             ...tTournamentProperties
         }
         const settings: TournamentSettings = {
@@ -131,14 +133,14 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                 </div>
                 <div className={`tournamentEditSectionTitle has-text is-relative is-title medium py-2 is-flex align-center justify-center grow no-basis
                     ${editStep == tournamentEditSteps.MATCHSTYPE ? "active" : ""}
-                    ${editStep > tournamentEditSteps.MATCHSTYPE ? "is-clickable" : ""}`}
-                    {...clickorkey(() => editStep > tournamentEditSteps.MATCHSTYPE && set_editStep(tournamentEditSteps.MATCHSTYPE))}>
+                    ${(editStep > tournamentEditSteps.MATCHSTYPE) && !runningTournament ? "is-clickable" : ""}`}
+                    {...clickorkey(() => (editStep > tournamentEditSteps.MATCHSTYPE) && !runningTournament && set_editStep(tournamentEditSteps.MATCHSTYPE))}>
                     Type de match
                 </div>
                 <div className={`tournamentEditSectionTitle has-text is-relative is-title medium py-2 is-flex align-center justify-center grow no-basis
                     ${editStep == tournamentEditSteps.PARAMETERS ? "active" : ""}
-                    ${editStep > tournamentEditSteps.PARAMETERS ? "is-clickable" : ""}`}
-                    {...clickorkey(() => editStep > tournamentEditSteps.PARAMETERS && set_editStep(tournamentEditSteps.PARAMETERS))}>
+                    ${(editStep > tournamentEditSteps.PARAMETERS) && !runningTournament ? "is-clickable" : ""}`}
+                    {...clickorkey(() => (editStep > tournamentEditSteps.PARAMETERS) && !runningTournament && set_editStep(tournamentEditSteps.PARAMETERS))}>
                     Déroulement du tournoi
                 </div>
                 <div className={`tournamentEditSectionTitle has-text is-relative is-title medium py-2 is-flex align-center justify-center grow no-basis
@@ -194,7 +196,7 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                     </div>
                     <div className='is-flex grow align-end justify-end'>
                         <CustomButton
-                            callback={() => set_editStep(editStep + 1)}
+                            callback={() => set_editStep(editStep + (runningTournament ? 3 : 1))}
                             colorClass='has-background-primary-accent'
                             contentItems={['Suivant']}
                         />
@@ -317,12 +319,12 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                                 <div className='is-flex align-center gap-5'>
                                     <div className='has-text-right is-one-third'>Nombre {tTournamentSettings.useTeams ? "d'équipes" : "de joueurs"} sélectionnés pour la phase suivante :</div>
                                     <CustomSelect
-                                        variable={tQualifSettings.size}
-                                        setter={(v: string) => handleQualifSettingsChange({ size: v ? Number(v) : undefined })}
+                                        variable={tFinaleSettings.size}
+                                        setter={(v: string) => handleFinaleSettingsChange({ size: v ? Number(v) : undefined })}
                                         items={[{ label: tTournamentSettings.useTeams ? "Toutes" : "Tous", value: undefined }, ...range(2, 64, 1).map(d => { return { label: String(d), value: d } })]}
                                         itemsToShow={8}
                                     />
-                                    {tFinaleSettings.type == BracketType.Duel && tQualifSettings.size && ((tQualifSettings.size & (tQualifSettings.size - 1)) != 0) &&
+                                    {tFinaleSettings.type == BracketType.Duel && tFinaleSettings.size && ((tFinaleSettings.size & (tFinaleSettings.size - 1)) != 0) &&
                                         <div className='mx-3 is-size-7 has-text-primary-accent'>Le nombre {tTournamentSettings.useTeams ? "d'équipes qualifiées" : "de joueurs qualifiés"} n&apos;est pas optimal pour le type de finale sélectionné.</div>
                                     }
                                 </div>
@@ -523,7 +525,7 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                     </div>
                     <div className='is-flex grow align-end justify-space-between'>
                         <CustomButton
-                            callback={() => set_editStep(editStep - 1)}
+                            callback={() => set_editStep(editStep - (runningTournament ? 3 : 1))}
                             colorClass='has-background-primary-accent'
                             contentItems={['Précédent']}
                         />
