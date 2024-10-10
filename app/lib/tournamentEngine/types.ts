@@ -72,8 +72,8 @@ export interface Result {
 	position: number
 	globalTournamentPoints: number
 	wins: number
-	for: number | undefined
-	against: number | undefined
+	for?: number
+	against?: number
 }
 
 export interface Team {
@@ -108,4 +108,6 @@ export interface TournamentFullData {
 	players: Player[]
 	teams: Team[]
 	matches: Match[]
+	results?: Result[][]
+	bracketsResults?: BracketResult[][]
 }

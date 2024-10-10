@@ -162,7 +162,9 @@ export class TournamentEngine implements TournamentSpecification {
 			bracketSettings: this.brackets.map(bracket => bracket.settings),
 			players: this.players,
 			teams: this.teams,
-			matches: this.getMatches(0).concat(this.brackets.length == 2 ? this.getMatches(1) : [])
+			matches: this.getMatches(0).concat(this.brackets.length == 2 ? this.getMatches(1) : []),
+			results: [TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status) ? undefined : this.brackets.map((_b,i) => this.getResults(i)),
+			bracketsResults: [TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status) ? undefined : this.brackets.map(b => b.results())
 		}
 	}
 
@@ -337,7 +339,7 @@ export class TournamentEngine implements TournamentSpecification {
 		const nextBracket = this.brackets[this.activeBracket]
 
 		let nextOpponents
-		if(this.settings.useTeams) {
+		if (this.settings.useTeams) {
 			nextOpponents = this.teams.slice()
 		} else {
 			nextOpponents = this.players.slice()
@@ -346,7 +348,7 @@ export class TournamentEngine implements TournamentSpecification {
 		const results = previousBracket.results()
 		nextOpponents.sort(usingResults(results))
 
-		if(nextBracket.settings.size) {
+		if (nextBracket.settings.size) {
 			nextOpponents = nextOpponents.slice(0, nextBracket.settings.size)
 		}
 
@@ -370,14 +372,14 @@ export class TournamentEngine implements TournamentSpecification {
 		}
 	}
 	public getResults(bracket: number = this.activeBracket): Result[] {
-		if(!this.resultsCache.has(bracket)) {
+		if (!this.resultsCache.has(bracket)) {
 			this.computeResults(bracket)
 		}
 		return this.resultsCache.get(bracket)!
 	}
 
 	private computeResults(bracket: number) {
-		const results : Result[] = []
+		const results: Result[] = []
 		this.brackets[bracket].results().forEach(res => {
 			const concernedUsers: string[] = []
 			if (this.settings.useTeams) {
@@ -575,14 +577,14 @@ function isPlayer(value: Player | Team): value is Player {
 }
 
 function getOpponentId(opponent: Player | Team) {
-	if(isPlayer(opponent)) {
+	if (isPlayer(opponent)) {
 		return opponent.userId
 	} else {
 		return opponent.name
 	}
 }
 
-function usingResults(results: BracketResult[]) : (((a: Team, b: Team) => number) & ((a: Player, b: Player) => number)) {
+function usingResults(results: BracketResult[]): (((a: Team, b: Team) => number) & ((a: Player, b: Player) => number)) {
 	return (a, b) => {
 		const resultA = results.find(r => r.id == getOpponentId(a))!
 		const resultB = results.find(r => r.id == getOpponentId(b))!
