@@ -17,6 +17,7 @@ import { TournamentViewer } from "./components/tournamentViewer"
 import { getLan } from "~/lib/persistence/lan.server"
 import Dropdown from "~/lib/components/elements/custom-dropdown"
 import { useRevalidateOnTournamentUpdate } from "~/api/sse.hook"
+import useLocalStorageState from "use-local-storage-state"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
@@ -128,6 +129,8 @@ export enum MatchesIntents {
 
 export default function TournamentPage() {
     const { tournament } = useLoaderData<typeof loader>()
+    const [tournamentWideView,] = useLocalStorageState<string[]>("tournamentWideView", { defaultValue: [] })
+
 
     useRevalidateOnTournamentUpdate(tournament.id)
     const user = useUser()
@@ -195,11 +198,11 @@ export default function TournamentPage() {
                     Tournoi {tournament.properties.name}
                 </div>
                 <div className="has-background-secondary-level is-flex-row grow p-3 gap-6">
-                    <div className="is-flex-col is-relative gap-2" style={{ width: "30%", minWidth: "30%", maxWidth: "30%" }}>
+                    {!tournamentWideView.includes(tournament.id) && <div className="is-flex-col is-relative gap-2" style={{ width: "30%", minWidth: "30%", maxWidth: "30%" }}>
                         <TournamentInfoSettings />
                         <TournamentInfoPlayers />
                         {user.isAdmin && tournament.status != TournamentStatus.Done && <TournamentCommands />}
-                    </div>
+                    </div>}
                     {[TournamentStatus.Open, TournamentStatus.Balancing].includes(tournament.status) ?
                         <div className="is-flex-col grow no-basis">
                             {tournament.settings.useTeams ?

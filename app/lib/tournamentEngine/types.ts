@@ -22,9 +22,9 @@ export enum BracketStatus {
 
 /** List of supported bracket types */
 export enum BracketType {
-	Duel = "DUEL",
+	Duel = "Duel",
 	FFA = "FFA",
-	GroupStage = "GroupStage",
+	GroupStage = "Round robin",
 }
 
 /** Concatenation of all supported bracket type options */
@@ -51,8 +51,8 @@ export interface TournamentSettings {
 }
 
 export interface Seeding {
-	id:string
-	seed:number
+	id: string
+	seed: number
 }
 
 export type BracketResult = InternalResult & { id: string }

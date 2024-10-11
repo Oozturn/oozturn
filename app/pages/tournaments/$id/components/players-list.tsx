@@ -332,7 +332,7 @@ function TournamentInfoPlayersWhileRunning() {
                     <div key={playerId} className="is-flex-row gap-3">
                         <UserTileRectangle userId={playerId} height={32} showTeam={false} />
                         {user.isAdmin && <div className="grow is-flex justify-end">
-                            <SquareButton height={32} contentItems={[hasFF ? RollBackSVG() : ForfeitSVG()]} callback={() => toggleForfeit(playerId)} colorClass="has-background-secondary-accent" />
+                            <SquareButton height={32} contentItems={[hasFF ? RollBackSVG() : ForfeitSVG()]} callback={() => toggleForfeit(playerId)} colorClass={hasFF ? "has-background-secondary-level" : "has-background-secondary-accent"} />
                         </div>}
                     </div>
                     {user.isAdmin && !((tournament.results?.at(-1)?.length || 0) - 1 == index) &&

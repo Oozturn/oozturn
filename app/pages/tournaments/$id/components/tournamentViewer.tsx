@@ -140,7 +140,7 @@ function BracketViewer({ bracket }: { bracket: number }) {
     }, [wrapperContext, tournament.id])
 
     return (
-        <div className={`is-flex-${tournament.bracketSettings[bracket].type == BracketType.GroupStage ? "row" : "col"} gap-5 no-basis has-background-secondar-level`}>
+        <div className={`is-flex-${tournament.bracketSettings[bracket].type == BracketType.GroupStage ? "row" : "col"} gap-5 no-basis has-background-secondar-level`} style={{ margin: "2rem" }}>
             {sections.map(section => {
                 return (
                     <SectionViewer key={bracket + '.' + section} bracket={bracket} section={section} />
