@@ -291,6 +291,64 @@ export function OpponentsListTeam() {
     )
 }
 
+export function TournamentInfoPlayers() {
+    const tournament = useTournament()
+    if (tournament.status == TournamentStatus.Done) return TournamentInfoPlayersOnceDone()
+    if (![TournamentStatus.Open, TournamentStatus.Balancing, TournamentStatus.Validating, TournamentStatus.Done].includes(tournament.status)) return TournamentInfoPlayersWhileRunning()
+    return null
+}
+function TournamentInfoPlayersWhileRunning() {
+    const tournament = useTournament()
+
+    const players = new Set<string>()
+    tournament.matches.filter(m => m.bracket == tournament.currentBracket).flatMap(m => m.opponents).forEach(opponent => {
+        if (!opponent) return
+        if (tournament.settings.useTeams) {
+            tournament.teams.find(t => t.name == opponent)?.members.forEach(member => players.add(member))
+            return
+        }
+        players.add(opponent)
+    })
+
+    return (<div className="is-flex-col gap-2" style={{ height: 300 }}>
+        <div className="is-title medium">Joueurs en tournoi</div>
+        <div className="is-flex-col gap-1 p-2 has-background-primary-level is-scrollable grow justify-start align-stretch">
+            {[...players.values()].map(playerId => <div key={playerId} className="is-flex-row gap-3">
+                <UserTileRectangle userId={playerId} height={32} maxLength={245} showTeam={false} />
+            </div>)}
+        </div>
+    </div>)
+}
+function TournamentInfoPlayersOnceDone() {
+    const tournament = useTournament()
+
+    const players = new Set<string>()
+    tournament.matches.filter(m => m.bracket == tournament.currentBracket).flatMap(m => m.opponents).forEach(opponent => {
+        if (!opponent) return
+        if (tournament.settings.useTeams) {
+            tournament.teams.find(t => t.name == opponent)?.members.forEach(member => players.add(member))
+            return
+        }
+        players.add(opponent)
+    })
+
+    return (<div className="is-flex-col gap-2 no-basis" style={{ height: 300 }}>
+        <div className="is-title medium">Résultats du tournoi</div>
+        <div className="is-flex-col gap-1 p-2 has-background-primary-level is-scrollable grow justify-start align-stretch">
+            {tournament.results?.at(-1)?.map((result, index) => <>
+                <div key={result.userId} className="is-flex-row gap-3 mr-2">
+                    <div className="has-text-right" style={{ width: 25 }}>{result.position}</div>
+                    <UserTileRectangle userId={result.userId} height={32} maxLength={245} showTeam={false} />
+                    <div className="has-text-right grow">{result.globalTournamentPoints} pts</div>
+                </div>
+                {!((tournament.results?.at(-1)?.length || 0) - 1 == index) &&
+                    <div className="has-background-grey ml-3" style={{ minHeight: 1 }}></div>
+                }
+            </>)}
+        </div>
+    </div>)
+}
+
 
 interface TeamTileProps {
     team: Team

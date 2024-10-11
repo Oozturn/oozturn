@@ -10,7 +10,7 @@ export default function TournamentInfoSettings() {
   const tournament = useTournament()
 
   return (
-    <div className='is-flex-col gap-4'>
+    <div className='is-flex-col gap-4 grow no-basis'>
       <div className='is-title medium is-uppercase'>Informations sur le tournoi</div>
       <div className='is-flex-col grow gap-4'>
         {/* Type de matchs */}

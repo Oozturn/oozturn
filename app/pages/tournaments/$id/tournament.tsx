@@ -9,7 +9,7 @@ import { ReactNode, useState } from "react"
 import { BinSVG, LeaveSVG, LockSVG, MoreSVG, ParticipateSVG, RollBackSVG, StartSVG, SubsribedSVG, UnlockSVG } from "~/lib/components/data/svg-container"
 import { addPlayerToTournament, addTeamToTournament, toggleBalanceTournament, removePlayerFromTournament, reorderPlayers, reorderTeams, addPlayerToTeam, removeTeamFromTournament, renameTeam, removePlayerFromTeams, distributePlayersOnTeams, balanceTeams, randomizePlayersOnTeams, cancelTournament, startTournament, scoreMatch, stopTournament } from "./tournament.queries.server"
 import { useUsers } from "~/lib/components/contexts/UsersContext"
-import { OpponentsListSolo, OpponentsListTeam } from "./components/players-list"
+import { OpponentsListSolo, OpponentsListTeam, TournamentInfoPlayers } from "./components/players-list"
 import { GetFFAMaxPlayers } from "~/lib/utils/tournaments"
 import { BracketType, TournamentFullData, TournamentStatus } from "~/lib/tournamentEngine/types"
 import { TournamentContext, useTournament } from "~/lib/components/contexts/TournamentsContext"
@@ -131,7 +131,7 @@ export default function TournamentPage() {
     const users = useUsers()
 
 
-    const canAddPlayers = function (){
+    const canAddPlayers = function () {
         if (tournament.bracketsCount == 2) return true
         if (tournament.bracketSettings[0].type != BracketType.FFA) return true
         const maxPlayers = GetFFAMaxPlayers(tournament.bracketSettings[0].sizes || [], tournament.bracketSettings[0].advancers || [])
@@ -190,9 +190,10 @@ export default function TournamentPage() {
                 <div className="is-title big is-uppercase has-background-secondary-level p-2 px-4">
                     Tournoi {tournament.properties.name}
                 </div>
-                <div className="has-background-secondary-level is-flex-row grow p-3 gap-6 is-relative">
-                    <div className="is-flex-col justify-space-between" style={{ width: "30%", minWidth: "30%", maxWidth: "30%" }}>
+                <div className="has-background-secondary-level is-flex-row grow p-3 gap-6">
+                    <div className="is-flex-col is-relative gap-2" style={{ width: "30%", minWidth: "30%", maxWidth: "30%" }}>
                         <TournamentInfoSettings />
+                        <TournamentInfoPlayers />
                         {user.isAdmin && tournament.status != TournamentStatus.Done && <TournamentCommands />}
                     </div>
                     {[TournamentStatus.Open, TournamentStatus.Balancing].includes(tournament.status) ?
