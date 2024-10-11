@@ -8,8 +8,8 @@ import { Sortable } from "~/lib/components/dnd/Sortable"
 import { GetFFAMaxPlayers } from "~/lib/utils/tournaments"
 import { SmartDndPointerSensor } from "~/lib/utils/smartDndPointerSensor"
 import { CustomModalBinary } from "~/lib/components/elements/custom-modal"
-import { CustomButton } from "~/lib/components/elements/custom-button"
-import { BalanceSVG, BinSVG, DistributeSVG, RandomSVG, RollBackSVG, SubsribedSVG } from "~/lib/components/data/svg-container"
+import { CustomButton, SquareButton } from "~/lib/components/elements/custom-button"
+import { BalanceSVG, BinSVG, DistributeSVG, ForfeitSVG, RandomSVG, RollBackSVG, SubsribedSVG } from "~/lib/components/data/svg-container"
 import { Draggable } from "~/lib/components/dnd/Draggable"
 import { useFetcher } from "@remix-run/react"
 import { TeamsManagementIntents, TournamentManagementIntents } from "../tournament"
@@ -299,6 +299,19 @@ export function TournamentInfoPlayers() {
 }
 function TournamentInfoPlayersWhileRunning() {
     const tournament = useTournament()
+    const fetcher = useFetcher()
+    const user = useUser()
+
+    const toggleForfeit = (userId: string) => {
+        fetcher.submit(
+            {
+                intent: TournamentManagementIntents.TOGGLE_FORFEIT_PLAYER,
+                tournamentId: tournament?.id || "",
+                userId: userId,
+            },
+            { method: "POST", encType: "application/json" }
+        )
+    }
 
     const players = new Set<string>()
     tournament.matches.filter(m => m.bracket == tournament.currentBracket).flatMap(m => m.opponents).forEach(opponent => {
@@ -313,9 +326,20 @@ function TournamentInfoPlayersWhileRunning() {
     return (<div className="is-flex-col gap-2" style={{ height: 300 }}>
         <div className="is-title medium">Joueurs en tournoi</div>
         <div className="is-flex-col gap-1 p-2 has-background-primary-level is-scrollable grow justify-start align-stretch">
-            {[...players.values()].map(playerId => <div key={playerId} className="is-flex-row gap-3">
-                <UserTileRectangle userId={playerId} height={32} maxLength={245} showTeam={false} />
-            </div>)}
+            {[...players.values()].sort().map((playerId, index) => {
+                const hasFF = !!tournament.players.find(p => p.userId == playerId)?.isForfeit
+                return <>
+                    <div key={playerId} className="is-flex-row gap-3">
+                        <UserTileRectangle userId={playerId} height={32} showTeam={false} />
+                        {user.isAdmin && <div className="grow is-flex justify-end">
+                            <SquareButton height={32} contentItems={[hasFF ? RollBackSVG() : ForfeitSVG()]} callback={() => toggleForfeit(playerId)} colorClass="has-background-secondary-accent" />
+                        </div>}
+                    </div>
+                    {user.isAdmin && !((tournament.results?.at(-1)?.length || 0) - 1 == index) &&
+                        <div className="has-background-grey ml-3" style={{ minHeight: 1 }}></div>
+                    }
+                </>
+            })}
         </div>
     </div>)
 }

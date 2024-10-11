@@ -6,8 +6,8 @@ import { useUser } from "~/lib/components/contexts/UserContext"
 import { CustomButton, SquareButton } from "~/lib/components/elements/custom-button"
 import { CustomModalBinary } from "~/lib/components/elements/custom-modal"
 import { ReactNode, useState } from "react"
-import { BinSVG, LeaveSVG, LockSVG, MoreSVG, ParticipateSVG, RollBackSVG, StartSVG, SubsribedSVG, UnlockSVG } from "~/lib/components/data/svg-container"
-import { addPlayerToTournament, addTeamToTournament, toggleBalanceTournament, removePlayerFromTournament, reorderPlayers, reorderTeams, addPlayerToTeam, removeTeamFromTournament, renameTeam, removePlayerFromTeams, distributePlayersOnTeams, balanceTeams, randomizePlayersOnTeams, cancelTournament, startTournament, scoreMatch, stopTournament } from "./tournament.queries.server"
+import { BinSVG, ForfeitSVG, LeaveSVG, LockSVG, MoreSVG, ParticipateSVG, RollBackSVG, StartSVG, SubsribedSVG, UnlockSVG } from "~/lib/components/data/svg-container"
+import { addPlayerToTournament, addTeamToTournament, toggleBalanceTournament, removePlayerFromTournament, reorderPlayers, reorderTeams, addPlayerToTeam, removeTeamFromTournament, renameTeam, removePlayerFromTeams, distributePlayersOnTeams, balanceTeams, randomizePlayersOnTeams, cancelTournament, startTournament, scoreMatch, stopTournament, toggleForfeitPlayerForTournament } from "./tournament.queries.server"
 import { useUsers } from "~/lib/components/contexts/UsersContext"
 import { OpponentsListSolo, OpponentsListTeam, TournamentInfoPlayers } from "./components/players-list"
 import { GetFFAMaxPlayers } from "~/lib/utils/tournaments"
@@ -57,6 +57,9 @@ export async function action({ request }: ActionFunctionArgs) {
         case TournamentManagementIntents.ADD_PLAYER:
             addPlayerToTournament(jsonData.tournamentId as string, jsonData.userId as string)
             break
+        case TournamentManagementIntents.TOGGLE_FORFEIT_PLAYER:
+            toggleForfeitPlayerForTournament(jsonData.tournamentId as string, jsonData.userId as string)
+            break
         case TournamentManagementIntents.REMOVE_PLAYER:
             removePlayerFromTournament(jsonData.tournamentId as string, jsonData.userId as string)
             break
@@ -104,6 +107,7 @@ export enum TournamentManagementIntents {
     EDIT = "editTournament",
     CANCEL = "cancelTournament",
     ADD_PLAYER = "addPlayerToTournament",
+    TOGGLE_FORFEIT_PLAYER = "toggleForfeitPlayerForTournament",
     REMOVE_PLAYER = "removePlayerFromTournament",
     REORDER_PLAYERS = "reorderPlayers",
     REORDER_TEAMS = "reorderTeams"
@@ -247,9 +251,9 @@ function TournamentCommands() {
     const [showConfirmStart, setShowConfirmStart] = useState(false)
     const [showConfirmStop, setShowConfirmStop] = useState(false)
     const [showConfirmCancel, setShowConfirmCancel] = useState(false)
+    const [showConfirmForfeit, setShowConfirmForfeit] = useState(false)
 
-    if (!user.isAdmin) return null
-
+    const isForfeit = !!tournament.players.find(player => player.userId == user.id)?.isForfeit
     const startTournament = () => {
         fetcher.submit(
             {
@@ -265,6 +269,17 @@ function TournamentCommands() {
             {
                 intent: TournamentManagementIntents.STOP,
                 tournamentId: tournament?.id || "",
+            },
+            { method: "POST", encType: "application/json" }
+        )
+    }
+
+    const toggleForfeit = () => {
+        fetcher.submit(
+            {
+                intent: TournamentManagementIntents.TOGGLE_FORFEIT_PLAYER,
+                tournamentId: tournament?.id || "",
+                userId: user.id,
             },
             { method: "POST", encType: "application/json" }
         )
@@ -293,20 +308,25 @@ function TournamentCommands() {
         items.push({ content: [RollBackSVG(), "Redémarrer"], callback: () => setShowConfirmStop(true) })
 
     return <div className='is-flex justify-end gap-3'>
-        {[TournamentStatus.Open, TournamentStatus.Balancing].includes(tournament.status) && <CustomButton callback={() => setShowConfirmStart(true)} contentItems={[StartSVG(), "Démarrer"]} colorClass='has-background-primary-accent' />}
-        <Dropdown
-            trigger={[TournamentStatus.Open, TournamentStatus.Balancing].includes(tournament.status) ?
-                <SquareButton contentItems={[MoreSVG()]} colorClass='has-background-primary-level' /> :
-                <CustomButton contentItems={["Options"]} colorClass='has-background-primary-level' />
-            }
-            id="tournamentMoreCommands"
-            items={items}
-            align="right"
-            direction="top"
-        />
-
-        <CustomModalBinary show={showConfirmCancel} onHide={() => setShowConfirmCancel(false)} content={"Es-tu sûr de vouloir annuler ce tournoi ?"} cancelButton={true} onConfirm={cancelTournament} />
-        <CustomModalBinary show={showConfirmStart} onHide={() => setShowConfirmStart(false)} content={<>Es-tu sûr de vouloir démarrer ce tournoi ? <br />{tournament.settings.useTeams ? "Les équipes vides et les joueurs sans équipes seront retirés du tournoi." : ""}</>} cancelButton={true} onConfirm={startTournament} />
-        <CustomModalBinary show={showConfirmStop} onHide={() => setShowConfirmStop(false)} content={`Es-tu sûr de vouloir redémarrer ce tournoi ? Tu pourras éditer ${tournament.settings.useTeams ? "les équipes et " : ""}les inscriptions, mais toute sa progression sera perdue !`} cancelButton={true} onConfirm={stopTournament} />
+        {![TournamentStatus.Open, TournamentStatus.Balancing, TournamentStatus.Validating, TournamentStatus.Done].includes(tournament.status) && tournament.players.find(player => player.userId == user.id) && <>
+            <CustomButton callback={() => isForfeit ? toggleForfeit() : setShowConfirmForfeit(true)} contentItems={isForfeit ? [RollBackSVG(), "Reprendre"] : [ForfeitSVG(), "Abandonner"]} colorClass='has-background-primary-accent' />
+            <CustomModalBinary show={showConfirmForfeit} onHide={() => setShowConfirmForfeit(false)} content={"Es-tu sûr de vouloir abandonner ?"} cancelButton={true} onConfirm={toggleForfeit} />
+        </>}
+        {user.isAdmin && <>
+            {[TournamentStatus.Open, TournamentStatus.Balancing].includes(tournament.status) && <CustomButton callback={() => setShowConfirmStart(true)} contentItems={[StartSVG(), "Démarrer"]} colorClass='has-background-primary-accent' />}
+            <Dropdown
+                trigger={[TournamentStatus.Open, TournamentStatus.Balancing].includes(tournament.status) ?
+                    <SquareButton contentItems={[MoreSVG()]} colorClass='has-background-primary-level' /> :
+                    <CustomButton contentItems={["Options"]} colorClass='has-background-primary-level' />
+                }
+                id="tournamentMoreCommands"
+                items={items}
+                align="right"
+                direction="top"
+            />
+            <CustomModalBinary show={showConfirmCancel} onHide={() => setShowConfirmCancel(false)} content={"Es-tu sûr de vouloir annuler ce tournoi ?"} cancelButton={true} onConfirm={cancelTournament} />
+            <CustomModalBinary show={showConfirmStart} onHide={() => setShowConfirmStart(false)} content={<>Es-tu sûr de vouloir démarrer ce tournoi ? {tournament.settings.useTeams ? <><br />Les équipes vides et les joueurs sans équipes seront retirés du tournoi.</> : ""}</>} cancelButton={true} onConfirm={startTournament} />
+            <CustomModalBinary show={showConfirmStop} onHide={() => setShowConfirmStop(false)} content={<>Es-tu sûr de vouloir démarrer ce tournoi ?<br />Tu pourras éditer {tournament.settings.useTeams ? "les équipes et " : ""}les inscriptions, mais toute la progression sera perdue !</>} cancelButton={true} onConfirm={stopTournament} />
+        </>}
     </div>
 }

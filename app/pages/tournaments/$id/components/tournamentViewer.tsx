@@ -305,6 +305,7 @@ function MatchTile({ matchId }: { matchId: Id }) {
             return (tournament.bracketSettings[1].size || 1) / (tournament.matches.filter(m => m.bracket == 0).length || 1)
         return (tournament.bracketSettings[match.bracket].advancers || [])[match.id.r - 1] || 1
     }()
+    const ffPlayerIds = tournament.players.filter(p => p.isForfeit).map(p => p.userId)
 
     const score = (mId: Id, opponent: string, score: number) => {
         fetcher.submit(
@@ -371,7 +372,7 @@ function MatchTile({ matchId }: { matchId: Id }) {
                                 }}
                             />
                             :
-                            <div className="has-text-centered" style={{ width: "2.5rem" }}>{opponentScore != undefined ? opponentScore : ""}</div>
+                            <div className="has-text-centered" style={{ width: "2.5rem" }}>{opponentScore != undefined ? ffPlayerIds.includes(opponentId!) ? "F" : opponentScore : ""}</div>
                         }
                         {isFFA &&
                             <div className={`threeDigitsWidth has-text-centered ${index < Math.floor(qualifiedPlaces) ? "has-text-primary-accent" : index < Math.ceil(qualifiedPlaces) ? "has-text-secondary-accent" : ""}`}>{isOver ? index + 1 : "?"}</div>
@@ -401,6 +402,7 @@ function GroupStageMatchTile({ matchIds }: { matchIds: Id[] }) {
         )
     }
 
+    const ffPlayerIds = tournament.players.filter(p => p.isForfeit).map(p => p.userId)
     const userTeam = tournament.teams.find(team => team.members.includes(user.id))
 
     const matches = matchIds.map(id => tournament.matches.find(match => match.id == id))
@@ -448,7 +450,7 @@ function GroupStageMatchTile({ matchIds }: { matchIds: Id[] }) {
                                     }}
                                 />
                                 :
-                                <div className={`has-text-centered ${opponentScore != undefined ? "" : "fade-on-mouse-out"}`} style={{ width: "2.5rem", height: 32 }}>{opponentScore != undefined ? opponentScore : "?"}</div>
+                                <div className={`has-text-centered ${opponentScore != undefined ? "" : "fade-on-mouse-out"}`} style={{ width: "2.5rem", height: 32 }}>{opponentScore != undefined ? ffPlayerIds.includes(opponentId!) ? "F" : opponentScore : "?"}</div>
                             }
                         </div>
                     })}
