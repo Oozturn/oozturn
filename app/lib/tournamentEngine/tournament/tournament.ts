@@ -14,6 +14,8 @@ export interface Result {
   for?: number
   against?: number
   pos: number
+  draws?: number
+  losses?: number
 }
 
 export interface StateElt {

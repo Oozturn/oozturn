@@ -1,35 +1,23 @@
 import { useState } from "react"
 import { Days, range } from "~/lib/utils/ranges"
-import { GetFFAMaxPlayers } from "~/lib/utils/tournaments"
-import { useFetcher } from "@remix-run/react"
-import { Duel } from "~/lib/tournamentEngine/tournament/duel"
-import { BracketSettings, BracketType, TournamentFullData, TournamentProperties, TournamentSettings } from "~/lib/tournamentEngine/types"
-import { globalTournamentPoints } from "~/lib/types/lan"
+import { BracketSettings, BracketType, TournamentFullData, TournamentProperties, TournamentSettings, TournamentStatus } from "~/lib/tournamentEngine/types"
 import { clickorkey } from "~/lib/utils/clickorkey"
 import { useLan } from "~/lib/components/contexts/LanContext"
 import { useGames } from "~/lib/components/contexts/GamesContext"
 import { CustomSelect } from "~/lib/components/elements/custom-select"
 import { EditGlobalTournamentPoints } from "~/lib/components/elements/global-tournament-points"
 import { CustomButton } from "~/lib/components/elements/custom-button"
-import { DuelSoloSVG, DuelSVG, DuelTeamSVG, FFASoloSVG, FFASVG, FFATeamSVG } from "~/lib/components/data/svg-container"
+import { DuelSVG, FFASVG, GroupStageSVG, OnlyFinalSVG, QualifAndFinalSVG, SoloSVG, TeamSVG } from "~/lib/components/data/svg-container"
 import { CustomRadio } from "~/lib/components/elements/custom-radio"
+import { Duel } from "~/lib/tournamentEngine/tournament/duel"
+import { GetFFAMaxPlayers } from "~/lib/utils/tournaments"
+import { useFetcher } from "@remix-run/react"
 
 const enum tournamentEditSteps {
     PROPERTIES,
-    TYPE,
+    MATCHSTYPE,
     PARAMETERS,
     COMMENTS,
-}
-
-export function useStateMonitored<T>(defaultValue: T): [value: T, setValue: (newValue: T) => void, modified: boolean] {
-    const [value, _setValue] = useState(defaultValue)
-    const initialValue = defaultValue
-    const [modified, setModified] = useState(false)
-    const setValue = (v: T) => {
-        if (v != value) _setValue(v)
-        setModified(initialValue != v)
-    }
-    return [value, setValue, modified]
 }
 
 interface TournamentEditProps {
@@ -44,164 +32,161 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
 
     const tId = existingTournament ? existingTournament.id : Date.now().toString()
 
-    const [tName, set_tName, modified_tName] = useStateMonitored(existingTournament ? existingTournament.properties.name : "")
-    const [tGame, set_tGame, modified_tGame] = useStateMonitored(existingTournament ? existingTournament.properties.game : undefined)
-    const [tGlobalTournamentPoints, set_tGlobalTournamentPoints, modified_tGlobalTournamentPoints] = useStateMonitored<globalTournamentPoints>(existingTournament ? { leaders: existingTournament.properties.globalTournamentPoints.leaders.slice(), default: existingTournament.properties.globalTournamentPoints.default } : lan.globalTournamentDefaultPoints)
-    const [tStartTime, set_tStartTime, modified_tStartTime] = useStateMonitored(existingTournament ? existingTournament.properties.startTime : lan.startDate)
-    const [tComments, set_tComments, modified_tComments] = useStateMonitored(existingTournament ? existingTournament.properties.comments : "")
+    const [tTournamentProperties, set_tTournamentProperties] = useState<Partial<TournamentProperties>>(existingTournament ? existingTournament.properties : {
+        globalTournamentPoints: { leaders: lan.globalTournamentDefaultPoints.leaders.slice(), default: lan.globalTournamentDefaultPoints.default },
+        startTime: { day: lan.startDate.day, hour: lan.startDate.hour, min: lan.startDate.min }
+    })
+    const handlePropertiesChange = (properties: Partial<TournamentProperties>) => { set_tTournamentProperties({ ...tTournamentProperties, ...properties }) }
 
-    const [tType, set_tType, modified_tType] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].type : BracketType.Duel)
-    const [tUseTeams, set_tUseTeams, modified_tUseTeams] = useStateMonitored(existingTournament ? existingTournament.settings.useTeams : false)
-    const [tLowerScoreIsBetter, set_tLowerScoreIsBetter, modified_tLowerScoreIsBetter] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].lowerScoreIsBetter : false)
-
-    // Duel options
-    const [tLast, set_tLast, modified_tLast] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].last : undefined)
-    const [tShortBracket, set_tShortBracket, modified_tShortBracket] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].short : undefined)
+    const [tTournamentSettings, set_tTournamentSettings] = useState<Partial<TournamentSettings>>(existingTournament ? existingTournament.settings : {
+        teamsMaxSize: 4
+    })
+    const handleTournamentSettingsChange = (settings: Partial<TournamentSettings>) => { set_tTournamentSettings({ ...tTournamentSettings, ...settings }) }
+    
+    const [hasTwoPhases, set_HasTwoPhases] = useState<boolean | undefined>(existingTournament ? existingTournament.bracketsCount == 2 ? true : false : undefined)
+    const [tFinaleSettings, set_tFinaleSettings] = useState<Partial<BracketSettings>>(existingTournament ? existingTournament.bracketSettings[existingTournament.bracketsCount == 2 ? 1 : 0] : {
+        sizes: [6, 6],
+        advancers: [3]
+    })
+    const handleFinaleSettingsChange = (settings: Partial<BracketSettings>) => { set_tFinaleSettings({ ...tFinaleSettings, ...settings }) }
+    const [tQualifSettings, set_tQualifSettings] = useState<Partial<BracketSettings>>(existingTournament ? existingTournament.bracketsCount == 2 ? existingTournament.bracketSettings[0] : {} : {})
+    const handleQualifSettingsChange = (settings: Partial<BracketSettings>) => { set_tQualifSettings({ ...tQualifSettings, ...settings }) }
+    
+    const [tLowerScoreIsBetter, set_tLowerScoreIsBetter] = useState(existingTournament ? existingTournament.bracketSettings[0].lowerScoreIsBetter : undefined)
 
     // FFA options
     const [tNbRounds, set_tNbRounds] = useState(existingTournament ? existingTournament.bracketSettings[0].sizes?.length || 2 : 2)
-    const [tSizes, set_tSizes, modified_tSizes] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].sizes || [6, 6] : [6, 6])
-    const [tAdvancers, set_tAdvancers, modified_tAdvancers] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].advancers || [3] : [3])
-    const [tLimit, , modified_tLimit] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].limit : 1)
+    const finaleSizes = () => { return tFinaleSettings.sizes || [3] }
+    const finaleAdvancers = () => { return tFinaleSettings.advancers || [3] }
 
-    // GroupStage options
-    const [tGroupSize, set_groupSize, modified_groupSize] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].groupSize || 4 : 4)
-    const [tWinPoints, set_winPoints, modified_winPoints] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].winPoints || 3 : 3)
-    const [tTiePoints, set_tiePoints, modified_tiePoints] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].tiePoints || 1 : 1)
-    const [tScoresBreak, , modified_scoresBreak] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].scoresBreak || true : true)
-    const [tMeetTwice, , modified_meetTwice] = useStateMonitored(existingTournament ? existingTournament.bracketSettings[0].meetTwice || false : false)
-
-    // Teams options
-    const [tUsersCanCreateTeams, set_tUsersCanCreateTeams, modified_tUsersCanCreateTeams] = useStateMonitored(existingTournament ? existingTournament.settings.usersCanCreateTeams : false)
-    const [tTeamsMaxSize, set_tTeamsMaxSize, modified_tTeamsMaxSize] = useStateMonitored(existingTournament ? existingTournament.settings.teamsMaxSize : 8)
-
+    const runningTournament = existingTournament && ![TournamentStatus.Open, TournamentStatus.Balancing].includes(existingTournament.status)
+    
 
     const fetcher = useFetcher()
     function PublishTournament() {
         const id: string = tId
         const properties: TournamentProperties = {
-            name: tName,
-            game: tGame,
-            startTime: tStartTime,
-            globalTournamentPoints: tGlobalTournamentPoints,
-            comments: tComments,
+            name: "",
+            startTime: lan.startDate,
+            globalTournamentPoints: lan.globalTournamentDefaultPoints,
+            comments: "",
+            ...tTournamentProperties
         }
         const settings: TournamentSettings = {
-            useTeams: tUseTeams,
-            usersCanCreateTeams: tUsersCanCreateTeams,
-            teamsMaxSize: tTeamsMaxSize,
+            useTeams: false,
+            ...tTournamentSettings
         }
-        const bracketSettings: BracketSettings = {
-            // Common
-            type: tType,
+        const finaleSettings: BracketSettings = {
+            type: BracketType.Duel,
             lowerScoreIsBetter: tLowerScoreIsBetter,
-            // Duel
-            short: tShortBracket,
-            last: tLast,
-            // FFA
-            limit: tLimit,
-            sizes: tSizes,
-            advancers: tAdvancers,
-            // GroupStage
-            groupSize: tGroupSize,
-            winPoints: tWinPoints,
-            tiePoints: tTiePoints,
-            scoresBreak: tScoresBreak,
-            meetTwice: tMeetTwice,
+            ...tFinaleSettings
+        }
+        const qualificationSettings: BracketSettings = {
+            type: BracketType.FFA,
+            lowerScoreIsBetter: tLowerScoreIsBetter,
+            ...tQualifSettings
         }
         fetcher.submit(
             {
                 tournamentId: id,
                 tournamentProperties: JSON.stringify(properties),
                 tournamentSettings: JSON.stringify(settings),
-                tournamentBracketSettings: JSON.stringify([bracketSettings])
+                tournamentBracketSettings: JSON.stringify(hasTwoPhases ? [qualificationSettings, finaleSettings] : [finaleSettings])
             },
             { method: "POST", encType: "application/json" }
         )
     }
     function UpdateTournament() {
-        if (!existingTournament) return
-        const partialProperties: Partial<TournamentProperties> = {
-            name: modified_tName ? tName : undefined,
-            game: modified_tGame ? tGame : undefined,
-            startTime: modified_tStartTime ? tStartTime : undefined,
-            globalTournamentPoints: modified_tGlobalTournamentPoints ? tGlobalTournamentPoints : undefined,
-            comments: modified_tComments ? tComments : undefined
+        const finaleSettings: Partial<BracketSettings> = {
+            type: BracketType.Duel,
+            lowerScoreIsBetter: tLowerScoreIsBetter,
+            ...tFinaleSettings
         }
-        const partialTournamentSettings: Partial<TournamentSettings> = {
-            useTeams: modified_tUseTeams ? tUseTeams : undefined,
-            usersCanCreateTeams: modified_tUsersCanCreateTeams ? tUsersCanCreateTeams : undefined,
-            teamsMaxSize: modified_tTeamsMaxSize ? tTeamsMaxSize : undefined,
-        }
-        const partialBracketSettings: Partial<BracketSettings> = {
-            type: modified_tType ? tType : undefined,
-            lowerScoreIsBetter: modified_tLowerScoreIsBetter ? tLowerScoreIsBetter : undefined,
-            last: modified_tLast ? tLast : undefined,
-            short: modified_tShortBracket ? tShortBracket : undefined,
-            sizes: modified_tSizes ? tSizes : undefined,
-            advancers: modified_tAdvancers ? tAdvancers : undefined,
-            limit: modified_tLimit ? tLimit : undefined,
-            groupSize: modified_groupSize ? tGroupSize : undefined,
-            winPoints: modified_winPoints ? tWinPoints : undefined,
-            tiePoints: modified_tiePoints ? tTiePoints : undefined,
-            scoresBreak: modified_scoresBreak ? tScoresBreak : undefined,
-            meetTwice: modified_meetTwice ? tMeetTwice : undefined,
+        const qualificationSettings: Partial<BracketSettings> = {
+            type: BracketType.FFA,
+            lowerScoreIsBetter: tLowerScoreIsBetter,
+            ...tQualifSettings
         }
         fetcher.submit(
             {
                 tournamentId: tId,
-                tournamentProperties: JSON.stringify(partialProperties),
-                tournamentSettings: JSON.stringify(partialTournamentSettings),
-                tournamentBracketSettings: JSON.stringify([partialBracketSettings])
+                tournamentProperties: JSON.stringify(tTournamentProperties),
+                tournamentSettings: JSON.stringify(tTournamentSettings),
+                tournamentBracketSettings: JSON.stringify(hasTwoPhases ? [qualificationSettings, finaleSettings] : [finaleSettings])
             },
             { method: "POST", encType: "application/json" }
         )
     }
 
     return (
-        <div className="is-flex-col grow gap-3 p-0 is-full-height">
+        <div className="is-flex-col grow gap-2 p-0 is-full-height">
             <div className="is-title big is-uppercase has-background-secondary-level p-2 px-4" {...clickorkey(() => set_editStep(tournamentEditSteps.PROPERTIES))}>
-                {existingTournament ? "Édition de " + tName : "Nouveau tournoi"}
+                {existingTournament ? "Édition de " + tTournamentProperties.name || "" : "Nouveau tournoi"}
             </div>
-            <div className={`is-clipped has-background-secondary-level is-flex-col ${editStep == tournamentEditSteps.PROPERTIES ? "grow no-basis" : ""}`}>
-                <div className={`is-title medium is-uppercase py-2 px-4 ${editStep > tournamentEditSteps.PROPERTIES ? "is-clickable" : ""}`} {...clickorkey(() => set_editStep(tournamentEditSteps.PROPERTIES))}>
+            {/* Page heading */}
+            <div className="is-flex-row is-clipped">
+                <div className={`tournamentEditSectionTitle has-text is-relative is-title medium py-2 is-flex align-center justify-center grow no-basis
+                    ${editStep == tournamentEditSteps.PROPERTIES ? "active" : ""}
+                    ${editStep > tournamentEditSteps.PROPERTIES ? "is-clickable" : ""}`}
+                    {...clickorkey(() => editStep > tournamentEditSteps.PROPERTIES && set_editStep(tournamentEditSteps.PROPERTIES))}>
                     Propriétés du tournoi
                 </div>
-                <div className="is-flex-col gap-5 grow px-4" style={{ maxHeight: editStep == tournamentEditSteps.PROPERTIES ? undefined : 0 }}>
-                    <div className='is-flex align-center gap-3'>
+                <div className={`tournamentEditSectionTitle has-text is-relative is-title medium py-2 is-flex align-center justify-center grow no-basis
+                    ${editStep == tournamentEditSteps.MATCHSTYPE ? "active" : ""}
+                    ${(editStep > tournamentEditSteps.MATCHSTYPE) && !runningTournament ? "is-clickable" : ""}`}
+                    {...clickorkey(() => (editStep > tournamentEditSteps.MATCHSTYPE) && !runningTournament && set_editStep(tournamentEditSteps.MATCHSTYPE))}>
+                    Type de match
+                </div>
+                <div className={`tournamentEditSectionTitle has-text is-relative is-title medium py-2 is-flex align-center justify-center grow no-basis
+                    ${editStep == tournamentEditSteps.PARAMETERS ? "active" : ""}
+                    ${(editStep > tournamentEditSteps.PARAMETERS) && !runningTournament ? "is-clickable" : ""}`}
+                    {...clickorkey(() => (editStep > tournamentEditSteps.PARAMETERS) && !runningTournament && set_editStep(tournamentEditSteps.PARAMETERS))}>
+                    Déroulement du tournoi
+                </div>
+                <div className={`tournamentEditSectionTitle has-text is-relative is-title medium py-2 is-flex align-center justify-center grow no-basis
+                    ${editStep == tournamentEditSteps.COMMENTS ? "active" : ""}
+                    ${editStep > tournamentEditSteps.COMMENTS ? "is-clickable" : ""}`}
+                    {...clickorkey(() => editStep > tournamentEditSteps.COMMENTS && set_editStep(tournamentEditSteps.COMMENTS))}>
+                    Commentaires
+                </div>
+            </div>
+            <div className="is-scrollable gap-6 has-background-secondary-level p-4 grow no-basis is-flex-col">
+                {/* Properties */}
+                {editStep == tournamentEditSteps.PROPERTIES && <>
+                    <div className='is-flex align-center gap-5'>
                         <div className='has-text-right is-one-fifth'>Nom du tournoi :</div>
-                        <input className='input is-one-quarter' type="text" placeholder="Nom du tournoi" value={tName} onChange={(e) => { set_tName(e.target.value); }} />
+                        <input className='input is-one-third' type="text" placeholder="Nom du tournoi" value={tTournamentProperties.name} onChange={(e) => { handlePropertiesChange({ name: e.target.value }); }} />
                     </div>
-                    <div className='is-flex align-center gap-3'>
+                    <div className='is-flex align-center gap-5'>
                         <div className='has-text-right is-one-fifth'>Jeu :</div>
                         <CustomSelect
-                            variable={tGame}
-                            setter={(v: string) => set_tGame(Number(v))}
+                            variable={tTournamentProperties.game}
+                            setter={(v: string) => handlePropertiesChange({ game: Number(v) })}
                             items={games.sort((a, b) => a.id == -1 ? -1 : b.id == -1 ? 1 : a.name < b.name ? -1 : a.name == b.name ? 0 : 1).map(game => { return { label: game.name, value: game.id } })}
                             itemsToShow={20}
-                            customClass="is-one-quarter"
+                            customClass="is-one-third"
                         />
                     </div>
-                    <div className="is-flex gap-3">
+                    <div className="is-flex gap-5">
                         <div className='has-text-right is-one-fifth'>Points au classement global :</div>
                         <div className="is-flex-col gap-2">
-                            <EditGlobalTournamentPoints points={tGlobalTournamentPoints} updatePoints={set_tGlobalTournamentPoints} />
+                            <EditGlobalTournamentPoints points={tTournamentProperties.globalTournamentPoints || { leaders: lan.globalTournamentDefaultPoints.leaders.slice(), default: lan.globalTournamentDefaultPoints.default }} updatePoints={(pts) => handlePropertiesChange({ globalTournamentPoints: pts })} />
                             <div className='is-size-7 no-basis grow is-align-self-flex-end'>Dans ce tableau, indique le nombre de points que les joueurs recevront en fonction de leur classement.</div>
                         </div>
                     </div>
-                    <div className='is-flex gap-3'>
+                    <div className='is-flex gap-5'>
                         <p className='has-text-right is-one-fifth'>Début du tournoi :</p>
                         <div className="is-flex-col gap-2">
                             <div className='is-flex align-center gap-3'>
                                 <CustomSelect
-                                    variable={tStartTime.day}
-                                    setter={(v: string) => set_tStartTime({ ...tStartTime, day: Number(v) })}
+                                    variable={tTournamentProperties.startTime?.day}
+                                    setter={(v: string) => handlePropertiesChange({ startTime: { ...tTournamentProperties.startTime!, day: Number(v) } })}
                                     items={[...range(lan.startDate.day, 6, 1), ...range(0, lan.endDate.day, 1)].map(d => { return { label: Days[d], value: d } })}
                                 />
                                 <CustomSelect
-                                    variable={tStartTime.hour}
-                                    setter={(v: string) => set_tStartTime({ ...tStartTime, hour: Number(v) })}
-                                    items={range(tStartTime.day == lan.startDate.day ? lan.startDate.hour : 0, tStartTime.day == lan.endDate.day ? lan.endDate.hour - 1 : 23, 1).map(d => { return { label: String(d) + "h ", value: d } })}
+                                    variable={tTournamentProperties.startTime?.hour}
+                                    setter={(v: string) => handlePropertiesChange({ startTime: { ...tTournamentProperties.startTime!, hour: Number(v) } })}
+                                    items={range(tTournamentProperties.startTime?.day == lan.startDate.day ? lan.startDate.hour : 0, tTournamentProperties.startTime?.day == lan.endDate.day ? lan.endDate.hour - 1 : 23, 1).map(d => { return { label: String(d) + "h ", value: d } })}
                                     customClass='mr-1'
                                     itemsToShow={7}
                                 />
@@ -209,238 +194,314 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                             <div className="is-size-7 no-basis grow is-align-self-flex-end">Cette info est indicative seulement, le tournoi sera démarré manuellement</div>
                         </div>
                     </div>
-                    <div className='is-flex grow align-end justify-end pb-4'>
+                    <div className='is-flex grow align-end justify-end'>
                         <CustomButton
-                            callback={() => set_editStep(editStep + 1)}
+                            callback={() => set_editStep(editStep + (runningTournament ? 3 : 1))}
                             colorClass='has-background-primary-accent'
                             contentItems={['Suivant']}
                         />
                     </div>
-                </div>
-            </div>
-
-            <div className={`is-clipped has-background-secondary-level is-flex-col ${editStep == tournamentEditSteps.TYPE ? "grow no-basis" : ""}`}>
-                <div className={`is-title medium is-uppercase py-2 px-4 ${editStep > tournamentEditSteps.TYPE ? "is-clickable" : ""}`} {...clickorkey(() => { if (editStep > tournamentEditSteps.TYPE) set_editStep(tournamentEditSteps.TYPE) })}>
-                    Type de tournoi
-                </div>
-                <div className="is-flex-col gap-6 grow is-scrollable px-4" style={{ maxHeight: editStep == tournamentEditSteps.TYPE ? undefined : 0 }}>
-                    <div className='is-flex gap-3'>
-                        {/* <div className='has-text-right is-one-fifth'>Type de match :</div> */}
-                        <div className='is-flex-col align-center gap-1 grow no-basis'>
-                            <div className={`svgSelection is-clickable ${tType == BracketType.Duel ? 'is-active' : ''}`} {...clickorkey(() => set_tType(BracketType.Duel))}>
-                                <DuelSVG />
-                            </div>
-                            <div className='is-title medium'>DUEL</div>
-                            <div className='px-4 is-size-7 has-text-centered'>Sélectionne le mode Duel si le jeu fait s’opposer 2 camps lors d’un duel qui fera ressortir un gagnant et un perdant.</div>
-                        </div>
-                        <div className='is-flex-col align-center gap-1 grow no-basis'>
-                            <div className={`svgSelection is-clickable ${tType == BracketType.FFA ? 'is-active' : ''}`} {...clickorkey(() => set_tType(BracketType.FFA))}>
-                                <FFASVG />
-
-                            </div>
-                            <div className='is-title medium'>CLASSEMENT</div>
-                            <div className='px-4 is-size-7 has-text-centered'>Sélectionne le mode Classement si le jeu fait s’opposer plus de 2 camps et qu’il donne un résultat sous forme de classement.</div>
-                        </div>
-                        <div className='is-flex-col align-center gap-1 grow no-basis'>
-                            <div className={`svgSelection is-clickable ${tType == BracketType.GroupStage ? 'is-active' : ''}`} {...clickorkey(() => set_tType(BracketType.GroupStage))}>
-                                <DuelSVG />
-                            </div>
-                            <div className='is-title medium'>GroupStage</div>
-                            <div className='px-4 is-size-7 has-text-centered'>Round robin mode.</div>
+                </>}
+                {/* Match type */}
+                {editStep == tournamentEditSteps.MATCHSTYPE && <>
+                    <div className='is-flex gap-4'>
+                        <div className='has-text-right is-one-fifth'>Choisis le type de score :</div>
+                        <div className='is-flex-col'>
+                            <CustomRadio variable={tLowerScoreIsBetter} setter={set_tLowerScoreIsBetter} items={[{ label: 'Score classique', value: false }, { label: 'Score inversé', value: true }]} />
+                            <div className='mx-3 is-size-7'>Sélectionne <i>score classique</i> si le camp gagnant est celui qui a le plus haut score en fin de partie.<br />Dans le cas contraire, bien sûr, sélectionne <i>Score inversé</i>.</div>
                         </div>
                     </div>
-
-                    <div className='is-flex gap-3'>
-                        {/* <div className='has-text-right is-one-fifth'>Type d’opposants :</div> */}
-                        <div className='is-flex-col align-center gap-1 grow no-basis'>
-                            <div className={`svgSelection is-clickable ${tUseTeams == false ? 'is-active' : ''}`} {...clickorkey(() => set_tUseTeams(false))}>
-                                {tType == BracketType.Duel ? <DuelSoloSVG /> : <FFASoloSVG />}
+                    <div className='is-flex gap-5'>
+                        <div className='has-text-right is-one-fifth'>Choisis le type de rencontre :</div>
+                        <div className='is-flex gap-6 justify-center'>
+                            <div className='is-flex-col align-center gap-4 no-basis'>
+                                <div className={`svgSelection is-clickable ${tTournamentSettings.useTeams == false ? 'is-active' : ''}`} {...clickorkey(() => handleTournamentSettingsChange({ useTeams: false }))}>
+                                    <SoloSVG />
+                                </div>
+                                <div className='is-title medium'>SOLO</div>
                             </div>
-                            <div className='is-title medium'>SOLO</div>
-                        </div>
-                        <div className='is-flex-col align-center gap-1 grow no-basis'>
-                            <div className={`svgSelection is-clickable ${tUseTeams == true ? 'is-active' : ''}`} {...clickorkey(() => set_tUseTeams(true))}>
-                                {tType == BracketType.Duel ? <DuelTeamSVG /> : <FFATeamSVG />}
+                            <div className='is-flex-col align-center gap-4 no-basis'>
+                                <div className={`svgSelection is-clickable ${tTournamentSettings.useTeams == true ? 'is-active' : ''}`} {...clickorkey(() => handleTournamentSettingsChange({ useTeams: true }))}>
+                                    <TeamSVG />
+                                </div>
+                                <div className='is-title medium'>ÉQUIPES</div>
                             </div>
-                            <div className='is-title medium'>ÉQUIPES</div>
                         </div>
                     </div>
-                    <div className='is-flex grow align-end justify-space-between pb-4'>
+                    {/* Si team */}
+                    {tTournamentSettings.useTeams && <>
+                        <div className='is-flex align-center gap-5'>
+                            <div className='has-text-right is-one-fifth'>Nombre de joueurs par équipe :</div>
+                            <CustomSelect
+                                variable={tTournamentSettings.teamsMaxSize}
+                                setter={(v: string) => handleTournamentSettingsChange({ teamsMaxSize: Number(v) })}
+                                items={range(2, 64, 1).map(d => { return { label: String(d), value: d } })}
+                                itemsToShow={4}
+                                showOnTop={true}
+                            />
+                        </div>
+                        <div className='is-flex gap-4'>
+                            <div className='has-text-right is-one-fifth'>Création des équipes :</div>
+                            <CustomRadio variable={tTournamentSettings.usersCanCreateTeams} setter={(v: boolean) => handleTournamentSettingsChange({ usersCanCreateTeams: v })} items={[{ label: 'Par les admins', value: false }, { label: 'Par les joueurs', value: true }]} />
+                        </div>
+                    </>}
+                    <div className='is-flex grow align-end justify-space-between'>
                         <CustomButton
                             callback={() => set_editStep(editStep - 1)}
                             colorClass='has-background-primary-accent'
                             contentItems={['Précédent']}
                         />
                         <CustomButton
+                            active={
+                                (tLowerScoreIsBetter != undefined)
+                                && (tTournamentSettings.useTeams === false || (
+                                    tTournamentSettings.useTeams == true
+                                    && tTournamentSettings.usersCanCreateTeams != undefined
+                                ))
+                            }
                             callback={() => set_editStep(editStep + 1)}
                             colorClass='has-background-primary-accent'
                             contentItems={['Suivant']}
                         />
                     </div>
-                </div>
-            </div>
-
-            <div className={`is-clipped has-background-secondary-level is-flex-col ${editStep == tournamentEditSteps.PARAMETERS ? "grow no-basis" : ""}`}>
-                <div className={`is-title medium is-uppercase py-2 px-4 ${editStep > tournamentEditSteps.PARAMETERS ? "is-clickable" : ""}`} {...clickorkey(() => { if (editStep > tournamentEditSteps.PARAMETERS) set_editStep(tournamentEditSteps.PARAMETERS) })}>
-                    Paramètres du tournoi
-                </div>
-                <div className="is-flex-col gap-5 grow px-4" style={{ maxHeight: editStep == tournamentEditSteps.PARAMETERS ? undefined : 0 }}>
-                    <div className='is-flex'>
-                        <div className='has-text-right is-one-fifth'>Type de score :</div>
-                        <div className='is-flex-col'>
-                            <CustomRadio variable={tLowerScoreIsBetter} setter={set_tLowerScoreIsBetter} items={[{ label: 'Score classique', value: false }, { label: 'Score inversé', value: true }]} />
-                            <div className='mx-3 is-size-7'>Sélectionne <i>score classique</i> si le camp gagnant est celui qui a le plus haut score en fin de partie. Dans le cas contraire, bien sûr, sélectionne <i>Score inversé</i>.</div>
+                </>}
+                {/* Parameters */}
+                {editStep == tournamentEditSteps.PARAMETERS && <>
+                    <div className='is-title medium'>Déroulement du tournoi :</div>
+                    <div className='is-flex gap-5 justify-center'>
+                        <div className='is-flex gap-6 justify-center'>
+                            <div className='is-flex-col align-center gap-4 no-basis'>
+                                <div className={`svgSelection is-clickable ${hasTwoPhases == false ? 'is-active' : ''}`} {...clickorkey(() => set_HasTwoPhases(false))}>
+                                    <OnlyFinalSVG />
+                                </div>
+                                <div className='is-title medium'>Tournoi direct</div>
+                                <div className='mx-3 is-size-7 has-text-centered'>Choisis cette option si tu veux démarrer un tournoi sans phase de qualification ou de classement.</div>
+                            </div>
+                            <div className='is-flex-col align-center gap-4 no-basis'>
+                                <div className={`svgSelection is-clickable ${hasTwoPhases == true ? 'is-active' : ''}`} {...clickorkey(() => set_HasTwoPhases(true))}>
+                                    <QualifAndFinalSVG />
+                                </div>
+                                <div className='is-title medium'>Phase de poule et phase finale</div>
+                                <div className='mx-3 is-size-7 has-text-centered'>Choisis cette option pour un tounoi en deux phases :<br />Une phase de poule pour classer et/ou réduire le nombre de joueurs, puis une phase finale pour établir le classement final.</div>
+                            </div>
                         </div>
                     </div>
-                    {/* Si DUEL */}
-                    {tType == BracketType.Duel &&
-                        <>
-                            <div className='is-flex'>
-                                <div className='has-text-right is-one-fifth'>Rattrapage :</div>
-                                <div className='is-flex-col no-basis grow'>
-                                    <CustomRadio variable={tLast} setter={set_tLast} items={[{ label: 'non', value: Duel.WB }, { label: 'oui', value: Duel.LB }]} />
-                                    <div className='mx-3 is-size-7'>En sélectionnant <i>non</i>, le tounois sera à élimination directe, une défaite et zou, tu dégages ! En sélectionnant <i>oui</i>, les joueurs qui perdent une première fois restent en compétition. Au prix de sang et de larmes ils pourront revenir au sommet. Mais en cas de seconde défaite prends ton flambeau, la sentance sera irrévocable.</div>
+                    {hasTwoPhases != undefined && <>
+                        {hasTwoPhases && <> {/* Qualification */}
+                            {/* Qualification type selection */} <>
+                                <div className='is-title medium'>Type de phase de poule :</div>
+                                <div className='is-flex gap-5 justify-center'>
+                                    <div className='is-flex gap-6 justify-center'>
+                                        <div className='is-flex-col align-center gap-4 no-basis'>
+                                            <div className={`svgSelection is-clickable ${tQualifSettings.type == BracketType.FFA ? 'is-active' : ''}`} {...clickorkey(() => handleQualifSettingsChange({ type: BracketType.FFA }))}>
+                                                <FFASVG />
+                                            </div>
+                                            <div className='is-title medium'>FFA</div>
+                                        </div>
+                                        <div className='is-flex-col align-center gap-4 no-basis'>
+                                            <div className={`svgSelection is-clickable ${tQualifSettings.type == BracketType.GroupStage ? 'is-active' : ''}`} {...clickorkey(() => handleQualifSettingsChange({ type: BracketType.GroupStage }))}>
+                                                <GroupStageSVG />
+                                            </div>
+                                            <div className='is-title medium'>Round robin</div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className='is-flex'>
-                                <div className='has-text-right is-one-fifth'>Format court :</div>
-                                <div className='is-flex-col no-basis grow'>
-                                    <CustomRadio variable={tShortBracket} setter={set_tShortBracket} items={[{ label: 'non', value: false }, { label: 'oui', value: true }]} />
-                                    {tLast == Duel.LB &&
-                                        <div className='mx-3 is-size-7'>En sélectionnant <i>oui</i>, il n&apos;y aura pas de double finale. Le gagnant du rattrapage pourra voler la victoire contre le gagnant du tableau principal en une rencontre. C&apos;est pas juste, mais c&apos;est comme ça. En sélectionnant <i>non</i>, la justice reprend le dessus et le gagnant sera alors vraiment celui ayant le moins de défaites.</div>
+                            </>
+                            {/* Qualification options */} <>
+                                <div className='is-flex align-center gap-5'>
+                                    <div className='has-text-right is-one-third'>Nombre {tTournamentSettings.useTeams ? "d'équipes" : "de joueurs"} par poule :</div>
+                                    <CustomSelect
+                                        variable={tQualifSettings.groupSize}
+                                        setter={(v: string) => handleQualifSettingsChange({ groupSize: Number(v), sizes: [Number(v)] })}
+                                        items={range(2, 8, 1).map(d => { return { label: String(d), value: d } })}
+                                    />
+                                </div>
+                                <div className='is-flex align-center gap-5'>
+                                    <div className='has-text-right is-one-third'>Nombre {tTournamentSettings.useTeams ? "d'équipes" : "de joueurs"} sélectionnés pour la phase suivante :</div>
+                                    <CustomSelect
+                                        variable={tFinaleSettings.size}
+                                        setter={(v: string) => handleFinaleSettingsChange({ size: v ? Number(v) : undefined })}
+                                        items={[{ label: tTournamentSettings.useTeams ? "Toutes" : "Tous", value: undefined }, ...range(2, 64, 1).map(d => { return { label: String(d), value: d } })]}
+                                        itemsToShow={8}
+                                    />
+                                    {tFinaleSettings.type == BracketType.Duel && tFinaleSettings.size && ((tFinaleSettings.size & (tFinaleSettings.size - 1)) != 0) &&
+                                        <div className='mx-3 is-size-7 has-text-primary-accent'>Le nombre {tTournamentSettings.useTeams ? "d'équipes qualifiées" : "de joueurs qualifiés"} n&apos;est pas optimal pour le type de finale sélectionné.</div>
                                     }
-                                    {tLast == Duel.WB &&
-                                        <div className='mx-3 is-size-7'>En sélectionnant <i>oui</i>, il n&apos;y aura pas de petite finale. Premier, second, les autres sont des perdants. En sélectionnant <i>non</i>, on connaitra le vainqueur de la médaille en chocolat.</div>
-                                    }
-                                    {tLast == undefined &&
-                                        <div className='mx-3 is-size-7'>Sélectionne une option de rattrapage pour avoir des précisions sur ce paramètre</div>
+                                </div>
+                                {tQualifSettings.type == BracketType.GroupStage && <>
+                                    <div className='is-flex gap-4'>
+                                        <div className='has-text-right is-one-third'>Matchs aller/retour :</div>
+                                        <div className='is-flex-col'>
+                                            <CustomRadio variable={tQualifSettings.meetTwice} setter={(v: boolean) => handleQualifSettingsChange({ meetTwice: v })} items={[{ label: 'non', value: false }, { label: 'oui', value: true }]} />
+                                            <div className='mx-3 is-size-7'>En selectionnant oui les {tTournamentSettings.useTeams ? "équipes" : "joueurs"} se rencontreront 2 fois dans chaque poule.</div>
+                                        </div>
+                                    </div>
+                                </>}
+                            </>
+                        </>}
+                        {/* Finale type selection */} <>
+                            <div className='is-title medium'>Type de {hasTwoPhases ? "finale" : "tournoi"} :</div>
+                            <div className='is-flex gap-5 justify-center'>
+                                <div className='is-flex gap-6 justify-center'>
+                                    <div className='is-flex-col align-center gap-4 no-basis'>
+                                        <div className={`svgSelection is-clickable ${tFinaleSettings.type == BracketType.Duel ? 'is-active' : ''}`} {...clickorkey(() => handleFinaleSettingsChange({ type: BracketType.Duel }))}>
+                                            <DuelSVG />
+                                        </div>
+                                        <div className='is-title medium'>Duel</div>
+                                    </div>
+                                    <div className='is-flex-col align-center gap-4 no-basis'>
+                                        <div className={`svgSelection is-clickable ${tFinaleSettings.type == BracketType.FFA ? 'is-active' : ''}`} {...clickorkey(() => handleFinaleSettingsChange({ type: BracketType.FFA }))}>
+                                            <FFASVG />
+                                        </div>
+                                        <div className='is-title medium'>FFA</div>
+                                    </div>
+                                    {hasTwoPhases == false &&
+                                        <div className='is-flex-col align-center gap-4 no-basis'>
+                                            <div className={`svgSelection is-clickable ${tFinaleSettings.type == BracketType.GroupStage ? 'is-active' : ''}`} {...clickorkey(() => handleFinaleSettingsChange({ type: BracketType.GroupStage }))}>
+                                                <GroupStageSVG />
+                                            </div>
+                                            <div className='is-title medium'>Round robin</div>
+                                        </div>
                                     }
                                 </div>
                             </div>
                         </>
-                    }
-                    {/* Si FFA */}
-                    {tType == BracketType.FFA &&
-                        <>
-                            <div className='is-flex gap-3'>
-                                <div className='has-text-right is-one-fifth'>Nombre de manches :</div>
+
+                        {/* DUEL Options */}
+                        {tFinaleSettings.type == BracketType.Duel && <>
+                            <div className='is-flex gap-4'>
+                                <div className='has-text-right is-one-third'>Rattrapage :</div>
+                                <div className='is-flex-col no-basis grow'>
+                                    <CustomRadio variable={tFinaleSettings.last} setter={(v: number) => handleFinaleSettingsChange({ last: v })} items={[{ label: 'non', value: Duel.WB }, { label: 'oui', value: Duel.LB }]} />
+                                    <div className='mx-3 is-size-7'>En sélectionnant <i>non</i>, le tournoi sera à élimination directe, une défaite et zou, tu dégages ! En sélectionnant <i>oui</i>, les joueurs qui perdent une première fois restent en compétition. Au prix de sang et de larmes ils pourront revenir au sommet. Mais en cas de seconde défaite prends ton flambeau, la sentance sera irrévocable.</div>
+                                </div>
+                            </div>
+                            <div className='is-flex gap-4'>
+                                <div className='has-text-right is-one-third'>Format court :</div>
+                                <div className='is-flex-col no-basis grow'>
+                                    <CustomRadio variable={tFinaleSettings.short} setter={(v: boolean) => handleFinaleSettingsChange({ short: v })} items={[{ label: 'non', value: false }, { label: 'oui', value: true }]} />
+                                    {tFinaleSettings.last == Duel.LB &&
+                                        <div className='mx-3 is-size-7'>En sélectionnant <i>oui</i>, il n&apos;y aura pas de double finale. Le gagnant du rattrapage pourra voler la victoire contre le gagnant du tableau principal en une rencontre. C&apos;est pas juste, mais c&apos;est comme ça. En sélectionnant <i>non</i>, la justice reprend le dessus et le gagnant sera alors vraiment celui ayant le moins de défaites.</div>
+                                    }
+                                    {tFinaleSettings.last == Duel.WB &&
+                                        <div className='mx-3 is-size-7'>En sélectionnant <i>oui</i>, il n&apos;y aura pas de petite finale. Premier, second, les autres sont des perdants. En sélectionnant <i>non</i>, on connaitra le vainqueur de la médaille en chocolat.</div>
+                                    }
+                                    {tFinaleSettings.last == undefined &&
+                                        <div className='mx-3 is-size-7'>Sélectionne une option de rattrapage pour avoir des précisions sur ce paramètre</div>
+                                    }
+                                </div>
+                            </div>
+                        </>}
+                        {/* FFA Options */}
+                        {tFinaleSettings.type == BracketType.FFA && <>
+                            <div className='is-flex gap-5'>
+                                <div className='has-text-right is-one-third'>Nombre de manches :</div>
                                 <CustomSelect
                                     variable={tNbRounds}
                                     setter={(value: string) => {
                                         if (Number(value) >= 1) {
                                             set_tNbRounds(Number(value))
-                                            set_tSizes(Array.from(Array(Number(value)), (_, i) => tSizes[i] || 6))
-                                            set_tAdvancers(Array.from(Array(Number(value) - 1), (_, i) => tAdvancers[i] || 3))
+                                            handleFinaleSettingsChange({
+                                                sizes: Array.from(Array(Number(value)), (_, i) => (finaleSizes()[i]) || 6),
+                                                advancers: Array.from(Array(Number(value) - 1), (_, i) => (finaleAdvancers()[i]) || 3)
+                                            })
                                         }
                                     }}
                                     items={range(1, 10, 1).map(d => { return { label: String(d), value: d } })}
                                     itemsToShow={6}
                                 />
                             </div>
-                            <div className='is-flex gap-5'>
-                                <div className='has-text-right is-one-fifth'>Déroulement du tournoi :</div>
-                                <div className='is-flex-col align-end justify-end'>
-                                    <div style={{ marginBottom: '.6rem' }}>{tUseTeams == true ? "Équipes" : tUseTeams == false ? "Joueurs" : "Opposants"} max par match :</div>
+                            <div className='is-flex gap-4'>
+                                <div className='is-flex-col align-end justify-end is-one-third'>
+                                    <div style={{ marginBottom: '.6rem' }}></div>
+                                    <div style={{ marginBottom: '.6rem' }}>{tTournamentSettings.useTeams == true ? "Équipes" : tTournamentSettings.useTeams == false ? "Joueurs" : "Opposants"} max par match :</div>
                                     <div style={{ marginBottom: '.6rem' }}>Qualifiés pour la manche suivante :</div>
-                                    <div>Nombre {tUseTeams == true ? "d'équipes" : tUseTeams == false ? "de joueurs" : "d'opposants"} max dans le tournoi :</div>
+                                    <div>Nombre {tTournamentSettings.useTeams == true ? "d'équipes" : tTournamentSettings.useTeams == false ? "de joueurs" : "d'opposants"} max dans le tournoi :</div>
                                 </div>
                                 <div className='is-flex-col'>
                                     <div className='is-flex gap-5'>
-                                        {tSizes.map((_, i) =>
+                                        {tFinaleSettings.sizes?.map((_, i) =>
                                             <div key={i} className='is-flex-col align-center gap-2'>
                                                 <div>Manche {i + 1}</div>
                                                 <CustomSelect
-                                                    variable={tSizes[i]}
+                                                    variable={finaleSizes()[i]}
                                                     setter={(v: string) =>
-                                                        set_tSizes(tSizes.slice(0, i).concat([Number(v)], tSizes.slice(i + 1)))
+                                                        handleFinaleSettingsChange({ sizes: finaleSizes().slice(0, i).concat([Number(v)], finaleSizes().slice(i + 1)) })
                                                     }
-                                                    items={range(i == 0 ? 2 : tAdvancers[i - 1] > 2 ? tAdvancers[i - 1] : 2, i == 0 ? 128 : tAdvancers[i - 1] * 5, i == 0 ? 1 : tAdvancers[i - 1]).map(d => { return { label: String(d), value: d } })}
+                                                    items={range(i == 0 ? 2 : finaleAdvancers()[i - 1] > 2 ? finaleAdvancers()[i - 1] : 2, i == 0 ? 128 : finaleAdvancers()[i - 1] * 5, i == 0 ? 1 : finaleAdvancers()[i - 1]).map(d => { return { label: String(d), value: d } })}
                                                     customClass=''
                                                     itemsToShow={6}
                                                 />
                                                 {i < tNbRounds - 1 ?
                                                     <CustomSelect
-                                                        variable={tAdvancers[i]}
+                                                        variable={finaleAdvancers()[i]}
                                                         setter={(v: string) =>
-                                                            set_tAdvancers(tAdvancers.slice(0, i).concat([Number(v)], tAdvancers.slice(i + 1)))
+                                                            handleFinaleSettingsChange({ advancers: finaleAdvancers().slice(0, i).concat([Number(v)], finaleAdvancers().slice(i + 1)) })
                                                         }
-                                                        items={range(1, tSizes[i], 1).map(d => { return { label: String(d), value: d } })}
+                                                        items={range(1, finaleSizes()[i], 1).map(d => { return { label: String(d), value: d } })}
                                                         customClass=''
                                                         itemsToShow={6}
                                                     />
                                                     :
                                                     <div></div>
                                                 }
-                                                {i == 0 && <div>{GetFFAMaxPlayers(tSizes, tAdvancers)}</div>}
+                                                {i == 0 && <div>{GetFFAMaxPlayers(finaleSizes(), finaleAdvancers())}</div>}
                                             </div>
                                         )}
                                     </div>
 
                                 </div>
                             </div>
-                        </>
-                    }
-                    {/* Si GroupStage */}
-                    {tType == BracketType.GroupStage &&
-                        <>
-                        <div className='is-flex gap-3'>
-                            <div className='has-text-right is-one-fifth'>Group size :</div>
-                            <CustomSelect
-                                variable={tGroupSize}
-                                setter={(value: string) => {
-                                    if (Number(value) >= 1)
-                                        set_groupSize(Number(value))
-                                }}
-                                items={range(1, 10, 1).map(d => { return { label: String(d), value: d } })}
-                                itemsToShow={6}
-                            />
-                        </div>
-                            <div className='is-flex gap-3'>
-                                <div className='has-text-right is-one-fifth'>Win points :</div>
+                        </>}
+                        {/* GroupStage Options */}
+                        {hasTwoPhases == false && tFinaleSettings.type == BracketType.GroupStage && <>
+                            <div className='is-flex gap-5'>
+                                <div className='has-text-right is-one-third'>Nombre {tTournamentSettings.useTeams ? "d'équipes" : "de joueurs"} par groupe :</div>
                                 <CustomSelect
-                                    variable={tWinPoints}
+                                    variable={tFinaleSettings.groupSize}
                                     setter={(value: string) => {
                                         if (Number(value) >= 1)
-                                            set_winPoints(Number(value))
+                                            handleFinaleSettingsChange({ groupSize: Number(value) })
                                     }}
                                     items={range(1, 10, 1).map(d => { return { label: String(d), value: d } })}
                                     itemsToShow={6}
                                 />
                             </div>
-                            <div className='is-flex gap-3'>
-                                <div className='has-text-right is-one-fifth'>Tie points :</div>
+                            <div className='is-flex gap-5'>
+                                <div className='has-text-right is-one-third'>Points par victoires :</div>
                                 <CustomSelect
-                                    variable={tTiePoints}
+                                    variable={tFinaleSettings.winPoints}
                                     setter={(value: string) => {
                                         if (Number(value) >= 1)
-                                            set_tiePoints(Number(value))
+                                            handleFinaleSettingsChange({ winPoints: Number(value) })
                                     }}
                                     items={range(1, 10, 1).map(d => { return { label: String(d), value: d } })}
-                                    itemsToShow={6}
+                                    itemsToShow={5}
                                 />
                             </div>
-                        </>
-                    }
-                    {/* Si team */}
-                    {tUseTeams &&
-                        <>
-                            <div className='is-flex align-center gap-3'>
-                                <div className='has-text-right is-one-fifth'>Nombre de joueurs par équipe :</div>
+                            <div className='is-flex gap-5'>
+                                <div className='has-text-right is-one-third'>Points par matchs nuls :</div>
                                 <CustomSelect
-                                    variable={tTeamsMaxSize}
-                                    setter={(v: string) => set_tTeamsMaxSize(Number(v))}
-                                    items={range(2, 64, 1).map(d => { return { label: String(d), value: d } })}
-                                    itemsToShow={4}
-                                    showOnTop={true}
+                                    variable={tFinaleSettings.tiePoints}
+                                    setter={(value: string) => {
+                                        if (Number(value) >= 1)
+                                            handleFinaleSettingsChange({ tiePoints: Number(value) })
+                                    }}
+                                    items={range(0, 9, 1).map(d => { return { label: String(d), value: d } })}
+                                    itemsToShow={5}
                                 />
                             </div>
-                            <div className='is-flex'>
-                                <div className='has-text-right is-one-fifth'>Les joueurs peuvent créer des équipes :</div>
-                                <CustomRadio variable={tUsersCanCreateTeams} setter={set_tUsersCanCreateTeams} items={[{ label: 'non', value: false }, { label: 'oui', value: true }]} />
+                            <div className='is-flex gap-4'>
+                                <div className='has-text-right is-one-third'>Matchs aller/retour :</div>
+                                <div className='is-flex-col'>
+                                    <CustomRadio variable={tFinaleSettings.meetTwice} setter={(v: boolean) => handleFinaleSettingsChange({ meetTwice: v })} items={[{ label: 'non', value: false }, { label: 'oui', value: true }]} />
+                                    <div className='mx-3 is-size-7'>En selectionnant oui les {tTournamentSettings.useTeams ? "équipes" : "joueurs"} se rencontreront 2 fois dans chaque poule.</div>
+                                </div>
                             </div>
                         </>
-                    }
-                    <div className='is-flex grow align-end justify-space-between pb-4'>
+                        }
+                    </>}
+                    <div className='is-flex grow align-end justify-space-between'>
                         <CustomButton
                             callback={() => set_editStep(editStep - 1)}
                             colorClass='has-background-primary-accent'
@@ -452,24 +513,19 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                             contentItems={['Suivant']}
                         />
                     </div>
-                </div>
-            </div>
-
-            <div className={`is-clipped has-background-secondary-level is-flex-col ${editStep == tournamentEditSteps.COMMENTS ? "grow no-basis" : ""}`}>
-                <div className="is-title medium is-uppercase py-2 px-4">
-                    Commentaires
-                </div>
-                <div className="is-flex-col gap-5 grow px-4" style={{ maxHeight: editStep == tournamentEditSteps.COMMENTS ? undefined : 0 }}>
+                </>}
+                {/* Comments */}
+                {editStep == tournamentEditSteps.COMMENTS && <>
                     <div className='is-flex gap-3'>
                         <p className='has-text-right is-one-fifth'>Commentaires :</p>
-                        <div className='is-flex-col gap-2 grow no-basis'>
-                            <textarea placeholder="Commentaires" value={tComments} onChange={(e) => { set_tComments(e.target.value); }} rows={8} />
+                        <div className='is-flex-col gap-2 is-three-fifths'>
+                            <textarea placeholder="Commentaires" value={tTournamentProperties.comments} onChange={(e) => { handlePropertiesChange({ comments: e.target.value }); }} rows={8} />
                             <div className='is-size-7'>Dans cette zone tu peux ajouter d’autres informations utiles pour le tournoi comme par exemple des règles, l’emplacement du jeu, ou les identifiants pour le serveur.</div>
                         </div>
                     </div>
-                    <div className='is-flex grow align-end justify-space-between pb-4'>
+                    <div className='is-flex grow align-end justify-space-between'>
                         <CustomButton
-                            callback={() => set_editStep(editStep - 1)}
+                            callback={() => set_editStep(editStep - (runningTournament ? 3 : 1))}
                             colorClass='has-background-primary-accent'
                             contentItems={['Précédent']}
                         />
@@ -479,7 +535,7 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                             contentItems={['Publier']}
                         />
                     </div>
-                </div>
+                </>}
             </div>
         </div>
     )

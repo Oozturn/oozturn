@@ -927,6 +927,39 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
 ********** TOURNAMENTS *********
 *******************************/
 
+.tournamentEditSectionTitle {
+    color: var(--text-color);
+    &:before {
+        z-index: -1;
+        content:'';
+        position: absolute;
+        right: 0px;
+        left: 0px;
+        top: 0px;
+        bottom: 0px;
+        background-color: var(--background-secondary-level);
+        -webkit-transform: skewX(-27.5deg);
+        -moz-transform: skewX(-27.5deg);
+        -ms-transform: skewX(-27.5deg);
+        transform: skewX(-27.5deg);
+    }
+    &:first-of-type {
+        &:before {
+            left: -10%;
+        }
+    }
+    &:last-of-type {
+        &:before {
+            right: -10%;
+        }
+    }
+    &.active {
+        &:before {
+            background-color: var(--accent-primary-color);
+        }
+    }
+}
+
 @keyframes pulse {
     0% {
         box-shadow: 0 0 0 0 var(--accent-primary-color);

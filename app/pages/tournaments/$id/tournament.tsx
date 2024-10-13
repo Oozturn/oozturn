@@ -6,10 +6,10 @@ import { useUser } from "~/lib/components/contexts/UserContext"
 import { CustomButton, SquareButton } from "~/lib/components/elements/custom-button"
 import { CustomModalBinary } from "~/lib/components/elements/custom-modal"
 import { ReactNode, useState } from "react"
-import { BinSVG, LeaveSVG, LockSVG, MoreSVG, ParticipateSVG, RollBackSVG, StartSVG, SubsribedSVG, UnlockSVG } from "~/lib/components/data/svg-container"
-import { addPlayerToTournament, addTeamToTournament, toggleBalanceTournament, removePlayerFromTournament, reorderPlayers, reorderTeams, addPlayerToTeam, removeTeamFromTournament, renameTeam, removePlayerFromTeams, distributePlayersOnTeams, balanceTeams, randomizePlayersOnTeams, cancelTournament, startTournament, scoreMatch, stopTournament } from "./tournament.queries.server"
+import { BinSVG, ForfeitSVG, LeaveSVG, LockSVG, MoreSVG, ParticipateSVG, RollBackSVG, StartSVG, SubsribedSVG, UnlockSVG } from "~/lib/components/data/svg-container"
+import { addPlayerToTournament, addTeamToTournament, toggleBalanceTournament, removePlayerFromTournament, reorderPlayers, reorderTeams, addPlayerToTeam, removeTeamFromTournament, renameTeam, removePlayerFromTeams, distributePlayersOnTeams, balanceTeams, randomizePlayersOnTeams, cancelTournament, startTournament, scoreMatch, stopTournament, toggleForfeitPlayerForTournament } from "./tournament.queries.server"
 import { useUsers } from "~/lib/components/contexts/UsersContext"
-import { OpponentsListSolo, OpponentsListTeam } from "./components/players-list"
+import { OpponentsListSolo, OpponentsListTeam, TournamentInfoPlayers } from "./components/players-list"
 import { GetFFAMaxPlayers } from "~/lib/utils/tournaments"
 import { BracketType, TournamentFullData, TournamentStatus } from "~/lib/tournamentEngine/types"
 import { TournamentContext, useTournament } from "~/lib/components/contexts/TournamentsContext"
@@ -17,6 +17,7 @@ import { TournamentViewer } from "./components/tournamentViewer"
 import { getLan } from "~/lib/persistence/lan.server"
 import Dropdown from "~/lib/components/elements/custom-dropdown"
 import { useRevalidateOnTournamentUpdate } from "~/api/sse.hook"
+import useLocalStorageState from "use-local-storage-state"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
@@ -33,7 +34,6 @@ export async function loader({
     let tournament: TournamentFullData | undefined = undefined
     try {
         tournament = getTournament(params.id || "").getFullData()
-
     } catch { throw redirect('/tournaments/404') }
     return { tournament: tournament, lanName: getLan().name }
 }
@@ -57,6 +57,9 @@ export async function action({ request }: ActionFunctionArgs) {
             break
         case TournamentManagementIntents.ADD_PLAYER:
             addPlayerToTournament(jsonData.tournamentId as string, jsonData.userId as string)
+            break
+        case TournamentManagementIntents.TOGGLE_FORFEIT_PLAYER:
+            toggleForfeitPlayerForTournament(jsonData.tournamentId as string, jsonData.userId as string)
             break
         case TournamentManagementIntents.REMOVE_PLAYER:
             removePlayerFromTournament(jsonData.tournamentId as string, jsonData.userId as string)
@@ -105,6 +108,7 @@ export enum TournamentManagementIntents {
     EDIT = "editTournament",
     CANCEL = "cancelTournament",
     ADD_PLAYER = "addPlayerToTournament",
+    TOGGLE_FORFEIT_PLAYER = "toggleForfeitPlayerForTournament",
     REMOVE_PLAYER = "removePlayerFromTournament",
     REORDER_PLAYERS = "reorderPlayers",
     REORDER_TEAMS = "reorderTeams"
@@ -125,6 +129,8 @@ export enum MatchesIntents {
 
 export default function TournamentPage() {
     const { tournament } = useLoaderData<typeof loader>()
+    const [tournamentWideView,] = useLocalStorageState<string[]>("tournamentWideView", { defaultValue: [] })
+
 
     useRevalidateOnTournamentUpdate(tournament.id)
     const user = useUser()
@@ -132,7 +138,13 @@ export default function TournamentPage() {
     const users = useUsers()
 
 
-    const canAddPlayers = tournament.bracketSettings[0].type == BracketType.Duel || (tournament.players.length < GetFFAMaxPlayers(tournament.bracketSettings[0].sizes || [], tournament.bracketSettings[0].advancers || []) * (tournament.settings.useTeams ? tournament.settings.teamsMaxSize || 1 : 1))
+    const canAddPlayers = function () {
+        if (tournament.bracketsCount == 2) return true
+        if (tournament.bracketSettings[0].type != BracketType.FFA) return true
+        const maxPlayers = GetFFAMaxPlayers(tournament.bracketSettings[0].sizes || [], tournament.bracketSettings[0].advancers || [])
+        if (tournament.players.length < maxPlayers * (tournament.settings.useTeams ? tournament.settings.teamsMaxSize || 1 : 1)) return true
+        return false
+    }()
 
     const joinTournament = () => {
         fetcher.submit(
@@ -185,11 +197,12 @@ export default function TournamentPage() {
                 <div className="is-title big is-uppercase has-background-secondary-level p-2 px-4">
                     Tournoi {tournament.properties.name}
                 </div>
-                <div className="has-background-secondary-level is-flex-row grow p-3 gap-6 is-relative">
-                    <div className="is-flex-col justify-space-between" style={{ width: "30%", minWidth: "30%", maxWidth: "30%" }}>
+                <div className="has-background-secondary-level is-flex-row grow p-3 gap-6">
+                    {!tournamentWideView.includes(tournament.id) && <div className="is-flex-col is-relative gap-2" style={{ width: "30%", minWidth: "30%", maxWidth: "30%" }}>
                         <TournamentInfoSettings />
+                        <TournamentInfoPlayers />
                         {user.isAdmin && tournament.status != TournamentStatus.Done && <TournamentCommands />}
-                    </div>
+                    </div>}
                     {[TournamentStatus.Open, TournamentStatus.Balancing].includes(tournament.status) ?
                         <div className="is-flex-col grow no-basis">
                             {tournament.settings.useTeams ?
@@ -241,9 +254,9 @@ function TournamentCommands() {
     const [showConfirmStart, setShowConfirmStart] = useState(false)
     const [showConfirmStop, setShowConfirmStop] = useState(false)
     const [showConfirmCancel, setShowConfirmCancel] = useState(false)
+    const [showConfirmForfeit, setShowConfirmForfeit] = useState(false)
 
-    if (!user.isAdmin) return null
-
+    const isForfeit = !!tournament.players.find(player => player.userId == user.id)?.isForfeit
     const startTournament = () => {
         fetcher.submit(
             {
@@ -259,6 +272,17 @@ function TournamentCommands() {
             {
                 intent: TournamentManagementIntents.STOP,
                 tournamentId: tournament?.id || "",
+            },
+            { method: "POST", encType: "application/json" }
+        )
+    }
+
+    const toggleForfeit = () => {
+        fetcher.submit(
+            {
+                intent: TournamentManagementIntents.TOGGLE_FORFEIT_PLAYER,
+                tournamentId: tournament?.id || "",
+                userId: user.id,
             },
             { method: "POST", encType: "application/json" }
         )
@@ -287,20 +311,25 @@ function TournamentCommands() {
         items.push({ content: [RollBackSVG(), "Redémarrer"], callback: () => setShowConfirmStop(true) })
 
     return <div className='is-flex justify-end gap-3'>
-        {[TournamentStatus.Open, TournamentStatus.Balancing].includes(tournament.status) && <CustomButton callback={() => setShowConfirmStart(true)} contentItems={[StartSVG(), "Démarrer"]} colorClass='has-background-primary-accent' />}
-        <Dropdown
-            trigger={[TournamentStatus.Open, TournamentStatus.Balancing].includes(tournament.status) ?
-                <SquareButton contentItems={[MoreSVG()]} colorClass='has-background-primary-level' /> :
-                <CustomButton contentItems={["Options"]} colorClass='has-background-primary-level' />
-            }
-            id="tournamentMoreCommands"
-            items={items}
-            align="right"
-            direction="top"
-        />
-
-        <CustomModalBinary show={showConfirmCancel} onHide={() => setShowConfirmCancel(false)} content={"Es-tu sûr de vouloir annuler ce tournoi ?"} cancelButton={true} onConfirm={cancelTournament} />
-        <CustomModalBinary show={showConfirmStart} onHide={() => setShowConfirmStart(false)} content={<>Es-tu sûr de vouloir démarrer ce tournoi ? <br/>{tournament.settings.useTeams ? "Les équipes vides et les joueurs sans équipes seront retirés du tournoi." : ""}</>} cancelButton={true} onConfirm={startTournament} />
-        <CustomModalBinary show={showConfirmStop} onHide={() => setShowConfirmStop(false)} content={`Es-tu sûr de vouloir redémarrer ce tournoi ? Tu pourras éditer ${tournament.settings.useTeams ? "les équipes et " : ""}les inscriptions, mais toute sa progression sera perdue !`} cancelButton={true} onConfirm={stopTournament} />
+        {![TournamentStatus.Open, TournamentStatus.Balancing, TournamentStatus.Validating, TournamentStatus.Done].includes(tournament.status) && tournament.players.find(player => player.userId == user.id) && <>
+            <CustomButton callback={() => isForfeit ? toggleForfeit() : setShowConfirmForfeit(true)} contentItems={isForfeit ? [RollBackSVG(), "Reprendre"] : [ForfeitSVG(), "Abandonner"]} colorClass='has-background-primary-accent' />
+            <CustomModalBinary show={showConfirmForfeit} onHide={() => setShowConfirmForfeit(false)} content={"Es-tu sûr de vouloir abandonner ?"} cancelButton={true} onConfirm={toggleForfeit} />
+        </>}
+        {user.isAdmin && <>
+            {[TournamentStatus.Open, TournamentStatus.Balancing].includes(tournament.status) && <CustomButton callback={() => setShowConfirmStart(true)} contentItems={[StartSVG(), "Démarrer"]} colorClass='has-background-primary-accent' />}
+            <Dropdown
+                trigger={[TournamentStatus.Open, TournamentStatus.Balancing].includes(tournament.status) ?
+                    <SquareButton contentItems={[MoreSVG()]} colorClass='has-background-primary-level' /> :
+                    <CustomButton contentItems={["Options"]} colorClass='has-background-primary-level' />
+                }
+                id="tournamentMoreCommands"
+                items={items}
+                align="right"
+                direction="top"
+            />
+            <CustomModalBinary show={showConfirmCancel} onHide={() => setShowConfirmCancel(false)} content={"Es-tu sûr de vouloir annuler ce tournoi ?"} cancelButton={true} onConfirm={cancelTournament} />
+            <CustomModalBinary show={showConfirmStart} onHide={() => setShowConfirmStart(false)} content={<>Es-tu sûr de vouloir démarrer ce tournoi ? {tournament.settings.useTeams ? <><br />Les équipes vides et les joueurs sans équipes seront retirés du tournoi.</> : ""}</>} cancelButton={true} onConfirm={startTournament} />
+            <CustomModalBinary show={showConfirmStop} onHide={() => setShowConfirmStop(false)} content={<>Es-tu sûr de vouloir démarrer ce tournoi ?<br />Tu pourras éditer {tournament.settings.useTeams ? "les équipes et " : ""}les inscriptions, mais toute la progression sera perdue !</>} cancelButton={true} onConfirm={stopTournament} />
+        </>}
     </div>
 }
