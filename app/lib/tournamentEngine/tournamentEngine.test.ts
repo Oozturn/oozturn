@@ -1,23 +1,12 @@
 import { Id } from "./tournament/match";
 import { TournamentEngine } from "./tournamentEngine";
-import { BracketType, TournamentStatus } from "./types";
+import { BracketSettings, BracketType, TournamentStatus } from "./types";
 
 
-describe('FFA 6', () => {
-    const tournamentEngine = TournamentEngine.create("id", {
-        name: "test",
-        startTime: { day: 0, hour: 0, min: 0 },
-        comments: '',
-        globalTournamentPoints: {
-            default: 0,
-            leaders: []
-        },
-    }, {
-        useTeams: false
-    },
-        [{
-            type: BracketType.FFA,
-        }])
+test('FFA 6', () => {
+    const tournamentEngine = createDefaultTournament([{
+        type: BracketType.FFA,
+    }])
     const scorer = createScorer(tournamentEngine)
     const playerCount = 6
     for (let p = 1; p <= playerCount; p++) {
@@ -25,96 +14,221 @@ describe('FFA 6', () => {
     }
     tournamentEngine.startTournament()
 
-    test('match', () => {
-        const matches = tournamentEngine.getMatches()
-        expect(matches).toHaveLength(1)
-        const match = matches[0]
-        expect(match.opponents).toEqual(['1', '2', '3', '4', '5', '6'])
-    })
+    const matches = tournamentEngine.getMatches()
+    expect(matches).toHaveLength(1)
+    const match = matches[0]
+    expect(match.opponents).toEqual(['1', '2', '3', '4', '5', '6'])
 
     scorer({ s: 1, r: 1, m: 1 }, [6, 5, 4, 3, 2, 1])
 
-    test('result', () => {
-        expect(tournamentEngine.getResults()).toMatchObject([
-            ...[1, 2, 3, 4, 5, 6].map(i => { return { userId: i + "", position: i } })
-        ])
-        expect(tournamentEngine.getStatus()).toBe(TournamentStatus.Done)
-    })
-
-    test("storage", () => {
-        validateStorage(tournamentEngine)
-    })
+    expect(tournamentEngine.getResults()).toMatchObject([
+        ...[1, 2, 3, 4, 5, 6].map(i => { return { userId: i + "", position: i } })
+    ])
+    expect(tournamentEngine.getStatus()).toBe(TournamentStatus.Done)
+    validateStorage(tournamentEngine)
 })
 
-describe('Duel 4', () => {
-    const tournamentEngine = TournamentEngine.create("id", {
-        name: "test",
-        startTime: { day: 0, hour: 0, min: 0 },
-        comments: '',
-        globalTournamentPoints: {
-            default: 0,
-            leaders: []
-        },
-    }, {
-        useTeams: false
-    },
-        [{
-            type: BracketType.Duel,
-        }])
+test('FFA 3 with forfeit last', () => {
+    const tournamentEngine = createDefaultTournament([{
+        type: BracketType.FFA,
+    }])
+    const playerCount = 3
+    for (let p = 1; p <= playerCount; p++) {
+        tournamentEngine.addPlayer(p + "")
+    }
+    tournamentEngine.startTournament()
+    tournamentEngine.score({ s: 1, r: 1, m: 1 }, "1", 6)
+    tournamentEngine.score({ s: 1, r: 1, m: 1 }, "2", 5)
+    tournamentEngine.toggleForfeitPlayer("3")
+
+    expect(tournamentEngine.getResults()).toMatchObject([
+        ...[1, 2, 3].map(i => { return { userId: i + "", position: i } })
+    ])
+    expect(tournamentEngine.getStatus()).toBe(TournamentStatus.Done)
+    validateStorage(tournamentEngine)
+})
+
+test('FFA 3 with forfeit last lowerScoreIsBetter', () => {
+    const tournamentEngine = createDefaultTournament([{
+        type: BracketType.FFA,
+        lowerScoreIsBetter: true
+    }])
+    const playerCount = 3
+    for (let p = 1; p <= playerCount; p++) {
+        tournamentEngine.addPlayer(p + "")
+    }
+    tournamentEngine.startTournament()
+    tournamentEngine.score({ s: 1, r: 1, m: 1 }, "1", 5)
+    tournamentEngine.score({ s: 1, r: 1, m: 1 }, "2", 6)
+    tournamentEngine.toggleForfeitPlayer("3")
+
+    expect(tournamentEngine.getResults()).toMatchObject([
+        ...[1, 2, 3].map(i => { return { userId: i + "", position: i } })
+    ])
+    expect(tournamentEngine.getStatus()).toBe(TournamentStatus.Done)
+    validateStorage(tournamentEngine)
+})
+
+test('FFA 3 with forfeit first', () => {
+    const tournamentEngine = createDefaultTournament([{
+        type: BracketType.FFA,
+    }])
+    const playerCount = 3
+    for (let p = 1; p <= playerCount; p++) {
+        tournamentEngine.addPlayer(p + "")
+    }
+    tournamentEngine.startTournament()
+    tournamentEngine.toggleForfeitPlayer("3")
+    tournamentEngine.score({ s: 1, r: 1, m: 1 }, "1", 6)
+    tournamentEngine.score({ s: 1, r: 1, m: 1 }, "2", 5)
+
+    expect(tournamentEngine.getStatus()).toBe(TournamentStatus.Done)
+    expect(tournamentEngine.getResults()).toMatchObject([
+        ...[1, 2, 3].map(i => { return { userId: i + "", position: i } })
+    ])
+    validateStorage(tournamentEngine)
+})
+
+test('Duel 4', () => {
+    const tournamentEngine = createDefaultTournament([{
+        type: BracketType.Duel,
+    }])
     const scorer = createScorer(tournamentEngine)
     const playerCount = 4
     for (let p = 1; p <= playerCount; p++) {
         tournamentEngine.addPlayer(p + "")
     }
     tournamentEngine.startTournament()
-    tournamentEngine.getMatches()
-
     scorer({ s: 1, r: 1, m: 1 }, [1, 0]) // 1 > 4 
     scorer({ s: 1, r: 1, m: 2 }, [0, 1]) // 3 < 2
 
-    test('final matches', () => {
-        expect(tournamentEngine.getMatch({ s: 1, r: 2, m: 1 }).opponents).toEqual(['1', '2'])
-        expect(tournamentEngine.getMatch({ s: 2, r: 1, m: 1 }).opponents).toEqual(['4', '3'])
-    })
+    expect(tournamentEngine.getMatch({ s: 1, r: 2, m: 1 }).opponents).toEqual(['1', '2'])
+    expect(tournamentEngine.getMatch({ s: 2, r: 1, m: 1 }).opponents).toEqual(['4', '3'])
 
     scorer({ s: 1, r: 2, m: 1 }, [1, 0]) // 1 > 2
     scorer({ s: 2, r: 1, m: 1 }, [0, 1]) // 4 < 3
 
-    test('result', () => {
-        expect(tournamentEngine.getResults()).toMatchObject([
-            ...[1, 2, 3, 4].map(i => { return { userId: i + "", position: i } })
-        ])
-        expect(tournamentEngine.getStatus()).toBe(TournamentStatus.Done)
-    })
-
-    test("storage", () => {
-        validateStorage(tournamentEngine)
-    })
+    expect(tournamentEngine.getResults()).toMatchObject([
+        ...[1, 2, 3, 4].map(i => { return { userId: i + "", position: i } })
+    ])
+    expect(tournamentEngine.getStatus()).toBe(TournamentStatus.Done)
+    validateStorage(tournamentEngine)
 })
 
-describe('GroupStage 6/3', () => {
-    const tournamentEngine = TournamentEngine.create("id", {
-        name: "test",
-        startTime: { day: 0, hour: 0, min: 0 },
-        comments: '',
-        globalTournamentPoints: {
-            default: 0,
-            leaders: []
-        },
-    }, {
-        useTeams: false
-    },
-        [{
-            type: BracketType.GroupStage,
-            groupSize: 3
-        }])
+test('Duel 3 (match with undefined) short', () => {
+    const tournamentEngine = createDefaultTournament([{
+        type: BracketType.Duel,
+        short: true
+    }])
+    const scorer = createScorer(tournamentEngine)
+    const playerCount = 3
+    for (let p = 1; p <= playerCount; p++) {
+        tournamentEngine.addPlayer(p + "")
+    }
+    tournamentEngine.startTournament()
+    scorer({ s: 1, r: 1, m: 2 }, [0, 1]) // 3 < 2
+
+    expect(tournamentEngine.getMatch({ s: 1, r: 2, m: 1 }).opponents).toEqual(['1', '2'])
+
+    scorer({ s: 1, r: 2, m: 1 }, [1, 0]) // 1 > 2
+
+    expect(tournamentEngine.getResults()).toMatchObject([
+        ...[1, 2, 3].map(i => { return { userId: i + "", position: i } })
+    ])
+    expect(tournamentEngine.getStatus()).toBe(TournamentStatus.Done)
+    validateStorage(tournamentEngine)
+})
+
+test('Duel 4 wih forfeit : terminate all match', () => {
+    const tournamentEngine = createDefaultTournament([{
+        type: BracketType.Duel,
+    }])
+    const scorer = createScorer(tournamentEngine)
+    const playerCount = 4
+    for (let p = 1; p <= playerCount; p++) {
+        tournamentEngine.addPlayer(p + "")
+    }
+    tournamentEngine.startTournament()
+    scorer({ s: 1, r: 1, m: 2 }, [0, 1]) // 3 < 2
+    tournamentEngine.toggleForfeitPlayer('4')
+
+    expect(tournamentEngine.getMatch({ s: 1, r: 2, m: 1 }).opponents).toEqual(['1', '2'])
+    expect(tournamentEngine.getMatch({ s: 2, r: 1, m: 1 }).opponents).toEqual(['4', '3'])
+
+    scorer({ s: 1, r: 2, m: 1 }, [1, 0]) // 1 > 2
+
+    expect(tournamentEngine.getResults()).toMatchObject([
+        ...[1, 2, 3, 4].map(i => { return { userId: i + "", position: i } })
+    ])
+    expect(tournamentEngine.getStatus()).toBe(TournamentStatus.Done)
+    validateStorage(tournamentEngine)
+})
+
+test('Duel 4 wih forfeit : can re-enter', () => {
+    const tournamentEngine = createDefaultTournament([{
+        type: BracketType.Duel,
+    }])
+    const scorer = createScorer(tournamentEngine)
+    const playerCount = 4
+    for (let p = 1; p <= playerCount; p++) {
+        tournamentEngine.addPlayer(p + "")
+    }
+    tournamentEngine.startTournament()
+    tournamentEngine.toggleForfeitPlayer('4') //Lose first match, go to lower bracket
+    tournamentEngine.toggleForfeitPlayer('4')
+
+    scorer({ s: 1, r: 1, m: 2 }, [0, 1]) // 3 < 2
+
+    expect(tournamentEngine.getMatch({ s: 1, r: 2, m: 1 }).opponents).toEqual(['1', '2'])
+    expect(tournamentEngine.getMatch({ s: 2, r: 1, m: 1 }).opponents).toEqual(['4', '3'])
+
+    scorer({ s: 1, r: 2, m: 1 }, [1, 0]) // 1 > 2
+    scorer({ s: 2, r: 1, m: 1 }, [0, 1]) // 4 < 3
+
+    expect(tournamentEngine.getResults()).toMatchObject([
+        ...[1, 2, 3, 4].map(i => { return { userId: i + "", position: i } })
+    ])
+    expect(tournamentEngine.getStatus()).toBe(TournamentStatus.Done)
+    validateStorage(tournamentEngine)
+})
+
+test('Duel 4 lowerScoreIsBetter wih forfeit : terminate all match', () => {
+    const tournamentEngine = createDefaultTournament([{
+        type: BracketType.Duel,
+        lowerScoreIsBetter: true
+    }])
+    const scorer = createScorer(tournamentEngine)
+    const playerCount = 4
+    for (let p = 1; p <= playerCount; p++) {
+        tournamentEngine.addPlayer(p + "")
+    }
+    tournamentEngine.startTournament()
+    scorer({ s: 1, r: 1, m: 2 }, [1, 0]) // 3 < 2
+    tournamentEngine.toggleForfeitPlayer('4')
+
+    expect(tournamentEngine.getMatch({ s: 1, r: 2, m: 1 }).opponents).toEqual(['1', '2'])
+    expect(tournamentEngine.getMatch({ s: 2, r: 1, m: 1 }).opponents).toEqual(['4', '3'])
+
+    scorer({ s: 1, r: 2, m: 1 }, [0, 1]) // 1 > 2
+
+    expect(tournamentEngine.getResults()).toMatchObject([
+        ...[1, 2, 3, 4].map(i => { return { userId: i + "", position: i } })
+    ])
+    expect(tournamentEngine.getStatus()).toBe(TournamentStatus.Done)
+    validateStorage(tournamentEngine)
+})
+
+test('GroupStage 6/3', () => {
+    const tournamentEngine = createDefaultTournament([{
+        type: BracketType.GroupStage,
+        groupSize: 3
+    }])
     const scorer = createScorer(tournamentEngine)
     const playerCount = 6
     for (let p = 1; p <= playerCount; p++) {
         tournamentEngine.addPlayer(p + "")
     }
     tournamentEngine.startTournament()
-
     scorer({ s: 1, r: 1, m: 1 }, [1, 0]) // 3 > 6 
     scorer({ s: 1, r: 2, m: 1 }, [0, 1]) // 6 < 1
     scorer({ s: 1, r: 3, m: 1 }, [1, 0]) // 1 > 3
@@ -122,35 +236,67 @@ describe('GroupStage 6/3', () => {
     scorer({ s: 2, r: 2, m: 1 }, [0, 1]) // 5 < 2
     scorer({ s: 2, r: 3, m: 1 }, [1, 0]) // 2 > 4
 
-    test('result', () => {
-        expect(tournamentEngine.getResults()).toMatchObject([
-            ...[1, 2, 3, 4, 5, 6].map(i => { return { userId: i + "", position: i - (i + 1) % 2 } })
-        ])
-        expect(tournamentEngine.getStatus()).toBe(TournamentStatus.Done)
-    })
-
-    test("storage", () => {
-        validateStorage(tournamentEngine)
-    })
+    expect(tournamentEngine.getResults()).toMatchObject([
+        ...[1, 2, 3, 4, 5, 6].map(i => { return { userId: i + "", position: i - (i + 1) % 2 } })
+    ])
+    expect(tournamentEngine.getStatus()).toBe(TournamentStatus.Done)
+    validateStorage(tournamentEngine)
 })
 
-describe('GroupStage 4/2, lowerScoreIsBetter', () => {
-    const tournamentEngine = TournamentEngine.create("id", {
-        name: "test",
-        startTime: { day: 0, hour: 0, min: 0 },
-        comments: '',
-        globalTournamentPoints: {
-            default: 0,
-            leaders: []
-        },
-    }, {
-        useTeams: false
-    },
-        [{
-            type: BracketType.GroupStage,
-            groupSize: 2,
-            lowerScoreIsBetter: true
-        }])
+test('GroupStage 6/3 with forfeit early', () => {
+    const tournamentEngine = createDefaultTournament([{
+        type: BracketType.GroupStage,
+        groupSize: 3
+    }])
+    const scorer = createScorer(tournamentEngine)
+    const playerCount = 6
+    for (let p = 1; p <= playerCount; p++) {
+        tournamentEngine.addPlayer(p + "")
+    }
+    tournamentEngine.startTournament()
+    tournamentEngine.toggleForfeitPlayer("6")
+    scorer({ s: 1, r: 3, m: 1 }, [1, 0]) // 1 > 3
+    scorer({ s: 2, r: 1, m: 1 }, [1, 0]) // 4 > 5
+    scorer({ s: 2, r: 2, m: 1 }, [0, 1]) // 5 < 2
+    scorer({ s: 2, r: 3, m: 1 }, [1, 0]) // 2 > 4
+
+    expect(tournamentEngine.getResults()).toMatchObject([
+        ...[1, 2, 3, 4, 5, 6].map(i => { return { userId: i + "", position: i - (i + 1) % 2 } })
+    ])
+    expect(tournamentEngine.getStatus()).toBe(TournamentStatus.Done)
+    validateStorage(tournamentEngine)
+})
+
+test('GroupStage 6/3 with forfeit late', () => {
+    const tournamentEngine = createDefaultTournament([{
+        type: BracketType.GroupStage,
+        groupSize: 3
+    }])
+    const scorer = createScorer(tournamentEngine)
+    const playerCount = 6
+    for (let p = 1; p <= playerCount; p++) {
+        tournamentEngine.addPlayer(p + "")
+    }
+    tournamentEngine.startTournament()
+    scorer({ s: 1, r: 3, m: 1 }, [1, 0]) // 1 > 3
+    scorer({ s: 2, r: 1, m: 1 }, [1, 0]) // 4 > 5
+    scorer({ s: 2, r: 2, m: 1 }, [0, 1]) // 5 < 2
+    scorer({ s: 2, r: 3, m: 1 }, [1, 0]) // 2 > 4
+    tournamentEngine.toggleForfeitPlayer("6")
+
+    expect(tournamentEngine.getResults()).toMatchObject([
+        ...[1, 2, 3, 4, 5, 6].map(i => { return { userId: i + "", position: i - (i + 1) % 2 } })
+    ])
+    expect(tournamentEngine.getStatus()).toBe(TournamentStatus.Done)
+    validateStorage(tournamentEngine)
+})
+
+test('GroupStage 4/2, lowerScoreIsBetter', () => {
+    const tournamentEngine = createDefaultTournament([{
+        type: BracketType.GroupStage,
+        groupSize: 2,
+        lowerScoreIsBetter: true
+    }])
     const scorer = createScorer(tournamentEngine)
     const playerCount = 4
     for (let p = 1; p <= playerCount; p++) {
@@ -161,39 +307,26 @@ describe('GroupStage 4/2, lowerScoreIsBetter', () => {
     scorer({ s: 1, r: 1, m: 1 }, [0, 1]) // 1 > 4
     scorer({ s: 2, r: 1, m: 1 }, [0, 1]) // 2 > 3
 
-    test('result', () => {
-        expect(tournamentEngine.getResults()).toMatchObject([
-            ...[1, 2, 3, 4].map(i => { return { userId: i + "", position: i - (i + 1) % 2 } })
-        ])
-        expect(tournamentEngine.getStatus()).toBe(TournamentStatus.Done)
-    })
+    expect(tournamentEngine.getResults()).toMatchObject([
+        ...[1, 2, 3, 4].map(i => { return { userId: i + "", position: i - (i + 1) % 2 } })
+    ])
+    expect(tournamentEngine.getStatus()).toBe(TournamentStatus.Done)
+    validateStorage(tournamentEngine)
 })
 
-describe('GroupStage 6/2, lowerScoreIsBetter with points draw and score break', () => {
-    const tournamentEngine = TournamentEngine.create("id", {
-        name: "test",
-        startTime: { day: 0, hour: 0, min: 0 },
-        comments: '',
-        globalTournamentPoints: {
-            default: 0,
-            leaders: []
-        },
-    }, {
-        useTeams: false
-    },
-        [{
-            type: BracketType.GroupStage,
-            groupSize: 3,
-            lowerScoreIsBetter: true,
-            scoresBreak:true
-        }])
+test('GroupStage 6/2, lowerScoreIsBetter with points draw and score break', () => {
+    const tournamentEngine = createDefaultTournament([{
+        type: BracketType.GroupStage,
+        groupSize: 3,
+        lowerScoreIsBetter: true,
+        scoresBreak: true
+    }])
     const scorer = createScorer(tournamentEngine)
     const playerCount = 6
     for (let p = 1; p <= playerCount; p++) {
         tournamentEngine.addPlayer(p + "")
     }
     tournamentEngine.startTournament()
-
     scorer({ s: 1, r: 1, m: 1 }, [2, 0]) // 3 << 6 
     scorer({ s: 1, r: 2, m: 1 }, [4, 0]) // 6 <<< 1
     scorer({ s: 1, r: 3, m: 1 }, [1, 0]) // 1 < 3
@@ -201,42 +334,27 @@ describe('GroupStage 6/2, lowerScoreIsBetter with points draw and score break', 
     scorer({ s: 2, r: 2, m: 1 }, [4, 0]) // 5 <<< 2
     scorer({ s: 2, r: 3, m: 1 }, [1, 0]) // 2 < 4
 
-    test('result', () => {
-        expect(tournamentEngine.getResults()).toMatchObject([
-            ...[1, 2, 3, 4, 5, 6].map(i => { return { userId: i + "", position: i - (i + 1) % 2 } })
-        ])
-        expect(tournamentEngine.getStatus()).toBe(TournamentStatus.Done)
-    })
+    expect(tournamentEngine.getResults()).toMatchObject([
+        ...[1, 2, 3, 4, 5, 6].map(i => { return { userId: i + "", position: i - (i + 1) % 2 } })
+    ])
+    expect(tournamentEngine.getStatus()).toBe(TournamentStatus.Done)
+    validateStorage(tournamentEngine)
 })
 
-describe('6 players | GS 3 | FFA top 2', () => {
-    const tournamentEngine = TournamentEngine.create("id", {
-        name: "test",
-        startTime: { day: 0, hour: 0, min: 0 },
-        comments: '',
-        globalTournamentPoints: {
-            default: 0,
-            leaders: []
-        },
-    },
-        {
-            useTeams: false
-        },
-        [{
-            type: BracketType.GroupStage,
-            groupSize: 3
-        }, {
-            type: BracketType.FFA,
-            size: 2
-        }])
+test('6 players | GS 3 | FFA top 2', () => {
+    const tournamentEngine = createDefaultTournament([{
+        type: BracketType.GroupStage,
+        groupSize: 3
+    }, {
+        type: BracketType.FFA,
+        size: 2
+    }])
     const scorer = createScorer(tournamentEngine)
-
     const playerCount = 6
     for (let p = 1; p <= playerCount; p++) {
         tournamentEngine.addPlayer(p + "")
     }
     tournamentEngine.startTournament()
-
     scorer({ s: 1, r: 1, m: 1 }, [0, 1]) // 3 < 6 
     scorer({ s: 1, r: 2, m: 1 }, [1, 0]) // 6 > 1
     scorer({ s: 1, r: 3, m: 1 }, [0, 1]) // 1 < 3
@@ -252,47 +370,28 @@ describe('6 players | GS 3 | FFA top 2', () => {
 
     scorer({ s: 1, r: 1, m: 1 }, [0, 1]) // 5 < 6
 
-    test('result', () => {
-        expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Done)
-        expect(tournamentEngine.getResults()).toMatchObject([
-            { userId: '6', position: 1 },
-            { userId: '5', position: 2 }
-        ])
-    })
-
-    test("storage", () => {
-        validateStorage(tournamentEngine)
-    })
+    expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Done)
+    expect(tournamentEngine.getResults()).toMatchObject([
+        { userId: '6', position: 1 },
+        { userId: '5', position: 2 }
+    ])
+    validateStorage(tournamentEngine)
 });
 
-describe('8 players | GS 4 | Duel top 4', () => {
-    const tournamentEngine = TournamentEngine.create("id", {
-        name: "test",
-        startTime: { day: 0, hour: 0, min: 0 },
-        comments: '',
-        globalTournamentPoints: {
-            default: 0,
-            leaders: []
-        },
-    },
-        {
-            useTeams: false
-        },
-        [{
-            type: BracketType.GroupStage,
-            groupSize: 4
-        }, {
-            type: BracketType.Duel,
-            size: 4
-        }])
+test('8 players | GS 4 | Duel top 4', () => {
+    const tournamentEngine = createDefaultTournament([{
+        type: BracketType.GroupStage,
+        groupSize: 4
+    }, {
+        type: BracketType.Duel,
+        size: 4
+    }])
     const scorer = createScorer(tournamentEngine)
-
     const playerCount = 8
     for (let p = 1; p <= playerCount; p++) {
         tournamentEngine.addPlayer(p + "")
     }
     tournamentEngine.startTournament()
-
     tournamentEngine.getMatches().forEach(match => {
         if (match.opponents[0]! > match.opponents[1]!) {
             scorer(match.id, [1, 0])
@@ -312,49 +411,31 @@ describe('8 players | GS 4 | Duel top 4', () => {
     scorer({ s: 1, r: 2, m: 1 }, [0, 1]) // 7 < 8
     scorer({ s: 2, r: 1, m: 1 }, [1, 0]) // 6 > 5
 
-    test('result', () => {
-        expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Done)
-        expect(tournamentEngine.getResults()).toMatchObject([
-            { userId: '8', position: 1 },
-            { userId: '7', position: 2 },
-            { userId: '6', position: 3 },
-            { userId: '5', position: 4 }
-        ])
-    })
-
-    test("storage", () => {
-        validateStorage(tournamentEngine)
-    })
+    expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Done)
+    expect(tournamentEngine.getResults()).toMatchObject([
+        { userId: '8', position: 1 },
+        { userId: '7', position: 2 },
+        { userId: '6', position: 3 },
+        { userId: '5', position: 4 }
+    ])
+    validateStorage(tournamentEngine)
 });
 
-describe('8 players | FFA 4 | Duel top 4', () => {
-    const tournamentEngine = TournamentEngine.create("id", {
-        name: "test",
-        startTime: { day: 0, hour: 0, min: 0 },
-        comments: '',
-        globalTournamentPoints: {
-            default: 0,
-            leaders: []
-        },
-    },
-        {
-            useTeams: false
-        },
-        [{
-            type: BracketType.FFA,
-            sizes: [4]
-        }, {
-            type: BracketType.Duel,
-            size: 4
-        }])
+test('8 players | FFA 4 | Duel top 4', () => {
+    const tournamentEngine = createDefaultTournament([{
+        type: BracketType.FFA,
+        sizes: [4]
+    }, {
+        type: BracketType.Duel,
+        size: 4
+    }])
     const scorer = createScorer(tournamentEngine)
-
     const playerCount = 8
     for (let p = 1; p <= playerCount; p++) {
         tournamentEngine.addPlayer(p + "")
     }
-    tournamentEngine.startTournament()
 
+    tournamentEngine.startTournament()
     scorer({ s: 1, r: 1, m: 1 }, [0, 1, 2, 3]) // 1 < 3 < 6 < 8
     scorer({ s: 1, r: 1, m: 2 }, [0, 1, 2, 3]) // 2 < 4 < 5 < 7
 
@@ -369,21 +450,33 @@ describe('8 players | FFA 4 | Duel top 4', () => {
     scorer({ s: 1, r: 2, m: 1 }, [0, 1]) // 7 < 8
     scorer({ s: 2, r: 1, m: 1 }, [1, 0]) // 6 > 5
 
-    test('result', () => {
-        expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Done)
-        expect(tournamentEngine.getResults()).toMatchObject([
-            { userId: '8', position: 1 },
-            { userId: '7', position: 2 },
-            { userId: '6', position: 3 },
-            { userId: '5', position: 4 }
-        ])
-    })
-
-    test("storage", () => {
-        validateStorage(tournamentEngine)
-    })
+    expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Done)
+    expect(tournamentEngine.getResults()).toMatchObject([
+        { userId: '8', position: 1 },
+        { userId: '7', position: 2 },
+        { userId: '6', position: 3 },
+        { userId: '5', position: 4 }
+    ])
+    validateStorage(tournamentEngine)
 });
 
+function createDefaultTournament(bracketSettings: BracketSettings[]) {
+    const tournamentEngine = TournamentEngine.create("id", {
+        name: "test",
+        startTime: { day: 0, hour: 0, min: 0 },
+        comments: '',
+        globalTournamentPoints: {
+            default: 0,
+            leaders: []
+        },
+    },
+        {
+            useTeams: false
+        },
+        bracketSettings)
+
+    return tournamentEngine
+}
 
 function validateStorage(tournament: TournamentEngine) {
     const storage = tournament.getStorage()

@@ -58,8 +58,8 @@ export function addPlayerToTournament(tournamentId: string, userId: string) {
 export function toggleForfeitPlayerForTournament(tournamentId: string, userId: string) {
     try {
         console.log("Tried to ff a player, add the command there!")
-        // const tournament = getTournament(tournamentId)
-        //tournament.forfeitPlayer(userId)
+        const tournament = getTournament(tournamentId)
+        tournament.toggleForfeitPlayer(userId)
         EventUpdateTournamentInfo(tournamentId)
     } catch (error) {
         logger.error(`Error while trying to forfeit player ${userId} for tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)

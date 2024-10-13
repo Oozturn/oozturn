@@ -71,6 +71,8 @@ interface TournamentSpecification {
 	getMatches(bracket?: number): Match[]
 	getMatch(id: Id, bracket?: number): Match
 	getResults(): Result[]
+
+	toggleForfeitPlayer(userId: string): void
 }
 
 export class TournamentEngine implements TournamentSpecification {
@@ -81,11 +83,12 @@ export class TournamentEngine implements TournamentSpecification {
 	private settings!: TournamentSettings
 
 	private players!: Player[]
+	private playersMap: Map<string, Player> = new Map()
 	private teams!: Team[]
 
 	private activeBracket!: number
 	private brackets!: Bracket[]
-	private resultsCache = new TTLCache<number,Result[]>({ ttl: 1000 * 60 })
+	private resultsCache = new TTLCache<number, Result[]>({ ttl: 1000 * 60 })
 
 	public static create(
 		id: string,
@@ -112,6 +115,7 @@ export class TournamentEngine implements TournamentSpecification {
 		tournament.settings = tournamentStorage.settings
 		tournament.status = tournamentStorage.status
 		tournament.players = tournamentStorage.players
+		tournament.playersMap = new Map(tournament.players.map(player => [player.userId, player]))
 		tournament.teams = tournamentStorage.teams
 		tournament.activeBracket = tournamentStorage.activeBracket
 		tournament.brackets = tournamentStorage.brackets.map(bracket => Bracket.fromStorage(bracket))
@@ -163,7 +167,7 @@ export class TournamentEngine implements TournamentSpecification {
 			players: this.players,
 			teams: this.teams,
 			matches: this.getMatches(0).concat(this.brackets.length == 2 ? this.getMatches(1) : []),
-			results: [TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status) ? undefined : this.brackets.map((_b,i) => this.getResults(i)),
+			results: [TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status) ? undefined : this.brackets.map((_b, i) => this.getResults(i)),
 			bracketsResults: [TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status) ? undefined : this.brackets.map(b => b.results())
 		}
 	}
@@ -188,15 +192,19 @@ export class TournamentEngine implements TournamentSpecification {
 		return this.players
 	}
 	public addPlayer(userId: string): void {
-		if (this.players.find(player => player.userId == userId))
+		if (this.playersMap.has(userId)) {
 			throw new Error(`Player ${userId} already in tournament ${this.id}`)
-		this.players.push({ userId: userId, isForfeit: false })
+		}
+		const player = { userId: userId, isForfeit: false }
+		this.players.push(player)
+		this.playersMap.set(userId, { userId: userId, isForfeit: false })
 	}
 	public removePlayer(userId: string): void {
 		const index = this.players.findIndex(player => player.userId == userId)
 		if (index == -1)
 			throw new Error(`Player ${userId} not found in tournament ${this.id}`)
-		this.players.splice(index, 1)
+		const deletedPlayer = this.players.splice(index, 1)
+		this.playersMap.delete(deletedPlayer[0].userId)
 		const team = this.teams.find(team => team.members.includes(userId))
 		if (team)
 			team.members.splice(team.members.findIndex(m => m == userId), 1)
@@ -230,7 +238,7 @@ export class TournamentEngine implements TournamentSpecification {
 		team.name = newTeamName
 	}
 	public addPlayerToTeam(teamName: string, userId: string): void {
-		if (!this.players.find(player => player.userId == userId))
+		if (!this.playersMap.has(userId))
 			this.addPlayer(userId)
 		const team = this.teams.find(team => team.name == teamName)
 		if (!team)
@@ -311,6 +319,19 @@ export class TournamentEngine implements TournamentSpecification {
 	}
 
 	public score(matchId: Id, opponent: string, score: number): void {
+		this.internalScore(matchId, opponent, score)
+		this.searchForMatchToBeCompleted()
+	}
+
+	public getOpponentId(opponent: (Player | Team)): string {
+		return getOpponentId(opponent)
+	}
+
+	public getOpponentSeed(opponentId: string, bracket: number = this.activeBracket): number {
+		return this.brackets[bracket].getOpponentSeed(opponentId) || -1
+	}
+
+	private internalScore(matchId: Id, opponent: string, score: number): void {
 		const currentBracket = this.brackets[this.activeBracket]
 		currentBracket.score(matchId, opponent, score)
 		this.resultsCache.delete(this.activeBracket)
@@ -323,14 +344,6 @@ export class TournamentEngine implements TournamentSpecification {
 			}
 
 		}
-	}
-
-	public getOpponentId(opponent: (Player | Team)): string {
-		return getOpponentId(opponent)
-	}
-
-	public getOpponentSeed(opponentId: string, bracket: number = this.activeBracket): number {
-		return this.brackets[bracket].getOpponentSeed(opponentId) || -1
 	}
 
 	private startNextBracket() {
@@ -376,6 +389,109 @@ export class TournamentEngine implements TournamentSpecification {
 			this.computeResults(bracket)
 		}
 		return this.resultsCache.get(bracket)!
+	}
+
+
+	public toggleForfeitPlayer(userId: string): void {
+		const player = this.playersMap.get(userId)
+		if (!player) {
+			throw new Error(`Player ${userId} not found`)
+		}
+		player.isForfeit = !player.isForfeit
+		if (player.isForfeit && !this.settings.useTeams) {
+			this.searchForMatchToBeCompleted()
+		}
+	}
+
+	private searchForMatchToBeCompleted(): void {
+		let shouldMatchBeCompleted: (match: Match) => boolean
+		let completeMatch: (match: Match) => void
+		const bracketSettings = this.brackets[this.activeBracket].settings
+		if (bracketSettings.type == BracketType.Duel) {
+			shouldMatchBeCompleted = this.shouldDuelMatchBeCompleted.bind(this)
+			completeMatch = this.completeDuelMatch.bind(this)
+		} else if (bracketSettings.type == BracketType.FFA) {
+			shouldMatchBeCompleted = this.shouldFFAMatchBeCompleted.bind(this)
+			completeMatch = this.completeFFAMatch.bind(this)
+		} else if (bracketSettings.type == BracketType.GroupStage) {
+			shouldMatchBeCompleted = this.shouldGroupStageMatchBeCompleted.bind(this)
+			completeMatch = this.completeGroupStageMatch.bind(this)
+		} else {
+			return
+		}
+
+		const matchesToBeCompleted = this.getMatches()
+			// We want to terminate scorable match
+			.filter(m => m.scorable)
+			// We want to terminate match with score missing
+			.filter(m => m.score.some(score => score == undefined))
+			.filter(shouldMatchBeCompleted)
+		matchesToBeCompleted.forEach(completeMatch)
+		if (matchesToBeCompleted.length > 0) {
+			// We completed some match, we need to check if there is more now
+			this.searchForMatchToBeCompleted()
+		}
+	}
+
+	private shouldDuelMatchBeCompleted(match: Match): boolean {
+		const matchPlayers = match.opponents.filter(opponent => opponent != undefined)
+			.map(opponent => this.playersMap.get(opponent!))
+		const forfeitedPlayer = matchPlayers.find(player => player?.isForfeit)
+		return !!forfeitedPlayer
+	}
+
+	private completeDuelMatch(match: Match) {
+		match.opponents.forEach(opponent => {
+			const player = this.playersMap.get(opponent!)
+			const lowerScoreIsBetter = this.brackets[match.bracket].settings.lowerScoreIsBetter
+			if (lowerScoreIsBetter) {
+				this.internalScore(match.id, opponent!, player?.isForfeit ? 1 : 0)
+			} else {
+				this.internalScore(match.id, opponent!, player?.isForfeit ? 0 : 1)
+			}
+		})
+	}
+
+	private shouldFFAMatchBeCompleted(match: Match): boolean {
+		const unscoredMatchPlayers = match.opponents.filter(opponent => opponent != undefined)
+			.filter((_, index) => match.score[index] == undefined)
+			.map(opponent => this.playersMap.get(opponent!))
+		return unscoredMatchPlayers.every(player => player?.isForfeit)
+	}
+
+	private completeFFAMatch(match: Match) {
+		const maxScore = Math.max(...match.score.filter(score => score != undefined) as number[])
+		const lowerScoreIsBetter = this.brackets[match.bracket].settings.lowerScoreIsBetter
+		match.opponents.filter(opponent => opponent != undefined)
+			.filter((_, index) => match.score[index] == undefined)
+			.map(opponent => this.playersMap.get(opponent!))
+			.filter(opponent => opponent?.isForfeit)
+			.forEach(opponent => {
+				if (lowerScoreIsBetter) {
+					this.internalScore(match.id, opponent!.userId, maxScore + 1)
+				} else {
+					this.internalScore(match.id, opponent!.userId, 0)
+				}
+			})
+	}
+
+	private shouldGroupStageMatchBeCompleted(match: Match): boolean {
+		const matchPlayers = match.opponents.filter(opponent => opponent != undefined)
+			.map(opponent => this.playersMap.get(opponent!))
+		const forfeitedPlayer = matchPlayers.find(player => player?.isForfeit)
+		return !!forfeitedPlayer
+	}
+
+	private completeGroupStageMatch(match: Match) {
+		match.opponents.forEach(opponent => {
+			const player = this.playersMap.get(opponent!)
+			const lowerScoreIsBetter = this.brackets[match.bracket].settings.lowerScoreIsBetter
+			if (lowerScoreIsBetter) {
+				this.internalScore(match.id, opponent!, player?.isForfeit ? 1 : 0)
+			} else {
+				this.internalScore(match.id, opponent!, player?.isForfeit ? 0 : 1)
+			}
+		})
 	}
 
 	private computeResults(bracket: number) {
