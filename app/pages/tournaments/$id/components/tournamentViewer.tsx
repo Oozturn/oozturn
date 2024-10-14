@@ -103,7 +103,7 @@ export function TournamentViewer() {
                         <div className='is-title medium has-text-primary-accent'>Équipe {hightlightOpponent}</div>
                         <div className='pl-2 is-flex-col gap-1'>
                             {tournament.teams.find(team => team?.name == hightlightOpponent)?.members.map((player, index) =>
-                                <UserTileRectangle key={player} isShiny={index == 0} userId={player} maxLength={245} showTeam={false} />
+                                <UserTileRectangle key={player} isShiny={index == 0} userId={player} maxLength={245} showTeam={false} isForfeit={tournament.players.find(p => p.userId == player)?.isForfeit} />
                             )}
                         </div>
                     </div>
@@ -363,7 +363,7 @@ function MatchTile({ matchId }: { matchId: Id }) {
                             :
                             <FakeUserTileRectangle userName="Unknown" initial="?" maxLength={245} />
                         }
-                        {canEditScore ?
+                        {canEditScore && !ffPlayerIds.includes(opponentId!) ?
                             <input type="number" name="score"
                                 className="threeDigitsWidth has-text-centered"
                                 defaultValue={opponentScore}
@@ -372,7 +372,7 @@ function MatchTile({ matchId }: { matchId: Id }) {
                                 }}
                             />
                             :
-                            <div className="has-text-centered" style={{ width: "2.5rem" }}>{opponentScore != undefined ? ffPlayerIds.includes(opponentId!) ? "F" : opponentScore : ""}</div>
+                            <div className="has-text-centered" style={{ width: "2.5rem" }}>{ffPlayerIds.includes(opponentId!) ? "F" : opponentScore != undefined ? opponentScore : ""}</div>
                         }
                         {isFFA &&
                             <div className={`threeDigitsWidth has-text-centered ${index < Math.floor(qualifiedPlaces) ? "has-text-primary-accent" : index < Math.ceil(qualifiedPlaces) ? "has-text-secondary-accent" : ""}`}>{isOver ? index + 1 : "?"}</div>
@@ -429,11 +429,16 @@ function GroupStageMatchTile({ matchIds }: { matchIds: Id[] }) {
                 })}
             </div>
             {matches.map((match, round) => {
+                const isReturn = (tournament.bracketSettings[match.bracket].meetTwice == true) && (round % 2 == 1)
+                console.log(match)
+                const mScore = match.score.slice()
+                if (isReturn)
+                    mScore.reverse()
                 return <div key={IdToString(match.id)} className="is-flex-col p-1 gap-1">
                     {matches.length > 1 && <div className="has-text-weight-semibold mb-2">{round + 1}</div>}
-                    {match.score.map((opponentScore, index) => {
+                    {mScore.map((opponentScore, index) => {
 
-                        const opponentId = match.opponents[index]
+                        const opponentId = isReturn ? match.opponents.slice().reverse()[index] : match.opponents[index]
                         const canEditScore = match.scorable &&
                             (
                                 (tournament.status == TournamentStatus.Running && (user.id == opponentId || (userTeam && (user.id == userTeam.members[0]) && (userTeam.name == opponentId))))
@@ -441,7 +446,7 @@ function GroupStageMatchTile({ matchIds }: { matchIds: Id[] }) {
                             )
 
                         return <div key={IdToString(match.id) + '-' + String(index)} className="is-flex-row align-end justify-space-between gap-2" onMouseEnter={() => setHightlightOpponent(opponentId || "")} onMouseLeave={() => setHightlightOpponent("")}>
-                            {canEditScore ?
+                            {canEditScore && !ffPlayerIds.includes(opponentId!) ?
                                 <input type="number" name="score"
                                     className="threeDigitsWidth has-text-centered"
                                     defaultValue={opponentScore}

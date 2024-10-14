@@ -57,7 +57,6 @@ export function addPlayerToTournament(tournamentId: string, userId: string) {
 }
 export function toggleForfeitPlayerForTournament(tournamentId: string, userId: string) {
     try {
-        console.log("Tried to ff a player, add the command there!")
         const tournament = getTournament(tournamentId)
         tournament.toggleForfeitPlayer(userId)
         EventUpdateTournamentInfo(tournamentId)

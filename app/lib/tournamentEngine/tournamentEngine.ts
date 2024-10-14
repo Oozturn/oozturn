@@ -407,15 +407,12 @@ export class TournamentEngine implements TournamentSpecification {
 		let shouldMatchBeCompleted: (match: Match) => boolean
 		let completeMatch: (match: Match) => void
 		const bracketSettings = this.brackets[this.activeBracket].settings
-		if (bracketSettings.type == BracketType.Duel) {
+		if (bracketSettings.type == BracketType.Duel || bracketSettings.type == BracketType.GroupStage) {
 			shouldMatchBeCompleted = this.shouldDuelMatchBeCompleted.bind(this)
 			completeMatch = this.completeDuelMatch.bind(this)
 		} else if (bracketSettings.type == BracketType.FFA) {
 			shouldMatchBeCompleted = this.shouldFFAMatchBeCompleted.bind(this)
 			completeMatch = this.completeFFAMatch.bind(this)
-		} else if (bracketSettings.type == BracketType.GroupStage) {
-			shouldMatchBeCompleted = this.shouldGroupStageMatchBeCompleted.bind(this)
-			completeMatch = this.completeGroupStageMatch.bind(this)
 		} else {
 			return
 		}
@@ -441,55 +438,61 @@ export class TournamentEngine implements TournamentSpecification {
 	}
 
 	private completeDuelMatch(match: Match) {
-		match.opponents.forEach(opponent => {
-			const player = this.playersMap.get(opponent!)
-			const lowerScoreIsBetter = this.brackets[match.bracket].settings.lowerScoreIsBetter
+		// Don't take into account ff players' scores
+		const usableScores = match.opponents.map(opponent => this.playersMap.get(opponent!))
+			.map((opponent, index) => opponent!.isForfeit ? undefined : match.score[index])
+			.filter((_, index) => match.score[index] != undefined) as number[]
+		let maxScore = usableScores.length ? Math.max(...usableScores) : 0
+		let minScore = usableScores.length ? Math.min(...usableScores) : 0
+
+		const lowerScoreIsBetter = this.brackets[match.bracket].settings.lowerScoreIsBetter
+
+		const unscoredMatchPlayers = match.opponents.filter(opponent => opponent != undefined)
+			.map(opponent => this.playersMap.get(opponent!))
+			.filter((opponent, index) => match.score[index] == undefined || opponent!.isForfeit) // rewrite forfeit scores
+		unscoredMatchPlayers.forEach(opponent => {
 			if (lowerScoreIsBetter) {
-				this.internalScore(match.id, opponent!, player?.isForfeit ? 1 : 0)
+				this.internalScore(match.id, opponent!.userId, opponent?.isForfeit ? maxScore + 1 : 0)
+				maxScore += 1
 			} else {
-				this.internalScore(match.id, opponent!, player?.isForfeit ? 0 : 1)
+				this.internalScore(match.id, opponent!.userId, opponent?.isForfeit ? minScore - 1 : 0)
+				minScore -= 1
 			}
 		})
 	}
 
 	private shouldFFAMatchBeCompleted(match: Match): boolean {
-		const unscoredMatchPlayers = match.opponents.filter(opponent => opponent != undefined)
-			.filter((_, index) => match.score[index] == undefined)
+		const ffPlayers = match.opponents.map(opponent => this.playersMap.get(opponent!))
+			.filter(opponent => opponent!.isForfeit)
+		if (ffPlayers.length == match.opponents.length - 1) return true
+		const scoredMatchPlayers = match.opponents.filter(opponent => opponent != undefined)
+			.filter((_, index) => match.score[index] != undefined)
 			.map(opponent => this.playersMap.get(opponent!))
-		return unscoredMatchPlayers.every(player => player?.isForfeit)
+			.filter(opponent => !opponent!.isForfeit)
+		if (ffPlayers.length + scoredMatchPlayers.length == match.opponents.length) return true
+		return false
 	}
 
 	private completeFFAMatch(match: Match) {
-		const maxScore = Math.max(...match.score.filter(score => score != undefined) as number[])
+		// Don't take into account ff players' scores
+		const usableScores = match.opponents.map(opponent => this.playersMap.get(opponent!))
+			.map((opponent, index) => opponent!.isForfeit ? undefined : match.score[index])
+			.filter((_, index) => match.score[index] != undefined) as number[]
+		let maxScore = usableScores.length ? Math.max(...usableScores) : 0
+		let minScore = usableScores.length ? Math.min(...usableScores) : 0
+
 		const lowerScoreIsBetter = this.brackets[match.bracket].settings.lowerScoreIsBetter
-		match.opponents.filter(opponent => opponent != undefined)
-			.filter((_, index) => match.score[index] == undefined)
-			.map(opponent => this.playersMap.get(opponent!))
-			.filter(opponent => opponent?.isForfeit)
-			.forEach(opponent => {
-				if (lowerScoreIsBetter) {
-					this.internalScore(match.id, opponent!.userId, maxScore + 1)
-				} else {
-					this.internalScore(match.id, opponent!.userId, 0)
-				}
-			})
-	}
 
-	private shouldGroupStageMatchBeCompleted(match: Match): boolean {
-		const matchPlayers = match.opponents.filter(opponent => opponent != undefined)
+		const unscoredMatchPlayers = match.opponents.filter(opponent => opponent != undefined)
 			.map(opponent => this.playersMap.get(opponent!))
-		const forfeitedPlayer = matchPlayers.find(player => player?.isForfeit)
-		return !!forfeitedPlayer
-	}
-
-	private completeGroupStageMatch(match: Match) {
-		match.opponents.forEach(opponent => {
-			const player = this.playersMap.get(opponent!)
-			const lowerScoreIsBetter = this.brackets[match.bracket].settings.lowerScoreIsBetter
+			.filter((opponent, index) => match.score[index] == undefined || opponent!.isForfeit) // rewrite forfeit scores
+		unscoredMatchPlayers.forEach(opponent => {
 			if (lowerScoreIsBetter) {
-				this.internalScore(match.id, opponent!, player?.isForfeit ? 1 : 0)
+				this.internalScore(match.id, opponent!.userId, opponent?.isForfeit ? maxScore + 1 : 0)
+				maxScore += 1
 			} else {
-				this.internalScore(match.id, opponent!, player?.isForfeit ? 0 : 1)
+				this.internalScore(match.id, opponent!.userId, opponent?.isForfeit ? minScore - 1 : 0)
+				minScore -= 1
 			}
 		})
 	}
