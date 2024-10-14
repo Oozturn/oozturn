@@ -129,7 +129,7 @@ export function OpponentsListTeam() {
     }, [tournament])
 
     const notInTeamPlayers = tournament.players.filter(player => !(tournament.teams ? tournament.teams.flatMap(team => team?.members) : [] as string[]).includes(player.userId)).map(player => player.userId)
-    const canAddTeam = (tournament.bracketSettings[0].type == BracketType.Duel) || (tournament.bracketSettings[0].type == BracketType.FFA) && ((tournament.teams || []).length < GetFFAMaxPlayers(tournament.bracketSettings[0].sizes || [], tournament.bracketSettings[0].advancers || []))
+    const canAddTeam = (tournament.bracketSettings[0].type != BracketType.FFA) || (tournament.bracketSettings[0].type == BracketType.FFA) && ((tournament.teams || []).length < GetFFAMaxPlayers(tournament.bracketSettings[0].sizes || [], tournament.bracketSettings[0].advancers || []))
 
     tournament.bracketSettings[0].type
 

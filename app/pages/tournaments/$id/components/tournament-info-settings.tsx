@@ -32,11 +32,11 @@ export default function TournamentInfoSettings() {
           <>
             <div className="is-flex gap-3 wrap">
               <div className='has-text-right is-one-quarter'>Poules :</div>
-              <div>{tournament.bracketSettings[0].type} {tournament.settings.useTeams ? "par équipes" : "en solo"}</div>
+              <div>{tournament.bracketSettings[0].type} {tournament.settings.useTeams ? "par équipes" : "en solo"} {tournament.bracketSettings[1].size ? "" : "(Classement)"}</div>
             </div>
             <div className="is-flex gap-3 wrap">
               <div className='has-text-right is-one-quarter'>Finale :</div>
-              <div>{tournament.bracketSettings[1].type} {tournament.settings.useTeams ? "par équipes" : "en solo"}</div>
+              <div>{tournament.bracketSettings[1].type} {tournament.settings.useTeams ? "par équipes" : "en solo"} {tournament.bracketSettings[1].size ? `(${tournament.bracketSettings[1].size} ${tournament.settings.useTeams ? "équipes" : "joueurs"})` : ""}</div>
             </div>
           </>
         }

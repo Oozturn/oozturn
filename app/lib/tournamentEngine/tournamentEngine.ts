@@ -474,6 +474,7 @@ class Bracket {
 	}
 
 	results(): BracketResult[] {
+		if(this.status == BracketStatus.Pending) return []
 		return this.internalBracket.results()
 			.map(result => {
 				return {
@@ -496,6 +497,7 @@ class Bracket {
 	}
 
 	getMatches() {
+		if (this.status == BracketStatus.Pending) return []
 		const WBR1matches = this.internalBracket.matches.filter(m => m.id.s == 1 && m.id.r == 1)
 		const bracket_power = Math.log(2 * WBR1matches.length) / Math.log(2)
 		const finalsList: string[] = []

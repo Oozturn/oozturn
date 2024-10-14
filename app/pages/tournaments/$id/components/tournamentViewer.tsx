@@ -24,7 +24,7 @@ export function TournamentViewer() {
     const bracketRef = useRef(null)
     const [hightlightOpponent, setHightlightOpponent] = useState("")
     const [tournamentWideView, setTournamentWideView] = useLocalStorageState<string[]>("tournamentWideView", { defaultValue: [] })
-    const [currentBracketView, setCurrentBracketView] = useState(tournament.currentBracket) //useState(new Map<string, number>(JSON.parse(tournamentSpecificBracketView)).get(tournament.id) || tournament.currentBracket)
+    const [currentBracketView, setCurrentBracketView] = useState(tournament.currentBracket)
 
     useEffect(() => {
         const ref = containerRef.current as unknown as HTMLDivElement
@@ -37,7 +37,8 @@ export function TournamentViewer() {
                 ref?.clientWidth / bref?.clientWidth,
                 1
             ))
-    }, [containerRef, bracketRef, minScale, tournament.id])
+        setCurrentBracketView(tournament.currentBracket)
+    }, [containerRef, bracketRef, minScale, tournament.id, tournament.currentBracket])
 
 
     useEffect(() => {
@@ -73,9 +74,9 @@ export function TournamentViewer() {
         </div>
         {tournament.bracketsCount == 2 &&
             <div className="is-flex-row justify-center gap-3 p-2" style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 2 }} >
-                <div className={currentBracketView == 0 ? "" : "fade-on-mouse-out is-clickable"} {...clickorkey(() => setCurrentBracketView(0))}>Poules</div>
+                <div className={currentBracketView == 0 ? "has-text-weight-bold" : "fade-on-mouse-out is-clickable"} {...clickorkey(() => setCurrentBracketView(0))}>Poules</div>
                 <div>|</div>
-                <div className={currentBracketView == 0 ? "fade-on-mouse-out is-clickable" : ""} {...clickorkey(() => setCurrentBracketView(1))}>Finale</div>
+                <div className={currentBracketView == 0 ? "fade-on-mouse-out is-clickable" : "has-text-weight-bold"} {...clickorkey(() => setCurrentBracketView(1))}>Finale</div>
             </div>
         }
         <HightlightOpponentContext.Provider value={{ hightlightOpponent: hightlightOpponent, setHightlightOpponent: setHightlightOpponent }} >
@@ -89,7 +90,7 @@ export function TournamentViewer() {
                     >
                         {width ?
                             <div ref={bracketRef}>
-                                <BracketViewer bracket={currentBracketView} />
+                                <BracketViewer bracket={currentBracketView <= tournament.bracketsCount - 1 ? currentBracketView : 0} />
                             </div>
                             :
                             null
@@ -128,8 +129,8 @@ export function TournamentViewer() {
 
 function BracketViewer({ bracket }: { bracket: number }) {
     const tournament = useTournament()
-    const matches = tournament.matches
-    const sections = Array.from(new Set(matches.filter(match => match.bracket == bracket).map(match => match.id.s)))
+    const matches = tournament.matches.filter(match => match.bracket == bracket)
+    const sections = Array.from(new Set(matches.map(match => match.id.s)))
 
     const wrapperContext = useTransformContext()
 
@@ -151,14 +152,13 @@ function BracketViewer({ bracket }: { bracket: number }) {
 }
 
 function SectionViewer({ bracket, section }: { bracket: number, section: number }) {
-    const matches = useTournament().matches
-    const rounds = Array.from(new Set(matches.filter(match => match.bracket == bracket && match.id.s == section).map(match => match.id.r)))
-    const showSectionName = Array.from(new Set(matches.filter(match => match.bracket == bracket).map(match => match.id.s))).length > 1
     const tournament = useTournament()
-
     if (tournament.bracketSettings[bracket].type == BracketType.GroupStage) {
         return <GroupStageSectionViewer bracket={bracket} section={section} />
     }
+
+    const matches = tournament.matches.filter(match => match.bracket == bracket && match.id.s == section)
+    const rounds = Array.from(new Set(matches.map(match => match.id.r)))
 
     const sectionName = (() => {
         if (tournament.bracketsCount == 2 && bracket == 0) return 'Poule ' + section
@@ -170,7 +170,7 @@ function SectionViewer({ bracket, section }: { bracket: number, section: number 
 
     return (
         <div className="is-flex-col gap-1">
-            {showSectionName && <div className="is-title medium">{sectionName}</div>}
+            <div className="is-title medium">{sectionName}</div>
             <div className="is-flex-row gap-3 align-stretch">
                 {rounds.map(round => {
                     return (
@@ -185,7 +185,7 @@ function SectionViewer({ bracket, section }: { bracket: number, section: number 
 
 function GroupStageSectionViewer({ bracket, section }: { bracket: number, section: number }) {
     const tournament = useTournament()
-    const matches = useTournament().matches.filter(match => match.id.s == section)
+    const matches = useTournament().matches.filter(match => match.bracket == bracket && match.id.s == section)
     const user = useUser()
     const { hightlightOpponent, setHightlightOpponent } = useContext(HightlightOpponentContext)
 
@@ -205,10 +205,19 @@ function GroupStageSectionViewer({ bracket, section }: { bracket: number, sectio
     const getScore = ({ wins, draws }: { wins: number, draws?: number }) => {
         return (tournament.bracketSettings[bracket].winPoints || 3) * wins + (tournament.bracketSettings[bracket].tiePoints || 1) * (draws || 0)
     }
-    const qualifiedPlaces = function () {
-        if (tournament.bracketsCount == 2 && bracket == 0)
-            return (tournament.bracketSettings[1].size || 1) / (tournament.matches.filter(m => m.bracket == 0).length || 1)
-        return .5
+    const qualifiedPlayers = function () {
+        const qPlayers: string[] = []
+        if (tournament.bracketsCount == 2 && bracket == 0) {
+            tournament.matches.filter(m => m.bracket == 1).flatMap(m => m.opponents).forEach(opponent => {
+                if (!opponent) return
+                if (tournament.settings.useTeams) {
+                    tournament.teams.find(t => t.name == opponent)?.members.forEach(member => qPlayers.push(member))
+                    return
+                }
+                qPlayers.push(opponent)
+            })
+        }
+        return qPlayers
     }()
 
     return (
@@ -242,7 +251,11 @@ function GroupStageSectionViewer({ bracket, section }: { bracket: number, sectio
                 </div>
                 <div className="is-flex-col gap-1">
                     <div className="has-text-weight-semibold mb-2">Place</div>
-                    {results.map((res, i) => <div key={"v_" + res.id} style={{ height: 32 }} className={i < Math.floor(qualifiedPlaces) ? "has-text-primary-accent" : i < Math.ceil(qualifiedPlaces) ? "has-text-secondary-accent" : ""} onMouseEnter={() => setHightlightOpponent(res.id || "")} onMouseLeave={() => setHightlightOpponent("")}>{i + 1}</div>)}
+                    {results.map((res, i) => <div key={"v_" + res.id} style={{ height: 32 }} className={
+                        ((tournament.bracketsCount == 2 && bracket == 0) ?
+                            qualifiedPlayers.includes(res.id || "")
+                            : (res.pos == 1)) ? "has-text-primary-accent" : ""
+                    } onMouseEnter={() => setHightlightOpponent(res.id || "")} onMouseLeave={() => setHightlightOpponent("")}>{i + 1}</div>)}
                 </div>
             </div>}
             <div className="is-flex-col gap-3 align-stretch">
@@ -301,10 +314,23 @@ function MatchTile({ matchId }: { matchId: Id }) {
     const isFFA = tournament.bracketSettings[match.bracket].type == BracketType.FFA
     const isOver = match.score.every(score => score != undefined)
     const qualifiedPlaces = function () {
-        if (tournament.bracketsCount == 2 && match.bracket == 0)
-            return (tournament.bracketSettings[1].size || 1) / (tournament.matches.filter(m => m.bracket == 0).length || 1)
         return (tournament.bracketSettings[match.bracket].advancers || [])[match.id.r - 1] || 1
     }()
+    const qualifiedPlayers = function () {
+        const qPlayers: string[] = []
+        if (tournament.bracketsCount == 2 && match.bracket == 0) {
+            tournament.matches.filter(m => m.bracket == 1).flatMap(m => m.opponents).forEach(opponent => {
+                if (!opponent) return
+                if (tournament.settings.useTeams) {
+                    tournament.teams.find(t => t.name == opponent)?.members.forEach(member => qPlayers.push(member))
+                    return
+                }
+                qPlayers.push(opponent)
+            })
+        }
+        return qPlayers
+    }()
+
     const ffPlayerIds = tournament.players.filter(p => p.isForfeit).map(p => p.userId)
 
     const score = (mId: Id, opponent: string, score: number) => {
@@ -375,7 +401,10 @@ function MatchTile({ matchId }: { matchId: Id }) {
                             <div className="has-text-centered" style={{ width: "2.5rem" }}>{opponentScore != undefined ? ffPlayerIds.includes(opponentId!) ? "F" : opponentScore : ""}</div>
                         }
                         {isFFA &&
-                            <div className={`threeDigitsWidth has-text-centered ${index < Math.floor(qualifiedPlaces) ? "has-text-primary-accent" : index < Math.ceil(qualifiedPlaces) ? "has-text-secondary-accent" : ""}`}>{isOver ? index + 1 : "?"}</div>
+                            <div className={`threeDigitsWidth has-text-centered ${((tournament.bracketsCount == 2 && match.bracket == 0) ?
+                                    qualifiedPlayers.includes(opponentId || "")
+                                    : index < Math.floor(qualifiedPlaces)) ? "has-text-primary-accent" : ""
+                                }`}>{isOver ? index + 1 : "?"}</div>
                         }
                     </div>
                 })}
