@@ -14,8 +14,9 @@ interface UserTileProps {
     showTeam?: boolean
     initial?: string
     isShiny?: boolean
+    isForfeit?: boolean
 }
-export function UserTileRectangle({ userId, colorClass, height, maxLength, showTeam, initial, isShiny }: UserTileProps) {
+export function UserTileRectangle({ userId, colorClass, height, maxLength, showTeam, initial, isShiny, isForfeit }: UserTileProps) {
     const [accentLocalStorage,] = useLocalStorageState("accent", { defaultValue: "Switch" })
     const user = useUsers().find(user => (user.id == userId) || (user.username == userId))
     if (!user) {
@@ -41,7 +42,7 @@ export function UserTileRectangle({ userId, colorClass, height, maxLength, showT
             <UserAvatar username={user.username} avatar={user.avatar} size={height} />
         }
         {isShiny && <div className="is-flex has-text-primary-accent"><ShinySVG /></div>}
-        <div style={{ maxWidth: maxUsernameLength + "px", overflow: "hidden", textOverflow: "ellipsis" }}>{user.username}</div>
+        <div style={{ maxWidth: maxUsernameLength + "px", overflow: "hidden", textOverflow: "ellipsis" }}>{isForfeit ? <s>{user.username}</s> : user.username}</div>
         {showTeam && user.team && <div className='fade-text' style={{ maxWidth: maxTeamLength + "px", overflow: "hidden", textOverflow: "ellipsis" }}>[{user.team}]</div>}
     </div>
 }
