@@ -299,6 +299,10 @@ export class TournamentEngine implements TournamentSpecification {
 	public startTournament(): void {
 		if (![TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status))
 			throw new Error(`Tournament ${this.id} not in Open or Balance mode`)
+		if(this.status == TournamentStatus.Open && this.brackets[0].getStatus() != BracketStatus.Pending) {
+			// This is a reset
+			this.resetBrackets()
+		}
 		if (this.settings.useTeams) {
 			this.teams = this.teams.filter(team => team.members.length > 0)
 			this.players = this.players.filter(player => this.teams.flatMap(team => team.members).includes(player.userId))
@@ -401,6 +405,12 @@ export class TournamentEngine implements TournamentSpecification {
 		if (player.isForfeit && !this.settings.useTeams) {
 			this.searchForMatchToBeCompleted()
 		}
+	}
+
+	private resetBrackets(): void {
+		this.brackets.forEach(bracket => bracket.reset())
+		this.activeBracket = 0
+		this.resultsCache.clear()
 	}
 
 	private searchForMatchToBeCompleted(): void {
@@ -545,7 +555,7 @@ class Bracket {
 		return bracket
 	}
 
-	private internalBracket!: (Duel | FFA | GroupStage)
+	private internalBracket?: (Duel | FFA | GroupStage)
 	private states: BracketState[] = []
 	private seedings: BiDirectionalMap<number, string> = new BiDirectionalMap()
 	private status = BracketStatus.Pending
@@ -564,6 +574,13 @@ class Bracket {
 		this.initInternalBracket(opponents.length)
 		this.seedOpponents(opponents)
 		this.status = BracketStatus.Running
+	}
+
+	reset(): void {
+		this.seedings = new BiDirectionalMap() 
+		this.status = BracketStatus.Pending
+		this.states = []
+		this.internalBracket = undefined
 	}
 
 	seedOpponents(opponents: Player[] | Team[]) {
@@ -594,7 +611,7 @@ class Bracket {
 
 	results(): BracketResult[] {
 		if(this.status == BracketStatus.Pending) return []
-		return this.internalBracket.results()
+		return this.internalBracket!.results()
 			.map(result => {
 				return {
 					...result,
@@ -604,20 +621,20 @@ class Bracket {
 	}
 
 	getMatch(id: Id) {
-		const match = this.internalBracket.findMatch(id)
+		const match = this.internalBracket!.findMatch(id)
 		return {
 			id: match.id,
 			opponents: match.p.map(p =>
 				this.seedings.getRight(p)
 			),
 			score: match.m || this.states.find(bs => bs.id == match.id)?.score || match.p.map(() => undefined),
-			scorable: this.internalBracket.unscorable(match.id, match.p.map((_, i) => i), false) == null
+			scorable: this.internalBracket!.unscorable(match.id, match.p.map((_, i) => i), false) == null
 		}
 	}
 
 	getMatches() {
 		if (this.status == BracketStatus.Pending) return []
-		const WBR1matches = this.internalBracket.matches.filter(m => m.id.s == 1 && m.id.r == 1)
+		const WBR1matches = this.internalBracket!.matches.filter(m => m.id.s == 1 && m.id.r == 1)
 		const bracket_power = Math.log(2 * WBR1matches.length) / Math.log(2)
 		const finalsList: string[] = []
 		if (this.settings.type == BracketType.Duel) {
@@ -630,20 +647,20 @@ class Bracket {
 					finalsList.push(IdToString({ s: Duel.LB, r: 2 * bracket_power, m: 1 }))
 			}
 		}
-		if (this.settings.type == BracketType.FFA && this.internalBracket.rounds(1).length > 1) {
-			finalsList.push(IdToString({ s: 1, r: Math.max(...this.internalBracket.matches.map(m => m.id.r)), m: 1 }))
+		if (this.settings.type == BracketType.FFA && this.internalBracket!.rounds(1).length > 1) {
+			finalsList.push(IdToString({ s: 1, r: Math.max(...this.internalBracket!.matches.map(m => m.id.r)), m: 1 }))
 		}
 
-		const notUsedFinale = this.internalBracket.isDone() && this.internalBracket.matches.find(match => !match.m)?.id || undefined
+		const notUsedFinale = this.internalBracket!.isDone() && this.internalBracket!.matches.find(match => !match.m)?.id || undefined
 
-		return this.internalBracket.matches.filter(match => !notUsedFinale || (notUsedFinale && IdToString(notUsedFinale) != IdToString(match.id))).map(match => {
+		return this.internalBracket!.matches.filter(match => !notUsedFinale || (notUsedFinale && IdToString(notUsedFinale) != IdToString(match.id))).map(match => {
 			return {
 				id: match.id,
 				opponents: match.p.map(p =>
 					this.seedings.getRight(p)
 				),
 				score: match.m || this.states.find(bs => IdToString(bs.id) == IdToString(match.id))?.score || match.p.map(() => undefined),
-				scorable: this.internalBracket.unscorable(match.id, match.p.map((_, i) => i), false) == null,
+				scorable: this.internalBracket!.unscorable(match.id, match.p.map((_, i) => i), false) == null,
 				isFinale: finalsList.includes(IdToString(match.id))
 			}
 		}
@@ -662,7 +679,7 @@ class Bracket {
 		}
 		const futureScore = state.score.map((s, i) => i == opponentIndex ? score : s)
 		if (futureScore.every(value => value != undefined)) {
-			const unscorableReason = this.internalBracket.unscorable(matchId, futureScore as number[], false)
+			const unscorableReason = this.internalBracket!.unscorable(matchId, futureScore as number[], false)
 			if (unscorableReason != null)
 				throw new Error(`Impossible to apply score ${futureScore} to match ${matchId} : ${unscorableReason}`)
 		}
@@ -676,20 +693,24 @@ class Bracket {
 		if (this.status == BracketStatus.Done) {
 			return true
 		}
-		const isDone = this.internalBracket.isDone()
+		const isDone = this.internalBracket!.isDone()
 		if (isDone) {
 			this.status = BracketStatus.Done
 		}
 		return isDone
 	}
 
-	applyState(state: BracketState): void {
+	getStatus() {
+		return this.status
+	}
+
+	private applyState(state: BracketState): void {
 		if (state.score.some(value => value === undefined))
 			throw new Error(`Tried to apply an incomplete state: ${state}`)
-		const unscorableReason = this.internalBracket.unscorable(state.id, state.score as number[], false)
+		const unscorableReason = this.internalBracket!.unscorable(state.id, state.score as number[], false)
 		if (unscorableReason != null)
 			throw new Error(`Impossible to apply score ${state.score} to match ${state.id} : ${unscorableReason}`)
-		this.internalBracket.score(state.id, state.score as number[])
+		this.internalBracket!.score(state.id, state.score as number[])
 	}
 }
 
