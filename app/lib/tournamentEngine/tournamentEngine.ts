@@ -745,6 +745,8 @@ function usingResults(results: BracketResult[]): (((a: Team, b: Team) => number)
 	return (a, b) => {
 		const resultA = results.find(r => r.id == getOpponentId(a))!
 		const resultB = results.find(r => r.id == getOpponentId(b))!
-		return resultA?.pos - resultB?.pos
+		const ratioA = resultA.for! / resultA.against!
+		const ratioB = resultB.for! / resultB.against!
+		return (resultA?.pos - resultB?.pos) || (ratioB - ratioA) || (resultB.seed - resultA.seed)
 	}
 }

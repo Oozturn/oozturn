@@ -368,7 +368,7 @@ test('6 players | GS 3 | FFA top 2', () => {
     ])
     validateStorage(tournamentEngine)
 
-    scorer({ s: 1, r: 1, m: 1 }, [0, 1]) // 5 < 6
+    scorer({ s: 1, r: 1, m: 1 }, [1, 0]) // 6 < 5
 
     expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Done)
     expect(tournamentEngine.getResults()).toMatchObject([
@@ -406,10 +406,10 @@ test('8 players | GS 4 | Duel top 4', () => {
     ])
     validateStorage(tournamentEngine)
 
-    scorer({ s: 1, r: 1, m: 1 }, [1, 0]) // 7 > 6
-    scorer({ s: 1, r: 1, m: 2 }, [0, 1]) // 5 < 8
-    scorer({ s: 1, r: 2, m: 1 }, [0, 1]) // 7 < 8
-    scorer({ s: 2, r: 1, m: 1 }, [1, 0]) // 6 > 5
+    scorer({ s: 1, r: 1, m: 1 }, [1, 0]) // 8 > 5
+    scorer({ s: 1, r: 1, m: 2 }, [0, 1]) // 6 < 7
+    scorer({ s: 1, r: 2, m: 1 }, [1, 0]) // 8 > 7
+    scorer({ s: 2, r: 1, m: 1 }, [0, 1]) // 5 < 6
 
     expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Done)
     expect(tournamentEngine.getResults()).toMatchObject([
@@ -445,10 +445,10 @@ test('8 players | FFA 4 | Duel top 4', () => {
     ])
     validateStorage(tournamentEngine)
 
-    scorer({ s: 1, r: 1, m: 1 }, [1, 0]) // 7 > 6
-    scorer({ s: 1, r: 1, m: 2 }, [0, 1]) // 5 < 8
-    scorer({ s: 1, r: 2, m: 1 }, [0, 1]) // 7 < 8
-    scorer({ s: 2, r: 1, m: 1 }, [1, 0]) // 6 > 5
+    scorer({ s: 1, r: 1, m: 1 }, [1, 0]) // 8 > 5
+    scorer({ s: 1, r: 1, m: 2 }, [0, 1]) // 6 < 7
+    scorer({ s: 1, r: 2, m: 1 }, [1, 0]) // 8 > 7
+    scorer({ s: 2, r: 1, m: 1 }, [0, 1]) // 5 < 6
 
     expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Done)
     expect(tournamentEngine.getResults()).toMatchObject([

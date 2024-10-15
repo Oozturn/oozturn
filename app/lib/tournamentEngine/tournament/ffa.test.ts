@@ -79,15 +79,15 @@ test('FFA 9, match of 3, winner with lowerscore', () => {
   ffa.score({ s: 1, r: 2, m: 1 }, [1, 2, 3]) // 1 vs 2 vs 3, 1 win
   expect(ffa.results()).toEqual(
     [
-      { "seed": 1, "wins": 2, "for": 2, "against": 0, "pos": 1, "gpos": 1 },
-      { "seed": 2, "wins": 1, "for": 3, "against": 1, "pos": 2, "gpos": 2 },
-      { "seed": 3, "wins": 1, "for": 4, "against": 2, "pos": 3, "gpos": 3 },
-      { "seed": 4, "wins": 0, "for": 2, "against": 1, "pos": 4 },
-      { "seed": 5, "wins": 0, "for": 2, "against": 1, "pos": 4 },
-      { "seed": 6, "wins": 0, "for": 2, "against": 1, "pos": 4 },
-      { "seed": 7, "wins": 0, "for": 3, "against": 2, "pos": 7 },
-      { "seed": 8, "wins": 0, "for": 3, "against": 2, "pos": 7 },
-      { "seed": 9, "wins": 0, "for": 3, "against": 2, "pos": 7 }
+      { "seed": 1, "wins": 2, "for": 0, "against": 2, "pos": 1, "gpos": 1 },
+      { "seed": 2, "wins": 1, "for": 1, "against": 3, "pos": 2, "gpos": 2 },
+      { "seed": 3, "wins": 1, "for": 2, "against": 4, "pos": 3, "gpos": 3 },
+      { "seed": 4, "wins": 0, "for": 1, "against": 2, "pos": 4 },
+      { "seed": 5, "wins": 0, "for": 1, "against": 2, "pos": 4 },
+      { "seed": 6, "wins": 0, "for": 1, "against": 2, "pos": 4 },
+      { "seed": 7, "wins": 0, "for": 2, "against": 3, "pos": 7 },
+      { "seed": 8, "wins": 0, "for": 2, "against": 3, "pos": 7 },
+      { "seed": 9, "wins": 0, "for": 2, "against": 3, "pos": 7 }
     ]
   )
 });

@@ -296,10 +296,10 @@ export class Duel extends Tournament {
 
       // inc wins
       w.wins += 1
-      p0.for! += g.m[0]
-      p1.for! += g.m[1]
-      p0.against! += g.m[1]
-      p1.against! += g.m[0]
+      p0.for! += this.lowerScoreIsBetter ? g.m[1] : g.m[0]
+      p1.for! += this.lowerScoreIsBetter ? g.m[0] : g.m[1]
+      p0.against! += this.lowerScoreIsBetter ? g.m[0] : g.m[1]
+      p1.against! += this.lowerScoreIsBetter ? g.m[1] : g.m[0]
 
       // bump winners of finals
       const wbWinnerWon = p0.seed === w.seed
