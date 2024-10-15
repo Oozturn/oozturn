@@ -44,6 +44,7 @@ export default function Navbar() {
                     <div className="navbar-end">
                         {user?.isAdmin && <Link className={`navbar-item is-title medium is-uppercase is-tab px-0 mx-3 ${current_page == "/admin" ? 'is-active' : ''}`} to="/admin">Admin</Link>}
                         {user && <Link className={`navbar-item is-title medium is-uppercase is-tab px-0 mx-3 ${current_page == "/" ? 'is-active' : ''}`} to="/">Accueil</Link>}
+                        {user && <Link className={`navbar-item is-title medium is-uppercase is-tab px-0 mx-3 ${current_page == "/info" ? 'is-active' : ''}`} to="/info">Infos</Link>}
                         {user && <Link className={`navbar-item is-title medium is-uppercase is-tab px-0 mx-3 ${current_page == "/results" ? 'is-active' : ''}`} to="/results">Résultats</Link>}
                         <div className="navbar-item m-4"></div>
                         {loading ? "" :

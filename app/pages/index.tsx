@@ -37,7 +37,8 @@ export default function Index() {
 
   return (
     <>
-      <div className='is-full-height is-flex-col p-3 gap-3'>
+      <div className='is-full-height is-flex-col p-3 is-clipped'>
+        <div className='is-flex-col gap-3 is-scrollable'>
         {lan?.motd &&
           <div className='is-flex-col gap-3 has-background-secondary-level p-5'>
             <div className='is-title big pb-3'>MOT DU JOUR</div>
@@ -46,7 +47,7 @@ export default function Index() {
             </p>
           </div>
         }
-        <div className="grow has-background-secondary-level pr-2 py-5 pl-5 is-flex-col gap-5 is-clipped">
+        <div className="grow has-background-secondary-level pr-2 py-5 pl-5 is-flex-col gap-5">
           <div className='is-title big'>TOURNOIS</div>
           <div className="is-scrollable grow">
             <div className='homeTournamentsGrid pr-4'>
@@ -64,6 +65,7 @@ export default function Index() {
             </div>
           </div>
         </div>
+      </div>
       </div >
     </>
   )

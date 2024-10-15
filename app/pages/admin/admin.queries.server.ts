@@ -1,3 +1,5 @@
+import sharp from "sharp"
+import { rm } from 'fs/promises'
 import { EventUpdateUsers } from "~/lib/emitter.server"
 import { logger } from "~/lib/logging/logging"
 import { hasPassword, resetPassword } from "~/lib/persistence/password.server"
@@ -58,4 +60,20 @@ export async function addUsers(rawUsernames: string[]) {
         logger.info(`New user ${username} created`)
     })
     EventUpdateUsers()
+}
+
+export async function setLanMap(file: File) {
+    if (file.size > 5 * 1024 * 1024) {
+        logger.error(`An admin tried to upload a too big map (${file.size / (1024 * 1024)} MB)`)
+    }
+    const inputBuffer = Buffer.from(await file.arrayBuffer())
+
+    console.log("got image")
+    try {
+        await rm("public/lanMap.webp", {force: true})
+        await sharp(inputBuffer).toFile("public/lanMap.webp")
+    } catch (e) {
+        console.error(e)
+        throw e
+    }
 }

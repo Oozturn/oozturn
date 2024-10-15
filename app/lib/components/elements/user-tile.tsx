@@ -82,7 +82,7 @@ export function UserTileUsersPage({ userId, tournaments, points, leaderboardPlac
 
     const [avatarHeight, minWidth] = [150, 260]
 
-    return <div key={user.id} className="is-flex-col no-basis grow gap-2 p-3 align-stretch is-unselectable has-background-grey" style={{ minWidth: minWidth }}>
+    return <div key={user.id} className="is-flex-col no-basis grow gap-2 p-3 align-stretch is-unselectable has-background-secondary-level" style={{ minWidth: minWidth }}>
         <div className='is-flex justify-center'>
             <UserAvatar username={user.username} avatar={user.avatar} size={avatarHeight} />
         </div>

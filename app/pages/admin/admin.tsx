@@ -9,18 +9,19 @@ import { CustomCheckbox } from "~/lib/components/elements/custom-checkbox"
 import { CustomSelect } from "~/lib/components/elements/custom-select"
 import { EditGlobalTournamentPoints } from "~/lib/components/elements/global-tournament-points"
 import { getLan, updateAchievements, updateLan } from "~/lib/persistence/lan.server"
-import { requireUserAdmin, requireUserLoggedIn } from "~/lib/session.server"
+import { requireUserAdmin } from "~/lib/session.server"
 import { Lan } from "~/lib/types/lan"
 import { autoSubmit } from "~/lib/utils/autosubmit"
 import { Days, range } from "~/lib/utils/ranges"
 import { AdminSectionContext, Section, useAdminSection } from "./components/AdminSectionContext"
 import { UsersList } from "./components/users-list"
-import { addUsers, renameUser, resetUserPassword } from "./admin.queries.server"
-import { Fragment, useRef, useState } from "react"
+import { addUsers, renameUser, resetUserPassword, setLanMap } from "./admin.queries.server"
+import { ChangeEvent, Fragment, useRef, useState } from "react"
 import { clickorkey } from "~/lib/utils/clickorkey"
 import { CustomModalBinary } from "~/lib/components/elements/custom-modal"
 import { Achievement, AchievementDecriptors, AchievementType } from "~/lib/types/achievements"
 import { getAchievements } from "~/lib/statistics/achievements.server"
+import { notifyError } from "~/lib/components/notification"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
@@ -49,6 +50,8 @@ export enum AdminIntents {
     // MERGE_USERS,
     RESET_USER_PASSWORD = "reset_user_password",
 
+    UPLOAD_MAP = "upload_map",
+
     // REMOVE_GAME,
     // ADD_GAME,
     // UPDATE_GAME,
@@ -60,7 +63,7 @@ export enum AdminIntents {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-    requireUserLoggedIn(request)
+    requireUserAdmin(request)
 
     const formData = await request.formData()
     const intent = formData.get("intent")
@@ -97,6 +100,9 @@ export async function action({ request }: ActionFunctionArgs) {
             break
         case AdminIntents.ADD_USERS:
             await addUsers(JSON.parse(String(formData.get("users"))))
+            break
+        case AdminIntents.UPLOAD_MAP:
+            await setLanMap(formData.get("map") as File)
             break
         default:
             break
@@ -139,6 +145,18 @@ export function SectionLanSettings({ isActive }: { isActive: boolean }) {
     const { setActiveSection, updateLan } = useAdminSection()
     const fetcher = useFetcher()
     const lan = useLan()
+    const fileInputRef = useRef<HTMLInputElement>(null)
+    const fetcherUpdateMap = useFetcher()
+
+    async function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
+        if (e.target.files) {
+            if (e.target.files[0].size > 5 * 1024 * 1024) {
+                notifyError("Avatar is too big (5MB max.)")
+                return
+            }
+            fetcherUpdateMap.submit(e.currentTarget.form, { method: "POST" })
+        }
+    }
 
     return <div className={`is-clipped has-background-secondary-level px-4 is-flex-col ${isActive ? "grow no-basis" : ""}`}>
         <div className="is-title medium is-uppercase py-2 px-1 is-clickable" {...clickorkey(() => setActiveSection("lanSettings"))}>
@@ -166,7 +184,6 @@ export function SectionLanSettings({ isActive }: { isActive: boolean }) {
                     <textarea id="field"
                         name="lan_motd"
                         className="textarea"
-                        style={{ resize: "none" }}
                         defaultValue={lan.motd}
                         {...autoSubmit(fetcher)}
                     />
@@ -211,11 +228,16 @@ export function SectionLanSettings({ isActive }: { isActive: boolean }) {
                     />
                 </div>
             </div>
-            <div></div>  {/* Spacer */}
-            {/* End of LAN */}
-            {/* <div className="is-flex grow justify-center">
-                <CustomButton callback={() => { }} contentItems={["Terminer la LAN"]} colorClass="has-background-primary-level" />
-            </div> */}
+            {/* Lan map */}
+            <div className="is-flex gap-3 align-center">
+                <div className='has-text-right is-one-fifth'>Plan de la LAN :</div>
+                <fetcherUpdateMap.Form method="post" encType="multipart/form-data">
+                    <input name="intent" type="hidden" hidden value={AdminIntents.UPLOAD_MAP} />
+                    <input name="map" type="file" hidden ref={fileInputRef} id="selectMapInput" accept="image/jpeg,image/png,image/webp,image/gif"
+                        onChange={handleFileChange} />
+                    <CustomButton callback={() => fileInputRef.current?.click()} contentItems={["Choisir une image"]} />
+                </fetcherUpdateMap.Form>
+            </div>
         </div>
     </div>
 }
