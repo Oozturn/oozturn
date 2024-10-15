@@ -299,7 +299,7 @@ export class TournamentEngine implements TournamentSpecification {
 	public startTournament(): void {
 		if (![TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status))
 			throw new Error(`Tournament ${this.id} not in Open or Balance mode`)
-		if(this.status == TournamentStatus.Open && this.brackets[0].getStatus() != BracketStatus.Pending) {
+		if(this.brackets[0].getStatus() != BracketStatus.Pending) {
 			// This is a reset
 			this.resetBrackets()
 		}
