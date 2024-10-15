@@ -335,12 +335,22 @@ export class TournamentEngine implements TournamentSpecification {
 		const currentBracket = this.brackets[this.activeBracket]
 		currentBracket.score(matchId, opponent, score)
 		this.resultsCache.delete(this.activeBracket)
-		if (currentBracket.isDone()) {
+		if (currentBracket.isWaitingForValidation()) {
+			this.status = TournamentStatus.Validating
+		}
+	}
+
+	public validateActiveBracket() {
+		if (this.status != TournamentStatus.Validating)
+			throw new Error(`Tournament ${this.id} is not waiting for validating`)
+		const currentBracket = this.brackets[this.activeBracket]
+		if (currentBracket.isValidated()) {
 			if (this.activeBracket == this.brackets.length - 1) {
 				// last bracket done
 				this.status = TournamentStatus.Done
 			} else {
 				this.startNextBracket()
+				this.status = TournamentStatus.Running
 			}
 
 		}
@@ -672,15 +682,20 @@ class Bracket {
 		}
 	}
 
-	isDone() {
-		if (this.status == BracketStatus.Done) {
+	isWaitingForValidation() {
+		const internalIsDone = this.internalBracket.isDone()
+		if (internalIsDone) {
+			this.status = BracketStatus.Validating
+		}
+		return internalIsDone
+	}
+
+	isValidated() {
+		if (this.status == BracketStatus.Validating) {
+			this.status = BracketStatus.Done
 			return true
 		}
-		const isDone = this.internalBracket.isDone()
-		if (isDone) {
-			this.status = BracketStatus.Done
-		}
-		return isDone
+		return false
 	}
 
 	applyState(state: BracketState): void {

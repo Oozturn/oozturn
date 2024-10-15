@@ -294,7 +294,7 @@ export function OpponentsListTeam() {
 export function TournamentInfoPlayers() {
     const tournament = useTournament()
     if (tournament.status == TournamentStatus.Done) return TournamentInfoPlayersOnceDone()
-    if (![TournamentStatus.Open, TournamentStatus.Balancing, TournamentStatus.Validating, TournamentStatus.Done].includes(tournament.status)) return TournamentInfoPlayersWhileRunning()
+    if (![TournamentStatus.Open, TournamentStatus.Balancing, TournamentStatus.Done].includes(tournament.status)) return TournamentInfoPlayersWhileRunning()
     return null
 }
 function TournamentInfoPlayersWhileRunning() {

@@ -37,6 +37,20 @@ export function cancelTournament(tournamentId: string) {
         logger.error(`Error while trying to cancel tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }
 }
+export function validateTournament(tournamentId: string) {
+    try {
+        const tournament = getTournament(tournamentId)
+        logger.info(`Validating tournament ${tournamentId}`)
+        tournament.validateActiveBracket()
+        EventUpdateTournamentBracket(tournamentId)
+        if (tournament.getStatus() == TournamentStatus.Done) {
+            EventEndTournament(tournamentId)
+            EventUpdateTournaments()
+        }
+    } catch (error) {
+        logger.error(`Error while trying to validate tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
+    }
+}
 export function toggleBalanceTournament(tournamentId: string) {
     try {
         const tournament = getTournament(tournamentId)
@@ -177,10 +191,6 @@ export function scoreMatch(tournamentId: string, matchID: string, opponent: stri
         const tournament = getTournament(tournamentId)
         tournament.score(StringToId(matchID), opponent, score)
         EventUpdateTournamentBracket(tournamentId)
-        if (tournament.getStatus() == TournamentStatus.Done) {
-            EventEndTournament(tournamentId)
-            EventUpdateTournaments()
-        }
     } catch (error) {
         logger.error(`Error while trying to score in match ${matchID} of tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }

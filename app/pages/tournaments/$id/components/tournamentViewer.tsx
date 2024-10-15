@@ -377,7 +377,7 @@ function MatchTile({ matchId }: { matchId: Id }) {
                     const canEditScore = match.scorable &&
                         (
                             (tournament.status == TournamentStatus.Running && (user.id == opponentId || (userTeam && (user.id == userTeam.members[0]) && (userTeam.name == opponentId))))
-                            || (tournament.status != TournamentStatus.Done && user.isAdmin)
+                            || (tournament.status != TournamentStatus.Done && user.isAdmin && !(tournament.bracketsCount == 2 && tournament.currentBracket == 1 && match.bracket == 0))
                         )
 
                     return <div key={IdToString(matchId) + '-' + opponentId + '-' + String(index)} className="is-flex-row align-end justify-space-between gap-2" onMouseEnter={() => setHightlightOpponent(opponentId || "")} onMouseLeave={() => setHightlightOpponent("")}>
@@ -471,7 +471,7 @@ function GroupStageMatchTile({ matchIds }: { matchIds: Id[] }) {
                         const canEditScore = match.scorable &&
                             (
                                 (tournament.status == TournamentStatus.Running && (user.id == opponentId || (userTeam && (user.id == userTeam.members[0]) && (userTeam.name == opponentId))))
-                                || (tournament.status != TournamentStatus.Done && user.isAdmin)
+                                || (tournament.status != TournamentStatus.Done && user.isAdmin && !(tournament.bracketsCount == 2 && tournament.currentBracket == 1 && match.bracket == 0))
                             )
 
                         return <div key={IdToString(match.id) + '-' + String(index)} className="is-flex-row align-end justify-space-between gap-2" onMouseEnter={() => setHightlightOpponent(opponentId || "")} onMouseLeave={() => setHightlightOpponent("")}>
