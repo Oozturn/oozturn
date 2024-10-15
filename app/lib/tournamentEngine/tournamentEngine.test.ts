@@ -460,6 +460,51 @@ test('8 players | FFA 4 | Duel top 4', () => {
     validateStorage(tournamentEngine)
 });
 
+test('Tournament reset will clear brackets', () => {
+    const tournamentEngine = createDefaultTournament([{
+        type: BracketType.FFA,
+        sizes: [4]
+    }, {
+        type: BracketType.Duel,
+        size: 4
+    }])
+    const scorer = createScorer(tournamentEngine)
+    const playerCount = 8
+    for (let p = 1; p <= playerCount; p++) {
+        tournamentEngine.addPlayer(p + "")
+    }
+
+    tournamentEngine.startTournament()
+    scorer({ s: 1, r: 1, m: 1 }, [0, 1, 2, 3]) // 1 < 3 < 6 < 8
+    scorer({ s: 1, r: 1, m: 2 }, [0, 1, 2, 3]) // 2 < 4 < 5 < 7
+
+    expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Running)
+    expect(tournamentEngine.getResults(0)).toMatchObject([
+        ...[2, 1, 4, 3, 6, 5, 8, 7].map(i => { return { userId: (9 - i) + "", position: i - (i + 1) % 2 } })
+    ])
+    validateStorage(tournamentEngine)
+
+    scorer({ s: 1, r: 1, m: 1 }, [1, 0]) // 7 > 6
+    //more score needed to finish
+
+    expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Running)
+
+    tournamentEngine.stopTournament()
+
+    expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Open)
+    expect(tournamentEngine.getFullData().currentBracket).toBe(1)
+    expect(tournamentEngine.getResults().some(result => result.position == 8)).toEqual(false)
+
+    tournamentEngine.startTournament()
+
+    expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Running)
+    expect(tournamentEngine.getFullData().currentBracket).toBe(0)
+    expect(tournamentEngine.getResults().every(result => result.position == 8)).toEqual(true)
+    expect(tournamentEngine.getMatches().flatMap(match => match.score).every(score => score == undefined)).toEqual(true)
+
+    validateStorage(tournamentEngine)
+});
+
 function createDefaultTournament(bracketSettings: BracketSettings[]) {
     const tournamentEngine = TournamentEngine.create("id", {
         name: "test",
