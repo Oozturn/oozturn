@@ -86,8 +86,6 @@ export class GroupStage extends Tournament {
     private scoresBreak: boolean
     private lowerScoreIsBetter: boolean
     private leftScoreBetterThanRight = (s1: number, s2: number) => s1 > s2
-    private diffScore = (s1: number, s2: number) => s1 - s2
-
 
     constructor(numPlayers: number, opts: GroupStageOpts) {
         //init default
@@ -110,9 +108,8 @@ export class GroupStage extends Tournament {
         this.tiePoints = opts.tiePoints!;
         this.scoresBreak = opts.scoresBreak;
         this.lowerScoreIsBetter = opts.lowerScoreIsBetter
-        if(this.lowerScoreIsBetter) {
+        if (this.lowerScoreIsBetter) {
             this.leftScoreBetterThanRight = (s1, s2) => s2 > s1
-            this.diffScore = (s1, s2) => s2 - s1
         }
     }
 
@@ -161,10 +158,10 @@ export class GroupStage extends Tournament {
             w.pts += this.winPoints;
             l.losses += 1;
         }
-        p0.for! += m.m[0];
-        p1.for! += m.m[1];
-        p0.against! += m.m[1];
-        p1.against! += m.m[0];
+        p0.for! += this.lowerScoreIsBetter ? m.m[1] : m.m[0];
+        p1.for! += this.lowerScoreIsBetter ? m.m[0] : m.m[1];
+        p0.against! += this.lowerScoreIsBetter ? m.m[0] : m.m[1];
+        p1.against! += this.lowerScoreIsBetter ? m.m[1] : m.m[0];
         return resAry;
     }
 
@@ -202,7 +199,7 @@ export class GroupStage extends Tournament {
     private compareResults = (x: Result, y: Result) => {
         const xScore = x.for! - x.against!;
         const yScore = y.for! - y.against!;
-        return (y.pts - x.pts) || this.diffScore(yScore, xScore) || (x.seed - y.seed);
+        return (y.pts - x.pts) || (yScore - xScore) || (x.seed - y.seed);
     }
 
     private finalCompare = (x: Result, y: Result) => {
@@ -214,8 +211,8 @@ export class GroupStage extends Tournament {
         resTieCompute(resAry, startPos, cb, (r: Result) => {
             let val = 'PTS' + r.pts;
             if (scoresBreak) {
-                val += 'DIFF' + (this.diffScore(r.for!, r.against!));
-            }
+                val += 'DIFF' + (r.for! - r.against!);
+    }
             return val;
         });
     };

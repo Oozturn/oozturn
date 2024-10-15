@@ -1,7 +1,7 @@
 import { compare, firstBy, flatten, gt, insert, maximum, replicate, zip } from "./interlude/interlude"
 import { Match } from "./match"
 import { group, minimalGroupSize } from "./scheduling/group"
-import { NONE, Result as BaseResult, StateElt, Tournament, Id as TournamentId, compareZip, isInteger, matchTieCompute, resultEntry, sorted, compareZipReversed, TournamentOpts } from "./tournament"
+import { Result as BaseResult, compareZip, compareZipReversed, isInteger, matchTieCompute, NONE, resultEntry, sorted, StateElt, Tournament, Id as TournamentId, TournamentOpts } from "./tournament"
 
 //------------------------------------------------------------------
 // Initialization helpers
@@ -254,10 +254,10 @@ export class FFA extends Tournament {
   protected stats(resAry: Result[], m: Match): Result[] {
     if (m.m) {
       const adv = this.advs[m.id.r - 1] || 0
-      zip(m.p, m.m).sort(this.compareScore).forEach(function (t, j, top) {
+      zip(m.p, m.m).sort(this.compareScore).forEach((t, j, top) => {
         const p = resultEntry(resAry, t[0])
-        p.for! += t[1]
-        p.against! += (Math.abs(top[0][1] - t[1])); // difference with winner
+        p.for! += this.lowerScoreIsBetter ? (Math.abs(top[0][1] - t[1])) : t[1]
+        p.against! += this.lowerScoreIsBetter ? t[1] : (Math.abs(top[0][1] - t[1])); // difference with winner
         if (j < adv) {
           p.wins += 1
         }
@@ -310,7 +310,7 @@ export class FFA extends Tournament {
       })
     })
 
-    return resAry.sort(compareMulti)
+    return resAry.sort(this.compareMulti)
   }
 
   rawPositions(res: Result[]) {
@@ -351,13 +351,11 @@ export class FFA extends Tournament {
       })
     })
   }
+
+  private compareMulti = (x: Result, y: Result) => {
+    return (x.pos - y.pos) ||
+      ((y.for! - y.against!) - (x.for! - x.against!)) ||
+      (x.seed - y.seed)
+  }
 }
-
-
-const compareMulti = function (x: Result, y: Result) {
-  return (x.pos - y.pos) ||
-    ((y.for! - y.against!) - (x.for! - x.against!)) ||
-    (x.seed - y.seed)
-}
-
 
