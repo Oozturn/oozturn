@@ -20,6 +20,7 @@ test('FFA 6', () => {
     expect(match.opponents).toEqual(['1', '2', '3', '4', '5', '6'])
 
     scorer({ s: 1, r: 1, m: 1 }, [6, 5, 4, 3, 2, 1])
+    tournamentEngine.validateActiveBracket()
 
     expect(tournamentEngine.getResults()).toMatchObject([
         ...[1, 2, 3, 4, 5, 6].map(i => { return { userId: i + "", position: i } })
@@ -40,6 +41,7 @@ test('FFA 3 with forfeit last', () => {
     tournamentEngine.score({ s: 1, r: 1, m: 1 }, "1", 6)
     tournamentEngine.score({ s: 1, r: 1, m: 1 }, "2", 5)
     tournamentEngine.toggleForfeitPlayer("3")
+    tournamentEngine.validateActiveBracket()
 
     expect(tournamentEngine.getResults()).toMatchObject([
         ...[1, 2, 3].map(i => { return { userId: i + "", position: i } })
@@ -61,6 +63,7 @@ test('FFA 3 with forfeit last lowerScoreIsBetter', () => {
     tournamentEngine.score({ s: 1, r: 1, m: 1 }, "1", 5)
     tournamentEngine.score({ s: 1, r: 1, m: 1 }, "2", 6)
     tournamentEngine.toggleForfeitPlayer("3")
+    tournamentEngine.validateActiveBracket()
 
     expect(tournamentEngine.getResults()).toMatchObject([
         ...[1, 2, 3].map(i => { return { userId: i + "", position: i } })
@@ -81,6 +84,7 @@ test('FFA 3 with forfeit first', () => {
     tournamentEngine.toggleForfeitPlayer("3")
     tournamentEngine.score({ s: 1, r: 1, m: 1 }, "1", 6)
     tournamentEngine.score({ s: 1, r: 1, m: 1 }, "2", 5)
+    tournamentEngine.validateActiveBracket()
 
     expect(tournamentEngine.getStatus()).toBe(TournamentStatus.Done)
     expect(tournamentEngine.getResults()).toMatchObject([
@@ -107,6 +111,7 @@ test('Duel 4', () => {
 
     scorer({ s: 1, r: 2, m: 1 }, [1, 0]) // 1 > 2
     scorer({ s: 2, r: 1, m: 1 }, [0, 1]) // 4 < 3
+    tournamentEngine.validateActiveBracket()
 
     expect(tournamentEngine.getResults()).toMatchObject([
         ...[1, 2, 3, 4].map(i => { return { userId: i + "", position: i } })
@@ -131,6 +136,7 @@ test('Duel 3 (match with undefined) short', () => {
     expect(tournamentEngine.getMatch({ s: 1, r: 2, m: 1 }).opponents).toEqual(['1', '2'])
 
     scorer({ s: 1, r: 2, m: 1 }, [1, 0]) // 1 > 2
+    tournamentEngine.validateActiveBracket()
 
     expect(tournamentEngine.getResults()).toMatchObject([
         ...[1, 2, 3].map(i => { return { userId: i + "", position: i } })
@@ -156,6 +162,7 @@ test('Duel 4 wih forfeit : terminate all match', () => {
     expect(tournamentEngine.getMatch({ s: 2, r: 1, m: 1 }).opponents).toEqual(['4', '3'])
 
     scorer({ s: 1, r: 2, m: 1 }, [1, 0]) // 1 > 2
+    tournamentEngine.validateActiveBracket()
 
     expect(tournamentEngine.getResults()).toMatchObject([
         ...[1, 2, 3, 4].map(i => { return { userId: i + "", position: i } })
@@ -184,6 +191,7 @@ test('Duel 4 wih forfeit : can re-enter', () => {
 
     scorer({ s: 1, r: 2, m: 1 }, [1, 0]) // 1 > 2
     scorer({ s: 2, r: 1, m: 1 }, [0, 1]) // 4 < 3
+    tournamentEngine.validateActiveBracket()
 
     expect(tournamentEngine.getResults()).toMatchObject([
         ...[1, 2, 3, 4].map(i => { return { userId: i + "", position: i } })
@@ -210,6 +218,7 @@ test('Duel 4 lowerScoreIsBetter wih forfeit : terminate all match', () => {
     expect(tournamentEngine.getMatch({ s: 2, r: 1, m: 1 }).opponents).toEqual(['4', '3'])
 
     scorer({ s: 1, r: 2, m: 1 }, [0, 1]) // 1 > 2
+    tournamentEngine.validateActiveBracket()
 
     expect(tournamentEngine.getResults()).toMatchObject([
         ...[1, 2, 3, 4].map(i => { return { userId: i + "", position: i } })
@@ -235,6 +244,7 @@ test('GroupStage 6/3', () => {
     scorer({ s: 2, r: 1, m: 1 }, [1, 0]) // 4 > 5
     scorer({ s: 2, r: 2, m: 1 }, [0, 1]) // 5 < 2
     scorer({ s: 2, r: 3, m: 1 }, [1, 0]) // 2 > 4
+    tournamentEngine.validateActiveBracket()
 
     expect(tournamentEngine.getResults()).toMatchObject([
         ...[1, 2, 3, 4, 5, 6].map(i => { return { userId: i + "", position: i - (i + 1) % 2 } })
@@ -259,6 +269,7 @@ test('GroupStage 6/3 with forfeit early', () => {
     scorer({ s: 2, r: 1, m: 1 }, [1, 0]) // 4 > 5
     scorer({ s: 2, r: 2, m: 1 }, [0, 1]) // 5 < 2
     scorer({ s: 2, r: 3, m: 1 }, [1, 0]) // 2 > 4
+    tournamentEngine.validateActiveBracket()
 
     expect(tournamentEngine.getResults()).toMatchObject([
         ...[1, 2, 3, 4, 5, 6].map(i => { return { userId: i + "", position: i - (i + 1) % 2 } })
@@ -283,6 +294,7 @@ test('GroupStage 6/3 with forfeit late', () => {
     scorer({ s: 2, r: 2, m: 1 }, [0, 1]) // 5 < 2
     scorer({ s: 2, r: 3, m: 1 }, [1, 0]) // 2 > 4
     tournamentEngine.toggleForfeitPlayer("6")
+    tournamentEngine.validateActiveBracket()
 
     expect(tournamentEngine.getResults()).toMatchObject([
         ...[1, 2, 3, 4, 5, 6].map(i => { return { userId: i + "", position: i - (i + 1) % 2 } })
@@ -306,6 +318,7 @@ test('GroupStage 4/2, lowerScoreIsBetter', () => {
 
     scorer({ s: 1, r: 1, m: 1 }, [0, 1]) // 1 > 4
     scorer({ s: 2, r: 1, m: 1 }, [0, 1]) // 2 > 3
+    tournamentEngine.validateActiveBracket()
 
     expect(tournamentEngine.getResults()).toMatchObject([
         ...[1, 2, 3, 4].map(i => { return { userId: i + "", position: i - (i + 1) % 2 } })
@@ -333,6 +346,7 @@ test('GroupStage 6/2, lowerScoreIsBetter with points draw and score break', () =
     scorer({ s: 2, r: 1, m: 1 }, [2, 0]) // 4 << 5
     scorer({ s: 2, r: 2, m: 1 }, [4, 0]) // 5 <<< 2
     scorer({ s: 2, r: 3, m: 1 }, [1, 0]) // 2 < 4
+    tournamentEngine.validateActiveBracket()
 
     expect(tournamentEngine.getResults()).toMatchObject([
         ...[1, 2, 3, 4, 5, 6].map(i => { return { userId: i + "", position: i - (i + 1) % 2 } })
@@ -361,6 +375,7 @@ test('6 players | GS 3 | FFA top 2', () => {
     scorer({ s: 2, r: 1, m: 1 }, [0, 1]) // 4 < 5
     scorer({ s: 2, r: 2, m: 1 }, [1, 0]) // 5 > 2
     scorer({ s: 2, r: 3, m: 1 }, [0, 1]) // 2 < 4
+    tournamentEngine.validateActiveBracket()
 
     expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Running)
     expect(tournamentEngine.getResults(0)).toMatchObject([
@@ -369,6 +384,7 @@ test('6 players | GS 3 | FFA top 2', () => {
     validateStorage(tournamentEngine)
 
     scorer({ s: 1, r: 1, m: 1 }, [1, 0]) // 6 < 5
+    tournamentEngine.validateActiveBracket()
 
     expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Done)
     expect(tournamentEngine.getResults()).toMatchObject([
@@ -399,6 +415,7 @@ test('8 players | GS 4 | Duel top 4', () => {
             scorer(match.id, [0, 1])
         }
     })
+    tournamentEngine.validateActiveBracket()
 
     expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Running)
     expect(tournamentEngine.getResults(0)).toMatchObject([
@@ -410,6 +427,7 @@ test('8 players | GS 4 | Duel top 4', () => {
     scorer({ s: 1, r: 1, m: 2 }, [0, 1]) // 6 < 7
     scorer({ s: 1, r: 2, m: 1 }, [1, 0]) // 8 > 7
     scorer({ s: 2, r: 1, m: 1 }, [0, 1]) // 5 < 6
+    tournamentEngine.validateActiveBracket()
 
     expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Done)
     expect(tournamentEngine.getResults()).toMatchObject([
@@ -438,6 +456,7 @@ test('8 players | FFA 4 | Duel top 4', () => {
     tournamentEngine.startTournament()
     scorer({ s: 1, r: 1, m: 1 }, [0, 1, 2, 3]) // 1 < 3 < 6 < 8
     scorer({ s: 1, r: 1, m: 2 }, [0, 1, 2, 3]) // 2 < 4 < 5 < 7
+    tournamentEngine.validateActiveBracket()
 
     expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Running)
     expect(tournamentEngine.getResults(0)).toMatchObject([
@@ -449,6 +468,7 @@ test('8 players | FFA 4 | Duel top 4', () => {
     scorer({ s: 1, r: 1, m: 2 }, [0, 1]) // 6 < 7
     scorer({ s: 1, r: 2, m: 1 }, [1, 0]) // 8 > 7
     scorer({ s: 2, r: 1, m: 1 }, [0, 1]) // 5 < 6
+    tournamentEngine.validateActiveBracket()
 
     expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Done)
     expect(tournamentEngine.getResults()).toMatchObject([
@@ -477,6 +497,7 @@ test('Tournament reset will clear brackets', () => {
     tournamentEngine.startTournament()
     scorer({ s: 1, r: 1, m: 1 }, [0, 1, 2, 3]) // 1 < 3 < 6 < 8
     scorer({ s: 1, r: 1, m: 2 }, [0, 1, 2, 3]) // 2 < 4 < 5 < 7
+    tournamentEngine.validateActiveBracket()
 
     expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Running)
     expect(tournamentEngine.getResults(0)).toMatchObject([
