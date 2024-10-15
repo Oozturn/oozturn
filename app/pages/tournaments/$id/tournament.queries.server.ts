@@ -51,6 +51,15 @@ export function validateTournament(tournamentId: string) {
         logger.error(`Error while trying to validate tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }
 }
+export function togglePauseTournament(tournamentId: string) {
+    try {
+        const tournament = getTournament(tournamentId)
+        tournament.togglePauseTournament()
+        EventUpdateTournamentInfo(tournamentId)
+    } catch (error) {
+        logger.error(`Error while trying to toggle pause for tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
+    }
+}
 export function toggleBalanceTournament(tournamentId: string) {
     try {
         const tournament = getTournament(tournamentId)

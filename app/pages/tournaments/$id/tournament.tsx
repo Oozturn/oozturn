@@ -7,7 +7,7 @@ import { CustomButton, SquareButton } from "~/lib/components/elements/custom-but
 import { CustomModalBinary } from "~/lib/components/elements/custom-modal"
 import { ReactNode, useState } from "react"
 import { BinSVG, ForfeitSVG, LeaveSVG, LockSVG, MoreSVG, ParticipateSVG, RollBackSVG, StartSVG, SubsribedSVG, ThumbUpSVG, UnlockSVG } from "~/lib/components/data/svg-container"
-import { addPlayerToTournament, addTeamToTournament, toggleBalanceTournament, removePlayerFromTournament, reorderPlayers, reorderTeams, addPlayerToTeam, removeTeamFromTournament, renameTeam, removePlayerFromTeams, distributePlayersOnTeams, balanceTeams, randomizePlayersOnTeams, cancelTournament, startTournament, scoreMatch, stopTournament, toggleForfeitPlayerForTournament, validateTournament } from "./tournament.queries.server"
+import { addPlayerToTournament, addTeamToTournament, toggleBalanceTournament, removePlayerFromTournament, reorderPlayers, reorderTeams, addPlayerToTeam, removeTeamFromTournament, renameTeam, removePlayerFromTeams, distributePlayersOnTeams, balanceTeams, randomizePlayersOnTeams, cancelTournament, startTournament, scoreMatch, stopTournament, toggleForfeitPlayerForTournament, validateTournament, togglePauseTournament } from "./tournament.queries.server"
 import { useUsers } from "~/lib/components/contexts/UsersContext"
 import { OpponentsListSolo, OpponentsListTeam, TournamentInfoPlayers } from "./components/players-list"
 import { GetFFAMaxPlayers } from "~/lib/utils/tournaments"
@@ -54,6 +54,9 @@ export async function action({ request }: ActionFunctionArgs) {
             break
         case TournamentManagementIntents.VALIDATE:
             validateTournament(jsonData.tournamentId as string)
+            break
+        case TournamentManagementIntents.PAUSE:
+            togglePauseTournament(jsonData.tournamentId as string)
             break
         case TournamentManagementIntents.BALANCE:
             toggleBalanceTournament(jsonData.tournamentId as string)
@@ -111,6 +114,7 @@ export enum TournamentManagementIntents {
     EDIT = "editTournament",
     CANCEL = "cancelTournament",
     VALIDATE = "validateTournament",
+    PAUSE = "togglePauseTournament",
     ADD_PLAYER = "addPlayerToTournament",
     TOGGLE_FORFEIT_PLAYER = "toggleForfeitPlayerForTournament",
     REMOVE_PLAYER = "removePlayerFromTournament",
@@ -292,6 +296,17 @@ function TournamentCommands() {
         )
     }
 
+    const togglePause = () => {
+        fetcher.submit(
+            {
+                intent: TournamentManagementIntents.PAUSE,
+                tournamentId: tournament?.id || "",
+                userId: user.id,
+            },
+            { method: "POST", encType: "application/json" }
+        )
+    }
+
     const toggleForfeit = () => {
         fetcher.submit(
             {
@@ -333,6 +348,7 @@ function TournamentCommands() {
         {user.isAdmin && <>
             {[TournamentStatus.Open, TournamentStatus.Balancing].includes(tournament.status) && <CustomButton callback={() => setShowConfirmStart(true)} contentItems={[StartSVG(), "Démarrer"]} colorClass='has-background-primary-accent' />}
             {[TournamentStatus.Validating].includes(tournament.status) && <CustomButton callback={() => setShowConfirmValidate(true)} contentItems={[ThumbUpSVG(), "Valider"]} colorClass='has-background-primary-accent' />}
+            {[TournamentStatus.Running, TournamentStatus.Paused].includes(tournament.status) && <CustomButton callback={togglePause} contentItems={tournament.status == TournamentStatus.Running ? [LockSVG(), "Verrouiller"] : [StartSVG(), "Déverrouiller"]} colorClass='has-background-primary-accent' />}
             <Dropdown
                 trigger={[TournamentStatus.Open, TournamentStatus.Balancing, TournamentStatus.Validating].includes(tournament.status) ?
                     <SquareButton contentItems={[MoreSVG()]} colorClass='has-background-primary-level' /> :
