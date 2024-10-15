@@ -17,6 +17,7 @@ export enum TournamentStatus {
 export enum BracketStatus {
 	Pending = "PENDING",
 	Running = "RUNNING",
+	Validating = "VALIDATING",
 	Done = "DONE",
 }
 
