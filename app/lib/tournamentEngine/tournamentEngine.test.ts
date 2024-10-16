@@ -378,8 +378,8 @@ test('6 players | GS 3 | FFA top 2', () => {
     tournamentEngine.validateActiveBracket()
 
     expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Running)
-    expect(tournamentEngine.getResults(0)).toMatchObject([
-        ...[2, 1, 4, 3, 6, 5].map(i => { return { userId: (7 - i) + "", position: i - (i + 1) % 2 } })
+    expect(tournamentEngine.getResults()).toMatchObject([
+        ...[1, 2, 4, 3, 6, 5].map(i => { return { userId: (7 - i) + "", position: Math.max(2, i - (i + 1) % 2) } })
     ])
     validateStorage(tournamentEngine)
 
@@ -422,8 +422,8 @@ test('8 players | GS 4 | Duel top 4', () => {
     tournamentEngine.validateActiveBracket()
 
     expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Running)
-    expect(tournamentEngine.getResults(0)).toMatchObject([
-        ...[2, 1, 4, 3, 6, 5, 8, 7].map(i => { return { userId: (9 - i) + "", position: i - (i + 1) % 2 } })
+    expect(tournamentEngine.getResults()).toMatchObject([
+        ...[1, 2, 3, 4, 6, 5, 8, 7].map(i => { return { userId: (9 - i) + "", position: Math.max(4, i - (i + 1) % 2) } })
     ])
     validateStorage(tournamentEngine)
 
@@ -467,8 +467,8 @@ test('8 players | FFA 4 | Duel top 4', () => {
     tournamentEngine.validateActiveBracket()
 
     expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Running)
-    expect(tournamentEngine.getResults(0)).toMatchObject([
-        ...[2, 1, 4, 3, 6, 5, 8, 7].map(i => { return { userId: (9 - i) + "", position: i - (i + 1) % 2 } })
+    expect(tournamentEngine.getResults()).toMatchObject([
+        ...[1, 2, 3, 4, 6, 5, 8, 7].map(i => { return { userId: (9 - i) + "", position: Math.max(4, i - (i + 1) % 2) } })
     ])
     validateStorage(tournamentEngine)
 
@@ -512,8 +512,8 @@ test('Tournament reset will clear brackets', () => {
     tournamentEngine.validateActiveBracket()
 
     expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Running)
-    expect(tournamentEngine.getResults(0)).toMatchObject([
-        ...[2, 1, 4, 3, 6, 5, 8, 7].map(i => { return { userId: (9 - i) + "", position: i - (i + 1) % 2 } })
+    expect(tournamentEngine.getResults()).toMatchObject([
+        ...[1, 2, 3, 4, 6, 5, 8, 7].map(i => { return { userId: (9 - i) + "", position: Math.max(4, i - (i + 1) % 2) } })
     ])
     validateStorage(tournamentEngine)
 

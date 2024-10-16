@@ -14,7 +14,7 @@ import { clickorkey } from "~/lib/utils/clickorkey"
 import { getAchievements } from "~/lib/statistics/achievements.server"
 import { Achievement } from "~/lib/types/achievements"
 import { useLoaderData } from "@remix-run/react"
-import { usingStats } from "~/lib/utils/ranges"
+import { statsSorter } from "~/lib/utils/sorters"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
@@ -51,7 +51,7 @@ function PlayersLeaderboard() {
     return (
         <div className="leaderboard is-flex-col has-background-secondary-level grow no-basis">
             <div className="is-flex-col is-scrollable gap-2 p-2 mx-1 grow">
-                {usersStats.sort(usingStats).map((us, index) => {
+                {usersStats.sort(statsSorter).map((us, index) => {
                     const user = users.find(user => user.id == us.userId)
                     if (!user) return null
                     return <ResultTile key={us.userId} place={index + 1} user={user} stats={us} />
