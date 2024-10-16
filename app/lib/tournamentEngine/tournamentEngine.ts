@@ -340,6 +340,7 @@ export class TournamentEngine implements TournamentSpecification {
 		const currentBracket = this.brackets[this.activeBracket]
 		currentBracket.score(matchId, opponent, score)
 		this.resultsCache.delete(this.activeBracket)
+		this.resultsCache.delete(-1)
 		if (currentBracket.isWaitingForValidation()) {
 			this.status = TournamentStatus.Validating
 		}
@@ -406,25 +407,28 @@ export class TournamentEngine implements TournamentSpecification {
 			}
 			return this.resultsCache.get(bracket)!
 		}
-		const retResults: Result[] = []
-		range(this.brackets.length - 1, 0, -1).forEach(bracket => {
-			if (!this.resultsCache.has(bracket)) {
-				this.computeResults(bracket)
-			}
-			this.resultsCache.get(bracket)!.forEach(resCache => {
-				const userRetResult = retResults.find(rr => rr.userId == resCache.userId)
-				if (!userRetResult) {
-					retResults.push({...resCache})
-					return
+		if (!this.resultsCache.has(-1)) {
+			const retResults: Result[] = []
+			range(this.brackets.length - 1, 0, -1).forEach(bracket => {
+				if (!this.resultsCache.has(bracket)) {
+					this.computeResults(bracket)
 				}
-				userRetResult.against = (userRetResult.against || resCache.against) ? (userRetResult.against || 0) + (resCache.against || 0) : undefined
-				userRetResult.for = (userRetResult.for || resCache.for) ? (userRetResult.against || 0) + (resCache.against || 0) : undefined
-				userRetResult.globalTournamentPoints += this.properties.globalTournamentPoints.default
-				userRetResult.wins += resCache.wins
-				//retResults.push(userRetResult)
+				this.resultsCache.get(bracket)!.forEach(resCache => {
+					const userRetResult = retResults.find(rr => rr.userId == resCache.userId)
+					if (!userRetResult) {
+						retResults.push({ ...resCache })
+						return
+					}
+					userRetResult.against = (userRetResult.against || resCache.against) ? (userRetResult.against || 0) + (resCache.against || 0) : undefined
+					userRetResult.for = (userRetResult.for || resCache.for) ? (userRetResult.against || 0) + (resCache.against || 0) : undefined
+					userRetResult.globalTournamentPoints += this.properties.globalTournamentPoints.default
+					userRetResult.wins += resCache.wins
+					//retResults.push(userRetResult)
+				})
 			})
-		})
-		return retResults
+			this.resultsCache.set(-1, retResults)
+		}
+		return this.resultsCache.get(-1)!
 	}
 
 

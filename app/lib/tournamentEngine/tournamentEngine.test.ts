@@ -389,7 +389,11 @@ test('6 players | GS 3 | FFA top 2', () => {
     expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Done)
     expect(tournamentEngine.getResults()).toMatchObject([
         { userId: '6', position: 1 },
-        { userId: '5', position: 2 }
+        { userId: '5', position: 2 },
+        { userId: '3', position: 3 },
+        { userId: '4', position: 3 },
+        { userId: '1', position: 5 },
+        { userId: '2', position: 5 }
     ])
     validateStorage(tournamentEngine)
 });
@@ -434,7 +438,11 @@ test('8 players | GS 4 | Duel top 4', () => {
         { userId: '8', position: 1 },
         { userId: '7', position: 2 },
         { userId: '6', position: 3 },
-        { userId: '5', position: 4 }
+        { userId: '5', position: 4 },
+        { userId: '3', position: 5 },
+        { userId: '4', position: 5 },
+        { userId: '1', position: 7 },
+        { userId: '2', position: 7 }
     ])
     validateStorage(tournamentEngine)
 });
@@ -475,7 +483,11 @@ test('8 players | FFA 4 | Duel top 4', () => {
         { userId: '8', position: 1 },
         { userId: '7', position: 2 },
         { userId: '6', position: 3 },
-        { userId: '5', position: 4 }
+        { userId: '5', position: 4 },
+        { userId: '3', position: 5 },
+        { userId: '4', position: 5 },
+        { userId: '1', position: 7 },
+        { userId: '2', position: 7 }
     ])
     validateStorage(tournamentEngine)
 });
