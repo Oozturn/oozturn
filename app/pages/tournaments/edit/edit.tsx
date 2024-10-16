@@ -4,7 +4,7 @@ import TournamentEdit from "./components/edit"
 import { getLan } from "~/lib/persistence/lan.server"
 import { getTournament, updateTournamentProperties, updateTournamentSettings, updateTournamentBracketSettings } from "~/lib/persistence/tournaments.server"
 import { requireUserLoggedIn } from "~/lib/session.server"
-import { BracketSettings, TournamentFullData, TournamentProperties, TournamentSettings } from "~/lib/tournamentEngine/types"
+import { BracketSettings, TournamentFullData, TournamentProperties, TournamentSettings, TournamentStatus } from "~/lib/tournamentEngine/types"
 
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -32,10 +32,12 @@ export async function action({ request }: ActionFunctionArgs) {
     const partialTournamentSettings = JSON.parse(jsonData.tournamentSettings) as Partial<TournamentSettings>
     const partialTournamentBracketSettings = JSON.parse(jsonData.tournamentBracketSettings) as Partial<BracketSettings>[]
     const partialTournamentProperties = JSON.parse(jsonData.tournamentProperties) as Partial<TournamentProperties>
-    partialTournamentBracketSettings.forEach((ptbs, index) => {    
-        updateTournamentBracketSettings(tournamentId, index, ptbs)
-    });
-    updateTournamentSettings(tournamentId, partialTournamentSettings)
+    if ([TournamentStatus.Open, TournamentStatus.Balancing].includes(getTournament(tournamentId).getStatus())) {
+        partialTournamentBracketSettings.forEach((ptbs, index) => {
+            updateTournamentBracketSettings(tournamentId, index, ptbs)
+        });
+        updateTournamentSettings(tournamentId, partialTournamentSettings)
+    }
     updateTournamentProperties(tournamentId, partialTournamentProperties)
     return redirect("/tournaments/" + tournamentId)
 }

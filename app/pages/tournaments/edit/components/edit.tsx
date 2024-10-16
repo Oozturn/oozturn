@@ -320,8 +320,8 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                                     <div className='has-text-right is-one-third'>Nombre {tTournamentSettings.useTeams ? "d'équipes" : "de joueurs"} sélectionnés pour la phase suivante :</div>
                                     <CustomSelect
                                         variable={tFinaleSettings.size}
-                                        setter={(v: string) => handleFinaleSettingsChange({ size: v ? Number(v) : undefined })}
-                                        items={[{ label: tTournamentSettings.useTeams ? "Toutes" : "Tous", value: undefined }, ...range(2, 64, 1).map(d => { return { label: String(d), value: d } })]}
+                                        setter={(v: string) => handleFinaleSettingsChange({ size: Number(v) })}
+                                        items={[{ label: tTournamentSettings.useTeams ? "Toutes" : "Tous", value: 0 }, ...range(2, 64, 1).map(d => { return { label: String(d), value: d } })]}
                                         itemsToShow={8}
                                     />
                                     {tFinaleSettings.type == BracketType.Duel && tFinaleSettings.size && ((tFinaleSettings.size & (tFinaleSettings.size - 1)) != 0) &&
