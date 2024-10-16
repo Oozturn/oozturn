@@ -1,5 +1,5 @@
 import sharp from "sharp"
-import { rm } from 'fs/promises'
+import { mkdir, rm } from 'fs/promises'
 import { EventUpdateUsers } from "~/lib/emitter.server"
 import { logger } from "~/lib/logging/logging"
 import { hasPassword, resetPassword } from "~/lib/persistence/password.server"
@@ -68,10 +68,11 @@ export async function setLanMap(file: File) {
     }
     const inputBuffer = Buffer.from(await file.arrayBuffer())
 
+    await mkdir('uploads', { recursive: true })
     console.log("got image")
     try {
-        await rm("public/lanMap.webp", {force: true})
-        await sharp(inputBuffer).toFile("public/lanMap.webp")
+        await rm("uploads/lanMap.webp", {force: true})
+        await sharp(inputBuffer).toFile("uploads/lanMap.webp")
     } catch (e) {
         console.error(e)
         throw e

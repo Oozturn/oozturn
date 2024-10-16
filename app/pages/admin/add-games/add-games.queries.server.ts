@@ -19,7 +19,7 @@ interface GameFromIGDB {
 
 export type AddOrUpdateGameRepresentation = Partial<Game>
 
-const IGDB_IMAGES_FOLDER = "public/igdb"
+const IGDB_IMAGES_FOLDER = "uploads/igdb"
 let IGDB_TOKEN: string
 
 export async function addOrUpdateGame(game: AddOrUpdateGameRepresentation) {
