@@ -335,7 +335,7 @@ function TournamentInfoPlayersWhileRunning() {
                             <SquareButton height={32} contentItems={[hasFF ? RollBackSVG() : ForfeitSVG()]} callback={() => toggleForfeit(playerId)} colorClass={hasFF ? "has-background-secondary-level" : "has-background-secondary-accent"} />
                         </div>}
                     </div>
-                    {user.isAdmin && !((tournament.results?.at(-1)?.length || 0) - 1 == index) &&
+                    {user.isAdmin && !((tournament.results?.length || 0) - 1 == index) &&
                         <div className="has-background-grey ml-3" style={{ minHeight: 1 }}></div>
                     }
                 </>
@@ -346,26 +346,16 @@ function TournamentInfoPlayersWhileRunning() {
 function TournamentInfoPlayersOnceDone() {
     const tournament = useTournament()
 
-    const players = new Set<string>()
-    tournament.matches.filter(m => m.bracket == tournament.currentBracket).flatMap(m => m.opponents).forEach(opponent => {
-        if (!opponent) return
-        if (tournament.settings.useTeams) {
-            tournament.teams.find(t => t.name == opponent)?.members.forEach(member => players.add(member))
-            return
-        }
-        players.add(opponent)
-    })
-
     return (<div className="is-flex-col gap-2 no-basis" style={{ height: 300 }}>
         <div className="is-title medium">Résultats du tournoi</div>
         <div className="is-flex-col gap-1 p-2 has-background-primary-level is-scrollable grow justify-start align-stretch">
-            {tournament.results?.at(-1)?.map((result, index) => <>
+            {tournament.results?.map((result, index) => <>
                 <div key={result.userId} className="is-flex-row gap-3 mr-2">
                     <div className="has-text-right" style={{ width: 25 }}>{result.position}</div>
                     <UserTileRectangle userId={result.userId} height={32} maxLength={245} showTeam={false} />
                     <div className="has-text-right grow">{result.globalTournamentPoints} pts</div>
                 </div>
-                {!((tournament.results?.at(-1)?.length || 0) - 1 == index) &&
+                {!((tournament.results?.length || 0) - 1 == index) &&
                     <div className="has-background-grey ml-3" style={{ minHeight: 1 }}></div>
                 }
             </>)}

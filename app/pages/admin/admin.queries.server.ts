@@ -68,7 +68,6 @@ export async function setLanMap(file: File) {
     }
     const inputBuffer = Buffer.from(await file.arrayBuffer())
 
-    console.log("got image")
     try {
         await rm("public/lanMap.webp", {force: true})
         await sharp(inputBuffer).toFile("public/lanMap.webp")

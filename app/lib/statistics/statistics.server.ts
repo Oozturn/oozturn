@@ -1,7 +1,7 @@
 import { Duel } from "../tournamentEngine/tournament/duel";
 import { BracketType, TournamentStatus } from "../tournamentEngine/types";
 import { Statistics } from "../types/statistics";
-import { range } from "../utils/ranges";
+import { range, usingStats } from "../utils/ranges";
 
 declare global {
     // eslint-disable-next-line no-var
@@ -47,7 +47,7 @@ export function updateStats() {
                 secondPlaces: 0,
                 globalTournamentPoints: 0,
                 bestTournamentPosition: -1,
-                winLossMeanRatio: -1,
+                pointsRatio: -1,
                 playedTournaments: 0,
                 playedMatches: 0,
                 winsAgainstBetterSeed: 0,
@@ -62,7 +62,7 @@ export function updateStats() {
 
     // players
     global.tournaments.forEach(tournament => {
-        
+
         if (tournament.getStatus() != TournamentStatus.Done && !global.lan.showPartialResults) return
 
         const tournamentResults = tournament.getResults()
@@ -77,24 +77,27 @@ export function updateStats() {
             if (playerResults.position == 2) userStat.secondPlaces += 1
             userStat.globalTournamentPoints += playerResults.globalTournamentPoints
             userStat.bestTournamentPosition = userStat.bestTournamentPosition == -1 ? playerResults.position : Math.min(userStat.bestTournamentPosition, playerResults.position)
-            const winLossRatio = playerResults.against ? (playerResults.for || 0) / playerResults.against : (playerResults.for || 0)
-            userStat.winLossMeanRatio = userStat.winLossMeanRatio == -1 ? winLossRatio : (userStat.winLossMeanRatio * userStat.playedTournaments + winLossRatio) / (userStat.playedTournaments + 1)
+
+            // Normalized between -1 and 1 by the formula (for - against) / (for + against). 0 if no points were scored at all.
+            const winLossRatio = ((playerResults && ((playerResults.for || 0) + (playerResults.against || 0)) ? (((playerResults.for || 0) - (playerResults.against || 0)) / ((playerResults.for || 0) + (playerResults.against || 0))) : 0) + 1) / 2
+            userStat.pointsRatio = userStat.pointsRatio == -1 ? winLossRatio : (userStat.pointsRatio * userStat.playedTournaments + winLossRatio) / (userStat.playedTournaments + 1)
+
             userStat.playedTournaments += 1
 
             let LBwins = 0
             range(0, tournament.getInfo().bracketsCount - 1, 1).forEach(bracket => {
                 tournament.getMatches(bracket).forEach(match => {
                     if (!match.opponents.includes(tournament.getOpponentId(player)) || !match.score.every(s => s != undefined)) return
-                    
+
                     userStat.playedMatches += 1
-                    
+
                     const matchResult = match.opponents.map((opponent, index) => { return { opponent: opponent, seed: tournament.getOpponentSeed(player.userId, bracket), score: match.score[index] } })
                     const playerMatchResult = matchResult.find(mr => mr.seed == tournament.getOpponentSeed(player.userId, bracket))
                     if (tournament.getSettings(0).lowerScoreIsBetter)
                         userStat.winsAgainstBetterSeed += matchResult.filter(mr => mr.score && (mr.score > (playerMatchResult?.score || 0)) && mr.seed > tournament.getOpponentSeed(player.userId, bracket)).length
                     else
                         userStat.winsAgainstBetterSeed += matchResult.filter(mr => mr.score && (mr.score < (playerMatchResult?.score || 0)) && mr.seed > tournament.getOpponentSeed(player.userId, bracket)).length
-                    
+
                     if (tournament.getSettings(match.bracket).type == BracketType.Duel && tournament.getSettings(match.bracket).last == Duel.LB) {
                         if (match.id.s == Duel.LB && match.score[match.opponents.findIndex(o => o == tournament.getOpponentId(player))] == Math.max(...match.score.map(s => s || 0))) {
                             LBwins += 1
@@ -112,14 +115,7 @@ export function updateStats() {
 
     global.stats.usersStats = global.stats.usersStats.filter(us => us.playedTournaments)
 
-    global.stats.usersStats.sort((a, b) => {
-        if (a.globalTournamentPoints != b.globalTournamentPoints) return b.globalTournamentPoints - a.globalTournamentPoints
-        if (a.wonTournaments != b.wonTournaments) return b.wonTournaments - a.wonTournaments
-        if (a.playedTournaments != b.playedTournaments) return b.playedTournaments - a.playedTournaments
-        if (a.winLossMeanRatio != b.winLossMeanRatio) return b.winLossMeanRatio - a.winLossMeanRatio
-        return b.bestTournamentPosition - a.bestTournamentPosition
-    })
-
+    global.stats.usersStats.sort(usingStats)
 
 
     // teams

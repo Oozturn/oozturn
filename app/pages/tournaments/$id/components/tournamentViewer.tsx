@@ -459,7 +459,6 @@ function GroupStageMatchTile({ matchIds }: { matchIds: Id[] }) {
             </div>
             {matches.map((match, round) => {
                 const isReturn = (tournament.bracketSettings[match.bracket].meetTwice == true) && (round % 2 == 1)
-                console.log(match)
                 const mScore = match.score.slice()
                 if (isReturn)
                     mScore.reverse()

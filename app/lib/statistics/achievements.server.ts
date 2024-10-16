@@ -24,13 +24,13 @@ function getAchievementUser(achievement: AchievementType) {
             if (!userStats) break
             return { userId: userStats.userId, value: userStats.globalTournamentPoints }
         case AchievementType.chiefWinner:
-            userStats = getStats().usersStats.sort((a, b) => b.winLossMeanRatio - a.winLossMeanRatio).at(0)
-            if (!userStats?.winLossMeanRatio) break
-            return { userId: userStats.userId, value: userStats.winLossMeanRatio }
+            userStats = getStats().usersStats.sort((a, b) => b.pointsRatio - a.pointsRatio).at(0)
+            if (!userStats?.pointsRatio) break
+            return { userId: userStats.userId, value: userStats.pointsRatio }
         case AchievementType.chiefLooser:
-            userStats = getStats().usersStats.sort((a, b) => a.winLossMeanRatio - b.winLossMeanRatio).at(0)
+            userStats = getStats().usersStats.sort((a, b) => a.pointsRatio - b.pointsRatio).at(0)
             if (!userStats) break
-            return { userId: userStats.userId, value: userStats.winLossMeanRatio }
+            return { userId: userStats.userId, value: userStats.pointsRatio }
         case AchievementType.compulsivePlayer:
             userStats = getStats().usersStats.sort((a, b) => b.playedMatches - a.playedMatches).at(0)
             if (!userStats?.playedMatches) break

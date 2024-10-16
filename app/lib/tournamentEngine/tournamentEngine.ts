@@ -6,6 +6,7 @@ import { FFA } from "./tournament/ffa"
 import { GroupStage } from "./tournament/groupstage"
 import { Id } from "./tournament/match"
 import { BracketResult, BracketSettings, BracketStatus, BracketType, Match, Player, Result, Seeding, Team, TournamentFullData, TournamentInfo, TournamentProperties, TournamentSettings, TournamentStatus } from "./types"
+import { range } from '../utils/ranges'
 
 /** States used to save brackets progression */
 interface BracketState {
@@ -167,7 +168,7 @@ export class TournamentEngine implements TournamentSpecification {
 			players: this.players,
 			teams: this.teams,
 			matches: this.getMatches(0).concat(this.brackets.length == 2 ? this.getMatches(1) : []),
-			results: [TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status) ? undefined : this.brackets.map((_b, i) => this.getResults(i)),
+			results: this.getResults(),
 			bracketsResults: [TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status) ? undefined : this.brackets.map(b => b.results())
 		}
 	}
@@ -299,7 +300,7 @@ export class TournamentEngine implements TournamentSpecification {
 	public startTournament(): void {
 		if (![TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status))
 			throw new Error(`Tournament ${this.id} not in Open or Balance mode`)
-		if(this.brackets[0].getStatus() != BracketStatus.Pending) {
+		if (this.brackets[0].getStatus() != BracketStatus.Pending) {
 			// This is a reset
 			this.resetBrackets()
 		}
@@ -398,11 +399,32 @@ export class TournamentEngine implements TournamentSpecification {
 			bracket: bracket
 		}
 	}
-	public getResults(bracket: number = this.activeBracket): Result[] {
-		if (!this.resultsCache.has(bracket)) {
-			this.computeResults(bracket)
+	public getResults(bracket?: number): Result[] {
+		if (bracket != undefined) {
+			if (!this.resultsCache.has(bracket)) {
+				this.computeResults(bracket)
+			}
+			return this.resultsCache.get(bracket)!
 		}
-		return this.resultsCache.get(bracket)!
+		const retResults: Result[] = []
+		range(this.brackets.length - 1, 0, -1).forEach(bracket => {
+			if (!this.resultsCache.has(bracket)) {
+				this.computeResults(bracket)
+			}
+			this.resultsCache.get(bracket)!.forEach(resCache => {
+				const userRetResult = retResults.find(rr => rr.userId == resCache.userId)
+				if (!userRetResult) {
+					retResults.push({...resCache})
+					return
+				}
+				userRetResult.against = (userRetResult.against || resCache.against) ? (userRetResult.against || 0) + (resCache.against || 0) : undefined
+				userRetResult.for = (userRetResult.for || resCache.for) ? (userRetResult.against || 0) + (resCache.against || 0) : undefined
+				userRetResult.globalTournamentPoints += this.properties.globalTournamentPoints.default
+				userRetResult.wins += resCache.wins
+				//retResults.push(userRetResult)
+			})
+		})
+		return retResults
 	}
 
 
@@ -587,7 +609,7 @@ class Bracket {
 	}
 
 	reset(): void {
-		this.seedings = new BiDirectionalMap() 
+		this.seedings = new BiDirectionalMap()
 		this.status = BracketStatus.Pending
 		this.states = []
 		this.internalBracket = undefined
@@ -620,7 +642,7 @@ class Bracket {
 	}
 
 	results(): BracketResult[] {
-		if(this.status == BracketStatus.Pending) return []
+		if (this.status == BracketStatus.Pending) return []
 		return this.internalBracket!.results()
 			.map(result => {
 				return {
