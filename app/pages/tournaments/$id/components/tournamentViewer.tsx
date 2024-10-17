@@ -14,6 +14,7 @@ import useLocalStorageState from "use-local-storage-state"
 import { clickorkey } from "~/lib/utils/clickorkey"
 import { FitSVG, PanSVG, ZoomInSVG, ZoomOutSVG } from "~/lib/components/data/svg-container"
 import { range } from "~/lib/utils/ranges"
+import { DebouncedInputNumber } from "~/lib/components/elements/debounced-input"
 
 export function TournamentViewer() {
     const tournament = useTournament()
@@ -342,7 +343,7 @@ function MatchTile({ matchId }: { matchId: Id }) {
                 opponent: opponent,
                 score: score
             },
-            { method: "POST", encType: "application/json" }
+            { method: "POST", encType: "application/json", action: "/tournaments/" + tournament.id }
         )
     }
 
@@ -390,20 +391,19 @@ function MatchTile({ matchId }: { matchId: Id }) {
                             <FakeUserTileRectangle userName="Unknown" initial="?" maxLength={245} />
                         }
                         {canEditScore && !ffPlayerIds.includes(opponentId!) ?
-                            <input type="number" name="score"
+                            <DebouncedInputNumber name="score"
                                 className="threeDigitsWidth has-text-centered"
                                 defaultValue={opponentScore}
-                                onChange={(event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-                                    score(matchId, opponentId || "", Number(event.target.value))
-                                }}
+                                setter={(v: number) => { score(matchId, opponentId || "", v) }}
+                                debounceTimeout={3000}
                             />
                             :
                             <div className="has-text-centered" style={{ width: "2.5rem" }}>{ffPlayerIds.includes(opponentId!) ? "F" : opponentScore != undefined ? opponentScore : ""}</div>
                         }
                         {isFFA &&
                             <div className={`threeDigitsWidth has-text-centered ${((tournament.bracketsCount == 2 && match.bracket == 0) ?
-                                    qualifiedPlayers.includes(opponentId || "")
-                                    : index < Math.floor(qualifiedPlaces)) ? "has-text-primary-accent" : ""
+                                qualifiedPlayers.includes(opponentId || "")
+                                : index < Math.floor(qualifiedPlaces)) ? "has-text-primary-accent" : ""
                                 }`}>{isOver ? index + 1 : "?"}</div>
                         }
                     </div>
@@ -427,7 +427,7 @@ function GroupStageMatchTile({ matchIds }: { matchIds: Id[] }) {
                 opponent: opponent,
                 score: score
             },
-            { method: "POST", encType: "application/json" }
+            { method: "POST", encType: "application/json", action: "/tournaments/" + tournament.id }
         )
     }
 
@@ -476,13 +476,19 @@ function GroupStageMatchTile({ matchIds }: { matchIds: Id[] }) {
 
                         return <div key={IdToString(match.id) + '-' + String(index)} className="is-flex-row align-end justify-space-between gap-2" onMouseEnter={() => setHightlightOpponent(opponentId || "")} onMouseLeave={() => setHightlightOpponent("")}>
                             {canEditScore && !ffPlayerIds.includes(opponentId!) ?
-                                <input type="number" name="score"
+                                <DebouncedInputNumber name="score"
                                     className="threeDigitsWidth has-text-centered"
                                     defaultValue={opponentScore}
-                                    onChange={(event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-                                        score(match.id, opponentId || "", Number(event.target.value))
-                                    }}
+                                    setter={(v: number) => { score(match.id, opponentId || "", v) }}
+                                    debounceTimeout={3000}
                                 />
+                                // <input type="number" name="score"
+                                //     className="threeDigitsWidth has-text-centered"
+                                //     defaultValue={opponentScore}
+                                //     onChange={(event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+                                //         score(match.id, opponentId || "", Number(event.target.value))
+                                //     }}
+                                // />
                                 :
                                 <div className={`has-text-centered ${opponentScore != undefined ? "" : "fade-on-mouse-out"}`} style={{ width: "2.5rem", height: 32 }}>{opponentScore != undefined ? ffPlayerIds.includes(opponentId!) ? "F" : opponentScore : "?"}</div>
                             }
