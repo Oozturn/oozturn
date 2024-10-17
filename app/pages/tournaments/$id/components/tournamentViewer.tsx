@@ -446,7 +446,7 @@ function GroupStageMatchTile({ matchIds }: { matchIds: Id[] }) {
         <div className="is-flex-row gap-2 align-end has-background-secondary-level has-text-centered">
             <div className="is-flex-col grow p-1 gap-1">
                 {matches.length > 1 && <div className="has-text-weight-semibold mb-2 has-text-right">Manches</div>}
-                {matches[0].opponents.map(opponentId => {
+                {matches[0]?.opponents.map(opponentId => {
                     if (!opponentId) return null
                     return (<div key={opponentId} onMouseEnter={() => setHightlightOpponent(opponentId || "")} onMouseLeave={() => setHightlightOpponent("")}>
                         {tournament.settings.useTeams ?
@@ -458,6 +458,7 @@ function GroupStageMatchTile({ matchIds }: { matchIds: Id[] }) {
                 })}
             </div>
             {matches.map((match, round) => {
+                if (!match) return null // tsc thinks match can be undefined
                 const isReturn = (tournament.bracketSettings[match.bracket].meetTwice == true) && (round % 2 == 1)
                 const mScore = match.score.slice()
                 if (isReturn)

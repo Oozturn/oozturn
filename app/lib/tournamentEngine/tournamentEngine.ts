@@ -528,10 +528,10 @@ export class TournamentEngine implements TournamentSpecification {
 			results.forEach((res, index) => {
 				pos.push(
 					index == 0 ? 1
-					: res.pos > results[index - 1].pos ? pos.length + 1
-					: diff(res) < diff(results[index - 1]) ? pos.length + 1
-					: (res.for || 0) < (results[index - 1].for || 0) ? pos.length + 1
-					: pos[pos.length - 1]
+						: res.pos > results[index - 1].pos ? pos.length + 1
+							: diff(res) < diff(results[index - 1]) ? pos.length + 1
+								: (res.for || 0) < (results[index - 1].for || 0) ? pos.length + 1
+									: pos[pos.length - 1]
 				)
 			})
 			return pos
@@ -552,12 +552,13 @@ export class TournamentEngine implements TournamentSpecification {
 				concernedUsers.forEach(userId => {
 					const forfeitedPlayer = this.players.find(player => player.userId == userId)?.isForfeit
 					const userRetResult = retResults.find(rr => rr.userId == userId)
+					const userPos = this.brackets[bracket].getStatus() == BracketStatus.Done ? positions[index] : res.pos
 					// finale phase
 					if (!userRetResult) {
 						retResults.push({
 							userId: userId,
-							position: positions[index],
-							globalTournamentPoints: (positions[index] - 1 in this.properties.globalTournamentPoints.leaders ? this.properties.globalTournamentPoints.leaders[positions[index] - 1] : this.properties.globalTournamentPoints.default) - (forfeitedPlayer ? this.properties.globalTournamentPoints.default : 0),
+							position: userPos,
+							globalTournamentPoints: (userPos - 1 in this.properties.globalTournamentPoints.leaders ? this.properties.globalTournamentPoints.leaders[userPos - 1] : this.properties.globalTournamentPoints.default) - (forfeitedPlayer ? this.properties.globalTournamentPoints.default : 0),
 							wins: res.wins,
 							for: res.for,
 							against: res.against
@@ -776,13 +777,8 @@ function getOpponentId(opponent: Player | Team) {
 
 function usingResults(results: BracketResult[], bSettings: BracketSettings): (((a: Team, b: Team) => number) & ((a: Player, b: Player) => number)) {
 	return (a, b) => {
-	const btype = bSettings.type
-	const resultA = results.find(r => r.id == getOpponentId(a))!
-	const resultB = results.find(r => r.id == getOpponentId(b))!
-	const scoreB = btype == BracketType.GroupStage ? resultB.wins * (bSettings.winPoints || 3) + (resultB.draws || 0) * (bSettings.tiePoints || 1) : 0
-	const scoreA = btype == BracketType.GroupStage ? resultA.wins * (bSettings.winPoints || 3) + (resultA.draws || 0) * (bSettings.tiePoints || 1) : 0
-		const diffA = resultA.for! - resultA.against!
-		const diffB = resultB.for! - resultB.against!
-		return (resultA?.pos - resultB?.pos) || (scoreB - scoreA) || (diffB - diffA) || (resultB.for! - resultA.for!) || (resultB.seed - resultA.seed)
+		const resultA = results.find(r => r.id == getOpponentId(a))!
+		const resultB = results.find(r => r.id == getOpponentId(b))!
+		return resultsSorter(resultA, resultB, bSettings) || (resultB.seed - resultA.seed)
 	}
 }

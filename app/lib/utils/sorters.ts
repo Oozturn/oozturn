@@ -12,10 +12,10 @@ export function statsSorter(a: UserStats, b: UserStats) {
 
 export function resultsSorter(a: BracketResult, b: BracketResult, bSettings: BracketSettings) {
 	const btype = bSettings.type
-	const bScore = btype == BracketType.GroupStage ? b.wins * (bSettings.winPoints || 3) + (b.draws || 0) * (bSettings.tiePoints || 1) : 0
-	const aScore = btype == BracketType.GroupStage ? a.wins * (bSettings.winPoints || 3) + (a.draws || 0) * (bSettings.tiePoints || 1) : 0
+	const score = (res: BracketResult) => {return btype == BracketType.GroupStage ? (res.wins * 3 + (res.draws || 0) * 1) : 0}
+	const diff = (res: BracketResult) => {return (res.for || 0) - (res.against || 0)}
 	return a.pos - b.pos
-		|| bScore - aScore
-		|| ((b.for || 0) - (b.against || 0)) - ((a.for || 0) - (a.against || 0))
+		|| score(b) - score(a)
+		|| diff(b) - diff(a)
 		|| (b.for || 0) - (a.for || 0)
 }

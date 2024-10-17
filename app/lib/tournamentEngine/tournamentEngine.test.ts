@@ -272,7 +272,7 @@ test('GroupStage 6/3 with forfeit early', () => {
     tournamentEngine.validateActiveBracket()
 
     expect(tournamentEngine.getResults()).toMatchObject([
-        ...[1, 2, 3, 4, 5, 6].map(i => { return { userId: i + "", position: i - (i + 1) % 2 } })
+        ...[2, 1, 3, 4, 5, 6].map((i, pos) => { return { userId: i + "", position: pos + 1 } })
     ])
     expect(tournamentEngine.getStatus()).toBe(TournamentStatus.Done)
     validateStorage(tournamentEngine)
@@ -297,7 +297,8 @@ test('GroupStage 6/3 with forfeit late', () => {
     tournamentEngine.validateActiveBracket()
 
     expect(tournamentEngine.getResults()).toMatchObject([
-        ...[1, 2, 3, 4, 5, 6].map(i => { return { userId: i + "", position: i - (i + 1) % 2 } })
+        ...[2, 1, 3, 4, 5, 6].map((i, pos) => { return { userId: i + "", position: pos + 1 } })
+        // ...[1, 2, 3, 4, 5, 6].map(i => { return { userId: i + "", position: i - (i + 1) % 2 } })
     ])
     expect(tournamentEngine.getStatus()).toBe(TournamentStatus.Done)
     validateStorage(tournamentEngine)

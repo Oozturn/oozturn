@@ -1,7 +1,8 @@
 import { Duel } from "../tournamentEngine/tournament/duel";
 import { BracketType, TournamentStatus } from "../tournamentEngine/types";
 import { Statistics } from "../types/statistics";
-import { range, usingStats } from "../utils/ranges";
+import { range } from "../utils/ranges";
+import { statsSorter } from "../utils/sorters";
 
 declare global {
     // eslint-disable-next-line no-var
@@ -115,7 +116,7 @@ export function updateStats() {
 
     global.stats.usersStats = global.stats.usersStats.filter(us => us.playedTournaments)
 
-    global.stats.usersStats.sort(usingStats)
+    global.stats.usersStats.sort(statsSorter)
 
 
     // teams
