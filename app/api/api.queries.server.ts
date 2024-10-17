@@ -5,7 +5,7 @@ import { EventUpdateUsers } from '~/lib/emitter.server'
 import { logger } from '~/lib/logging/logging'
 import { getUserOrThrow } from '~/lib/persistence/users.server'
 
-const AVATAR_FOLDER = "public/avatar"
+const AVATAR_FOLDER = "uploads/avatar"
 
 export async function setAvatar(userId: string, file: File) {
     const user = getUserOrThrow(userId)
