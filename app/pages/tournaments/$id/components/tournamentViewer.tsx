@@ -6,7 +6,6 @@ import { TransformComponent, TransformWrapper, useTransformContext } from "react
 import { HightlightOpponentContext } from "./HightlightOpponentContext"
 import { Id } from "~/lib/tournamentEngine/tournament/match"
 import { useUser } from "~/lib/components/contexts/UserContext"
-import { useFetcher } from "@remix-run/react"
 import { MatchesIntents } from "../tournament"
 import { FakeUserTileRectangle, UserTileRectangle } from "~/lib/components/elements/user-tile"
 import { useTournament } from "~/lib/components/contexts/TournamentsContext"
@@ -14,6 +13,7 @@ import useLocalStorageState from "use-local-storage-state"
 import { clickorkey } from "~/lib/utils/clickorkey"
 import { FitSVG, PanSVG, ZoomInSVG, ZoomOutSVG } from "~/lib/components/data/svg-container"
 import { range } from "~/lib/utils/ranges"
+import { useDebounceFetcher } from "remix-utils/use-debounce-fetcher"
 
 export function TournamentViewer() {
     const tournament = useTournament()
@@ -303,7 +303,7 @@ function FinaleViewer({ bracket }: { bracket: number }) {
 function MatchTile({ matchId }: { matchId: Id }) {
     const user = useUser()
     const tournament = useTournament()
-    const fetcher = useFetcher()
+    const fetcher = useDebounceFetcher()
     const { hightlightOpponent, setHightlightOpponent } = useContext(HightlightOpponentContext)
 
     const userTeam = tournament.teams.find(team => team.members.includes(user.id))
@@ -342,7 +342,7 @@ function MatchTile({ matchId }: { matchId: Id }) {
                 opponent: opponent,
                 score: score
             },
-            { method: "POST", encType: "application/json" }
+            { method: "POST", encType: "application/json", action: "/tournaments/" + tournament.id, debounceTimeout: 1000 }
         )
     }
 
@@ -402,8 +402,8 @@ function MatchTile({ matchId }: { matchId: Id }) {
                         }
                         {isFFA &&
                             <div className={`threeDigitsWidth has-text-centered ${((tournament.bracketsCount == 2 && match.bracket == 0) ?
-                                    qualifiedPlayers.includes(opponentId || "")
-                                    : index < Math.floor(qualifiedPlaces)) ? "has-text-primary-accent" : ""
+                                qualifiedPlayers.includes(opponentId || "")
+                                : index < Math.floor(qualifiedPlaces)) ? "has-text-primary-accent" : ""
                                 }`}>{isOver ? index + 1 : "?"}</div>
                         }
                     </div>
@@ -415,7 +415,7 @@ function MatchTile({ matchId }: { matchId: Id }) {
 function GroupStageMatchTile({ matchIds }: { matchIds: Id[] }) {
     const user = useUser()
     const tournament = useTournament()
-    const fetcher = useFetcher()
+    const fetcher = useDebounceFetcher()
     const { hightlightOpponent, setHightlightOpponent } = useContext(HightlightOpponentContext)
 
     const score = (mId: Id, opponent: string, score: number) => {
@@ -427,7 +427,7 @@ function GroupStageMatchTile({ matchIds }: { matchIds: Id[] }) {
                 opponent: opponent,
                 score: score
             },
-            { method: "POST", encType: "application/json" }
+            { method: "POST", encType: "application/json", action: "/tournaments/" + tournament.id, debounceTimeout: 1000 }
         )
     }
 
