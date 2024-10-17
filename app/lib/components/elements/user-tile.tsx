@@ -4,6 +4,7 @@ import { AvatarComponent } from "avatar-initials"
 import { accentsList } from "../data/themes"
 import useLocalStorageState from "use-local-storage-state"
 import { ShinySVG } from "../data/svg-container"
+import { useStats } from "../contexts/StatsContext"
 
 interface UserTileProps {
     userId: string
@@ -78,11 +79,20 @@ interface UserTileUsersPageProps extends UserTileProps {
 }
 export function UserTileUsersPage({ userId, tournaments, points, leaderboardPlace }: UserTileUsersPageProps) {
     const user = useUsers().find(user => (user.id == userId) || (user.username == userId))
+    const userStats = useStats().usersStats.find(us => us.userId == userId)
     if (!user) return null
 
     const [avatarHeight, minWidth] = [150, 260]
 
-    return <div key={user.id} className="is-flex-col no-basis grow gap-2 p-3 align-stretch is-unselectable has-background-secondary-level" style={{ minWidth: minWidth }}>
+    const title = userStats ?
+        "Tournois gagnés : " + String(userStats.wonTournaments)
+        + "\nMeilleure position : " + String(userStats.bestTournamentPosition)
+        + "\nPoints au classement global : " + String(userStats.globalTournamentPoints)
+        + "\nPoints marqués/encaissés (normalisé) : " + String(userStats.pointsRatio.toFixed(2))
+        + "\nMatchs joués : " + String(userStats.playedMatches)
+        : undefined
+
+    return <div key={user.id} className="is-flex-col no-basis grow gap-2 p-3 align-stretch is-unselectable has-background-secondary-level" style={{ minWidth: minWidth }} title={title}>
         <div className='is-flex justify-center'>
             <UserAvatar username={user.username} avatar={user.avatar} size={avatarHeight} />
         </div>

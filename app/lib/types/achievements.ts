@@ -29,6 +29,7 @@ export interface Achievement {
     valueDescription: string
     valueUseBest: boolean
     value?: number
+    title?: string
 }
 
 export const AchievementDecriptors = new Map<AchievementType, string>([
@@ -44,15 +45,15 @@ export const AchievementDecriptors = new Map<AchievementType, string>([
     [AchievementType.tryHarder, "GG, belle remontada."],
 ])
 
-export const AchievementValueDecriptor = new Map<AchievementType, { valueDescription: string, valueUseBest: boolean }>([
+export const AchievementValueDecriptor = new Map<AchievementType, { valueDescription: string, valueUseBest: boolean, title?: string }>([
     [AchievementType.tournamentWinner, { valueDescription: "Tournois gagnés", valueUseBest: true }],
     [AchievementType.efficientWinner, { valueDescription: "Ratio tournois gagnés/joués", valueUseBest: true }],
     [AchievementType.neverFirst, { valueDescription: "Secondes places", valueUseBest: true }],
     [AchievementType.worstPlayerEver, { valueDescription: "Points au classement global", valueUseBest: false }],
-    [AchievementType.chiefWinner, { valueDescription: "Ratio victoires/défaites", valueUseBest: true }],
-    [AchievementType.chiefLooser, { valueDescription: "Ratio victoires/défaites", valueUseBest: false }],
+    [AchievementType.chiefWinner, { valueDescription: "Points marqués/encaissés (normalisé)", valueUseBest: true, title: "0, t'as pris tarif.\n1, t'as mis cher à ton adversaire." }],
+    [AchievementType.chiefLooser, { valueDescription: "Points marqués/encaissés (normalisé)", valueUseBest: false, title: "0, t'as pris tarif.\n1, t'as mis cher à ton adversaire." }],
     [AchievementType.compulsivePlayer, { valueDescription: "Matchs joués", valueUseBest: true }],
-    [AchievementType.david, { valueDescription: "Victoires contre des meilleurs joueurs", valueUseBest: true }],
+    [AchievementType.david, { valueDescription: "Victoires contre des meilleurs joueurs", valueUseBest: true, title: "On regarde le seed.\nS'il est aléatoire bah... tant pis..." }],
     [AchievementType.underPressure, { valueDescription: "Finales depuis le looser bracket", valueUseBest: true }],
     [AchievementType.tryHarder, { valueDescription: "Tournois gagnés depuis le looser bracket", valueUseBest: true }],
 ])

@@ -4,7 +4,7 @@ export interface UserStats {
     secondPlaces: number
     globalTournamentPoints: number
     bestTournamentPosition: number
-    winLossMeanRatio: number
+    pointsRatio: number
     playedTournaments: number
     playedMatches: number
     winsAgainstBetterSeed: number

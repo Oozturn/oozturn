@@ -14,6 +14,7 @@ import { clickorkey } from "~/lib/utils/clickorkey"
 import { getAchievements } from "~/lib/statistics/achievements.server"
 import { Achievement } from "~/lib/types/achievements"
 import { useLoaderData } from "@remix-run/react"
+import { statsSorter } from "~/lib/utils/sorters"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
@@ -31,8 +32,6 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<{
 
 export default function Results() {
     const lan = useLan()
-
-    console.log("width to show:", Number(lan.showTeamsResults) + Number(lan.showAchievements), ["is-three-fifths", "is-four-fifths", ""][Number(lan.showTeamsResults) + Number(lan.showAchievements)])
 
     return (
         <div className="is-full-height is-flex m-0 p-3 justify-center">
@@ -52,12 +51,10 @@ function PlayersLeaderboard() {
     return (
         <div className="leaderboard is-flex-col has-background-secondary-level grow no-basis">
             <div className="is-flex-col is-scrollable gap-2 p-2 mx-1 grow">
-                {usersStats.map((us, index) => {
+                {usersStats.sort(statsSorter).map((us, index) => {
                     const user = users.find(user => user.id == us.userId)
                     if (!user) return null
-                    return <Fragment key={us.userId}>
-                        <ResultTile place={index + 1} user={user} stats={us} />
-                    </Fragment>
+                    return <ResultTile key={us.userId} place={index + 1} user={user} stats={us} />
                 })}
             </div>
             {lan.showPartialResults && <div className='bottomListInfo'>Résultats partiels pris en compte</div>}
@@ -158,7 +155,7 @@ function Achievements() {
         <div className="is-title big p-2 has-text-centered">Achievements</div>
         <div className="is-flex-col is-scrollable gap-2 p-2 mx-1 grow gap-5">
             {achievements.map(achievement => {
-                if (!achievement.active || !achievement.userId) return null
+                if (!achievement.active || !achievement.userId|| !achievement.value) return null
                 return <div key={achievement.type} className="is-flex-col gap-">
                     <div className="is-title medium mb-2">{achievement.name}</div>
                     <div className="is-flex-row gap-3 align-center">
@@ -166,9 +163,9 @@ function Achievements() {
                             <UserTileRectangle userId={achievement.userId} colorClass="has-background-grey" />
                         </div>
                     </div>
-                    <div className="is-flex-row gap-2">
+                    <div className="is-flex-row gap-2" title={achievement.title}>
                         <div>{achievement.valueDescription} :</div>
-                        <div>{achievement.value}</div>
+                        <div>{achievement.value % 1 == 0 ? achievement.value : achievement.value.toFixed(2)}</div>
                     </div>
                     <div className="is-flex-col gap-3 fade-text">
                         <div>{achievement.description}</div>

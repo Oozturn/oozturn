@@ -199,7 +199,7 @@ export class GroupStage extends Tournament {
     private compareResults = (x: Result, y: Result) => {
         const xScore = x.for! - x.against!;
         const yScore = y.for! - y.against!;
-        return (y.pts - x.pts) || (yScore - xScore) || (x.seed - y.seed);
+        return (y.pts - x.pts) || (yScore - xScore) || (y.for! - x.for!) || (x.seed - y.seed);
     }
 
     private finalCompare = (x: Result, y: Result) => {
@@ -212,7 +212,7 @@ export class GroupStage extends Tournament {
             let val = 'PTS' + r.pts;
             if (scoresBreak) {
                 val += 'DIFF' + (r.for! - r.against!);
-    }
+            }
             return val;
         });
     };

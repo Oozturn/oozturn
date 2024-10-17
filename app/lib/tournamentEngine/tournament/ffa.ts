@@ -355,6 +355,7 @@ export class FFA extends Tournament {
   private compareMulti = (x: Result, y: Result) => {
     return (x.pos - y.pos) ||
       ((y.for! - y.against!) - (x.for! - x.against!)) ||
+      (y.for! - x.for!) ||
       (x.seed - y.seed)
   }
 }

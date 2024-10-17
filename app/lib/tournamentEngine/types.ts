@@ -109,6 +109,6 @@ export interface TournamentFullData {
 	players: Player[]
 	teams: Team[]
 	matches: Match[]
-	results?: Result[][]
+	results?: Result[]
 	bracketsResults?: BracketResult[][]
 }

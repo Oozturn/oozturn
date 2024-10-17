@@ -6,6 +6,8 @@ import { FFA } from "./tournament/ffa"
 import { GroupStage } from "./tournament/groupstage"
 import { Id } from "./tournament/match"
 import { BracketResult, BracketSettings, BracketStatus, BracketType, Match, Player, Result, Seeding, Team, TournamentFullData, TournamentInfo, TournamentProperties, TournamentSettings, TournamentStatus } from "./types"
+import { range } from '../utils/ranges'
+import { resultsSorter } from '../utils/sorters'
 
 /** States used to save brackets progression */
 interface BracketState {
@@ -167,7 +169,7 @@ export class TournamentEngine implements TournamentSpecification {
 			players: this.players,
 			teams: this.teams,
 			matches: this.getMatches(0).concat(this.brackets.length == 2 ? this.getMatches(1) : []),
-			results: [TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status) ? undefined : this.brackets.map((_b, i) => this.getResults(i)),
+			results: this.getResults(),
 			bracketsResults: [TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status) ? undefined : this.brackets.map(b => b.results())
 		}
 	}
@@ -299,7 +301,7 @@ export class TournamentEngine implements TournamentSpecification {
 	public startTournament(): void {
 		if (![TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status))
 			throw new Error(`Tournament ${this.id} not in Open or Balance mode`)
-		if(this.brackets[0].getStatus() != BracketStatus.Pending) {
+		if (this.brackets[0].getStatus() != BracketStatus.Pending) {
 			// This is a reset
 			this.resetBrackets()
 		}
@@ -339,6 +341,7 @@ export class TournamentEngine implements TournamentSpecification {
 		const currentBracket = this.brackets[this.activeBracket]
 		currentBracket.score(matchId, opponent, score)
 		this.resultsCache.delete(this.activeBracket)
+		this.resultsCache.delete(-1)
 		if (currentBracket.isWaitingForValidation()) {
 			this.status = TournamentStatus.Validating
 		}
@@ -373,7 +376,7 @@ export class TournamentEngine implements TournamentSpecification {
 		}
 
 		const results = previousBracket.results()
-		nextOpponents.sort(usingResults(results))
+		nextOpponents.sort(usingResults(results, previousBracket.settings))
 
 		if (nextBracket.settings.size) {
 			nextOpponents = nextOpponents.slice(0, nextBracket.settings.size)
@@ -398,11 +401,11 @@ export class TournamentEngine implements TournamentSpecification {
 			bracket: bracket
 		}
 	}
-	public getResults(bracket: number = this.activeBracket): Result[] {
-		if (!this.resultsCache.has(bracket)) {
-			this.computeResults(bracket)
+	public getResults(): Result[] {
+		if (!this.resultsCache.has(-1)) {
+			this.computeResults()
 		}
-		return this.resultsCache.get(bracket)!
+		return this.resultsCache.get(-1)!
 	}
 
 
@@ -517,29 +520,60 @@ export class TournamentEngine implements TournamentSpecification {
 		})
 	}
 
-	private computeResults(bracket: number) {
-		const results: Result[] = []
-		this.brackets[bracket].results().forEach(res => {
-			const concernedUsers: string[] = []
-			if (this.settings.useTeams) {
-				const concernedPlayers = this.teams.find(team => team.name == res.id)?.members
-				if (concernedPlayers) concernedUsers.push(...concernedPlayers)
-			} else {
-				concernedUsers.push(res.id)
-			}
-			concernedUsers.forEach(userId => {
-				const forfeitedPlayer = this.players.find(player => player.userId == userId)?.isForfeit
-				results.push({
-					userId: userId,
-					position: res.pos,
-					globalTournamentPoints: (res.pos - 1 in this.properties.globalTournamentPoints.leaders ? this.properties.globalTournamentPoints.leaders[res.pos - 1] : this.properties.globalTournamentPoints.default) - (forfeitedPlayer ? this.properties.globalTournamentPoints.default : 0),
-					wins: res.wins,
-					for: res.for,
-					against: res.against
+	private computeResults() {
+
+		function getPositions(results: BracketResult[]) {
+			const pos: number[] = []
+			const diff = (r: BracketResult) => { return (r.for || 0) - (r.against || 0) }
+			results.forEach((res, index) => {
+				pos.push(
+					index == 0 ? 1
+						: res.pos > results[index - 1].pos ? pos.length + 1
+							: diff(res) < diff(results[index - 1]) ? pos.length + 1
+								: (res.for || 0) < (results[index - 1].for || 0) ? pos.length + 1
+									: pos[pos.length - 1]
+				)
+			})
+			return pos
+		}
+
+		const retResults: Result[] = []
+		range(this.brackets.length - 1, 0, -1).forEach(bracket => {
+			const bracketResults = this.brackets[bracket].results().sort((a, b) => resultsSorter(a, b, this.brackets[bracket].settings))
+			const positions = getPositions(bracketResults)
+			bracketResults.forEach((res, index) => {
+				const concernedUsers: string[] = []
+				if (this.settings.useTeams) {
+					const concernedPlayers = this.teams.find(team => team.name == res.id)?.members
+					if (concernedPlayers) concernedUsers.push(...concernedPlayers)
+				} else {
+					concernedUsers.push(res.id)
+				}
+				concernedUsers.forEach(userId => {
+					const forfeitedPlayer = this.players.find(player => player.userId == userId)?.isForfeit
+					const userRetResult = retResults.find(rr => rr.userId == userId)
+					const userPos = this.brackets[bracket].getStatus() == BracketStatus.Done ? positions[index] : res.pos
+					// finale phase
+					if (!userRetResult) {
+						retResults.push({
+							userId: userId,
+							position: userPos,
+							globalTournamentPoints: (userPos - 1 in this.properties.globalTournamentPoints.leaders ? this.properties.globalTournamentPoints.leaders[userPos - 1] : this.properties.globalTournamentPoints.default) - (forfeitedPlayer ? this.properties.globalTournamentPoints.default : 0),
+							wins: res.wins,
+							for: res.for,
+							against: res.against
+						})
+						return
+					}
+					// pool phase
+					userRetResult.against = (userRetResult.against || res.against) ? (userRetResult.against || 0) + (res.against || 0) : undefined
+					userRetResult.for = (userRetResult.for || res.for) ? (userRetResult.against || 0) + (res.against || 0) : undefined
+					userRetResult.globalTournamentPoints += this.properties.globalTournamentPoints.default
+					userRetResult.wins += res.wins
 				})
 			})
 		})
-		this.resultsCache.set(bracket, results)
+		this.resultsCache.set(-1, retResults)
 	}
 }
 
@@ -587,7 +621,7 @@ class Bracket {
 	}
 
 	reset(): void {
-		this.seedings = new BiDirectionalMap() 
+		this.seedings = new BiDirectionalMap()
 		this.status = BracketStatus.Pending
 		this.states = []
 		this.internalBracket = undefined
@@ -620,7 +654,7 @@ class Bracket {
 	}
 
 	results(): BracketResult[] {
-		if(this.status == BracketStatus.Pending) return []
+		if (this.status == BracketStatus.Pending) return []
 		return this.internalBracket!.results()
 			.map(result => {
 				return {
@@ -741,12 +775,10 @@ function getOpponentId(opponent: Player | Team) {
 	}
 }
 
-function usingResults(results: BracketResult[]): (((a: Team, b: Team) => number) & ((a: Player, b: Player) => number)) {
+function usingResults(results: BracketResult[], bSettings: BracketSettings): (((a: Team, b: Team) => number) & ((a: Player, b: Player) => number)) {
 	return (a, b) => {
 		const resultA = results.find(r => r.id == getOpponentId(a))!
 		const resultB = results.find(r => r.id == getOpponentId(b))!
-		const diffA = resultA.for! - resultA.against!
-		const diffB = resultB.for! - resultB.against!
-		return (resultA?.pos - resultB?.pos) || (diffB - diffA) || (resultB.seed - resultA.seed)
+		return resultsSorter(resultA, resultB, bSettings) || (resultB.seed - resultA.seed)
 	}
 }
