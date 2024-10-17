@@ -1,4 +1,3 @@
-import { useState } from "react"
 import { globalTournamentPoints } from "~/lib/types/lan"
 
 interface ShowGlobalTournamentPointsProps {
@@ -28,15 +27,12 @@ interface EditGlobalTournamentPointsProps {
     updatePoints: (points: globalTournamentPoints) => void
 }
 export function EditGlobalTournamentPoints({ points, updatePoints }: EditGlobalTournamentPointsProps) {
-    const [leaders, setLeaders] = useState(points.leaders)
-    const [defaultPoint, setDefaultPoint] = useState(points.default)
-
     return <div className='globalTournamentOptions editing is-flex-row gap-1'>
         <div className='is-flex-col'>
             <div className='is-flex justify-end align-center'>Place :</div>
             <div className='is-flex justify-end align-center'>Points :</div>
         </div>
-        {leaders.map((pts, index) =>
+        {points.leaders.map((pts, index) =>
             <div key={index} className="rankPoints is-flex-col">
                 <div className="has-text-weight-semibold is-flex justify-center align-center">{index + 1}</div>
                 <input
@@ -48,7 +44,6 @@ export function EditGlobalTournamentPoints({ points, updatePoints }: EditGlobalT
                     onChange={(e) => {
                         if (!e.target.value) return
                         points.leaders[index] = Number(e.target.value)
-                        setLeaders(points.leaders)
                         updatePoints(points)
                     }}
                 />
@@ -59,12 +54,11 @@ export function EditGlobalTournamentPoints({ points, updatePoints }: EditGlobalT
             <input className="is-flex has-text-centered"
                 style={{ width: "3.5rem" }}
                 type="text"
-                placeholder={String(defaultPoint)}
-                value={String(defaultPoint)}
+                placeholder={String(points.default)}
+                value={String(points.default)}
                 onChange={(e) => {
                     if (!e.target.value) return
                     points.default = Number(e.target.value)
-                    setDefaultPoint(points.default)
                     updatePoints(points)
                 }}
             />

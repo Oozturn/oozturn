@@ -22,7 +22,6 @@ import { CustomModalBinary } from "~/lib/components/elements/custom-modal"
 import { Achievement, AchievementDecriptors, AchievementType } from "~/lib/types/achievements"
 import { getAchievements } from "~/lib/statistics/achievements.server"
 import { notifyError } from "~/lib/components/notification"
-import { useDebounceFetcher } from "remix-utils/use-debounce-fetcher"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
@@ -113,7 +112,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function Admin() {
-    const fetcher = useDebounceFetcher()
+    const fetcher = useFetcher()
 
     const [activeSection, setActiveSection] = useLocalStorageState<Section>("admin_activeSection", { defaultValue: "lanSettings" })
 
@@ -121,7 +120,7 @@ export default function Admin() {
         const fd = new FormData()
         fd.append(key, value)
         fd.append("intent", AdminIntents.UPDATE_LAN)
-        fetcher.submit(fd, { method: "POST", action: "/admin", debounceTimeout: 1000 })
+        fetcher.submit(fd, { method: "POST" })
     }
 
     return (
@@ -353,6 +352,7 @@ export function SectionCommunicationSettings({ isActive }: { isActive: boolean }
                         className="input" type="text"
                         defaultValue=""
                         title="URL du serveur TS à utiliser durant la LAN. Laisser vide si aucun serveur TS n'est disponible."
+                    // {...autoSubmit(fetcher)}
                     />
                 </div>
             </fetcher.Form>
