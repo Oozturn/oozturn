@@ -266,6 +266,7 @@ function TournamentCommands() {
     const [showConfirmForfeit, setShowConfirmForfeit] = useState(false)
 
     const isForfeit = !!tournament.players.find(player => player.userId == user.id)?.isForfeit
+    const showFFbutton = ![TournamentStatus.Open, TournamentStatus.Balancing, TournamentStatus.Validating, TournamentStatus.Done].includes(tournament.status) && tournament.players.find(player => player.userId == user.id) && !isForfeit
     const startTournament = () => {
         fetcher.submit(
             {
@@ -307,7 +308,7 @@ function TournamentCommands() {
         )
     }
 
-    const toggleForfeit = () => {
+    const forfeit = () => {
         fetcher.submit(
             {
                 intent: TournamentManagementIntents.TOGGLE_FORFEIT_PLAYER,
@@ -339,21 +340,21 @@ function TournamentCommands() {
         items.push({ content: [BinSVG(), "Annuler"], callback: () => setShowConfirmCancel(true) })
     if (![TournamentStatus.Open, TournamentStatus.Balancing, TournamentStatus.Done].includes(tournament.status))
         items.push({ content: [RollBackSVG(), "Redémarrer"], callback: () => setShowConfirmStop(true) })
+    if ([TournamentStatus.Running, TournamentStatus.Paused].includes(tournament.status) && showFFbutton)
+        items.push({ content: tournament.status == TournamentStatus.Running ? [LockSVG(), "Verrouiller"] : [StartSVG(), "Déverrouiller"], callback: togglePause })
 
     return <div className='is-flex justify-end gap-3'>
-        {![TournamentStatus.Open, TournamentStatus.Balancing, TournamentStatus.Validating, TournamentStatus.Done].includes(tournament.status) && tournament.players.find(player => player.userId == user.id) && <>
-            <CustomButton callback={() => isForfeit ? toggleForfeit() : setShowConfirmForfeit(true)} contentItems={isForfeit ? [RollBackSVG(), "Reprendre"] : [ForfeitSVG(), "Abandonner"]} colorClass='has-background-primary-accent' />
-            <CustomModalBinary show={showConfirmForfeit} onHide={() => setShowConfirmForfeit(false)} content={"Es-tu sûr de vouloir abandonner ?"} cancelButton={true} onConfirm={toggleForfeit} />
+        {showFFbutton && <>
+            <CustomButton callback={() => setShowConfirmForfeit(true)} contentItems={[ForfeitSVG(), "Abandonner"]} colorClass='has-background-primary-accent' />
+            <CustomModalBinary show={showConfirmForfeit} onHide={() => setShowConfirmForfeit(false)} content={"Es-tu sûr de vouloir abandonner ?"} cancelButton={true} onConfirm={forfeit} />
         </>}
         {user.isAdmin && <>
             {[TournamentStatus.Open, TournamentStatus.Balancing].includes(tournament.status) && <CustomButton callback={() => setShowConfirmStart(true)} contentItems={[StartSVG(), "Démarrer"]} colorClass='has-background-primary-accent' />}
             {[TournamentStatus.Validating].includes(tournament.status) && <CustomButton callback={() => setShowConfirmValidate(true)} contentItems={[ThumbUpSVG(), "Valider"]} colorClass='has-background-primary-accent' />}
-            {[TournamentStatus.Running, TournamentStatus.Paused].includes(tournament.status) && <CustomButton callback={togglePause} contentItems={tournament.status == TournamentStatus.Running ? [LockSVG(), "Verrouiller"] : [StartSVG(), "Déverrouiller"]} colorClass='has-background-primary-accent' />}
+            {[TournamentStatus.Running, TournamentStatus.Paused].includes(tournament.status) && !showFFbutton && <CustomButton callback={togglePause} contentItems={tournament.status == TournamentStatus.Running ? [LockSVG(), "Verrouiller"] : [StartSVG(), "Déverrouiller"]} colorClass='has-background-primary-accent' />}
             <Dropdown
-                trigger={[TournamentStatus.Open, TournamentStatus.Balancing, TournamentStatus.Validating].includes(tournament.status) ?
-                    <SquareButton contentItems={[MoreSVG()]} colorClass='has-background-primary-level' /> :
-                    <CustomButton contentItems={["Options"]} colorClass='has-background-primary-level' />
-                }
+                trigger={
+                    <SquareButton contentItems={[MoreSVG()]} colorClass='has-background-primary-level' />}
                 id="tournamentMoreCommands"
                 items={items}
                 align="right"
