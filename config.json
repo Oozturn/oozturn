@@ -3,6 +3,7 @@
         "new_users_by_admin_only": true,
         "authentication_needed": true,
         "secure_users_password": true,
+        "use_http_only": false,
         "admin_password": ""
     },
     "igdb_api": {

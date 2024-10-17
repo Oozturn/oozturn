@@ -17,7 +17,7 @@ const secureStorage =
                 path: "/",
                 sameSite: "lax",
                 secrets: [sessionSecret],
-                secure: process.env.NODE_ENV === "production",
+                secure: !lanConfig.security.use_http_only && process.env.NODE_ENV === "production",
             },
         }
     )
