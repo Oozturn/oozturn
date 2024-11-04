@@ -16,7 +16,7 @@ import { Days, range } from "~/lib/utils/ranges"
 import { AdminSectionContext, Section, useAdminSection } from "./components/AdminSectionContext"
 import { UsersList } from "./components/users-list"
 import { addUsers, renameUser, resetUserPassword, setLanMap } from "./admin.queries.server"
-import { ChangeEvent, Fragment, useRef, useState } from "react"
+import { ChangeEvent, useRef, useState } from "react"
 import { clickorkey } from "~/lib/utils/clickorkey"
 import { CustomModalBinary } from "~/lib/components/elements/custom-modal"
 import { Achievement, AchievementDecriptors, AchievementType } from "~/lib/types/achievements"
@@ -261,9 +261,7 @@ export function SectionTournamentsSettings({ isActive }: { isActive: boolean }) 
                         <CustomButton customClasses="grow" contentItems={["New Game"]} colorClass="has-background-secondary-accent" callback={() => { navigate("/admin/add-games") }} />
                     </div>
                     {games.map(game =>
-                        <Fragment key={game.id}>
-                            <CustomButton customClasses="grow" contentItems={[game.name]} colorClass="has-background-secondary-level" callback={() => { navigate("/admin/add-games?query=" + game.name) }} />
-                        </Fragment>
+                        <CustomButton key={game.id} customClasses="grow" contentItems={[game.name]} colorClass="has-background-secondary-level" callback={() => { navigate("/admin/add-games?query=" + game.name) }} />
                     )}
                     <div className="growmax" style={{ width: 0, margin: "-.5rem" }}></div>
                 </div>
@@ -276,9 +274,7 @@ export function SectionTournamentsSettings({ isActive }: { isActive: boolean }) 
                         <CustomButton customClasses="grow" contentItems={["New tournament"]} colorClass="has-background-secondary-accent" callback={() => { navigate("/tournaments/new") }}></CustomButton>
                     </div>
                     {tournaments.map(tournament =>
-                        <Fragment key={tournament.id}>
-                            <CustomButton customClasses="grow" contentItems={[tournament.name]} colorClass="has-background-secondary-level" callback={() => { navigate("/tournaments/" + tournament.id) }} />
-                        </Fragment>
+                        <CustomButton key={tournament.id} customClasses="grow" contentItems={[tournament.name]} colorClass="has-background-secondary-level" callback={() => { navigate("/tournaments/" + tournament.id) }} />
                     )}
                     <div className="growmax" style={{ width: 0, margin: "-.5rem" }}></div>
                 </div>

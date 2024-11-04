@@ -242,7 +242,7 @@ export function OpponentsListTeam() {
                                 <div>Nom de l&apos;équipe : </div>
                                 <div>
                                     {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
-                                    <input className='input' autoFocus type="text" placeholder="Nom de l'équipe" value={newTeamName} onChange={(e) => { setNewTeamName(e.target.value) }} onKeyDown={(e) => e.key == "Enter" && newTeam()} />
+                                    <input className='input' maxLength={30} autoFocus type="text" placeholder="Nom de l'équipe" value={newTeamName} onChange={(e) => { setNewTeamName(e.target.value) }} onKeyDown={(e) => e.key == "Enter" && newTeam()} />
                                 </div>
                             </div>
                         </div>
@@ -328,8 +328,8 @@ function TournamentInfoPlayersWhileRunning() {
         <div className="is-flex-col gap-1 p-2 has-background-primary-level is-scrollable grow justify-start align-stretch">
             {[...players.values()].sort().map((playerId, index) => {
                 const hasFF = !!tournament.players.find(p => p.userId == playerId)?.isForfeit
-                return <>
-                    <div key={playerId} className="is-flex-row gap-3">
+                return <Fragment key={playerId}>
+                    <div className="is-flex-row gap-3">
                         <UserTileRectangle userId={playerId} height={32} showTeam={false} />
                         {user.isAdmin && <div className="grow is-flex justify-end">
                             <SquareButton height={32} contentItems={[hasFF ? RollBackSVG() : ForfeitSVG()]} callback={() => toggleForfeit(playerId)} colorClass={hasFF ? "has-background-secondary-level" : "has-background-secondary-accent"} />
@@ -338,7 +338,7 @@ function TournamentInfoPlayersWhileRunning() {
                     {user.isAdmin && !((tournament.results?.length || 0) - 1 == index) &&
                         <div className="has-background-grey ml-3" style={{ minHeight: 1 }}></div>
                     }
-                </>
+                </Fragment>
             })}
         </div>
     </div>)
@@ -349,8 +349,8 @@ function TournamentInfoPlayersOnceDone() {
     return (<div className="is-flex-col gap-2 no-basis" style={{ height: 300 }}>
         <div className="is-title medium">Résultats du tournoi</div>
         <div className="is-flex-col gap-1 p-2 has-background-primary-level is-scrollable grow justify-start align-stretch">
-            {tournament.results?.map((result, index) => <>
-                <div key={result.userId} className="is-flex-row gap-3 mr-2">
+            {tournament.results?.map((result, index) => <Fragment key={result.userId}>
+                <div className="is-flex-row gap-3 mr-2">
                     <div className="has-text-right" style={{ width: 25 }}>{result.position}</div>
                     <UserTileRectangle userId={result.userId} height={32} maxLength={245} showTeam={false} />
                     <div className="has-text-right grow">{result.globalTournamentPoints} pts</div>
@@ -358,7 +358,7 @@ function TournamentInfoPlayersOnceDone() {
                 {!((tournament.results?.length || 0) - 1 == index) &&
                     <div className="has-background-grey ml-3" style={{ minHeight: 1 }}></div>
                 }
-            </>)}
+            </Fragment>)}
         </div>
     </div>)
 }
@@ -410,7 +410,7 @@ function TeamTile({ team, seed, draggedPlayer, addPlayerToTeam, removePlayerFrom
     return (
         <div ref={setNodeRef} className="is-flex-col has-background-secondary-level p-2">
             <div className='is-flex-row align-center justify-space-between'>
-                <div className='is-uppercase'>{seed ? String(seed) + " - " : ""}{team.name}</div>
+                <div className='is-uppercase grow no-basis' style={{ textOverflow: "ellipsis", overflow: "hidden" }}>{seed ? String(seed) + " - " : ""}{team.name}</div>
                 {user.isAdmin &&
                     <div className='is-flex-row align-center gap-1'>
                         <div className='is-clickable is-flex fade-on-mouse-out' {...clickorkey(() => setShowRenameTeam(true))}><SubsribedSVG /></div>
@@ -494,9 +494,7 @@ function OverlayTeamTile({ team }: OverlayTeamTileProps) {
             <div className='is-uppercase mr-2'>{team.name}</div>
             <div className='is-flex-col gap-1'>
                 {team.members.map(userId =>
-                    <Fragment key={userId}>
-                        <UserTileRectangle userId={userId} />
-                    </Fragment>
+                    <UserTileRectangle key={userId} userId={userId} />
                 )}
             </div>
         </div>

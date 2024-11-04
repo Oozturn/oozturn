@@ -225,7 +225,7 @@ function GroupStageSectionViewer({ bracket, section }: { bracket: number, sectio
         <div className="is-flex-col gap-5 align-center">
             <div className="is-title medium">Poule {section}</div>
             {results && <div className="is-flex-row has-background-secondary-level gap-3 p-1 has-text-centered mb-5">
-                <div className="is-flex-col gap-1" style={{ width: 180 }}>
+                <div className="is-flex-col gap-1" style={{ width: 245 }}>
                     <div className="has-text-weight-semibold mb-2">Joueurs</div>
                     {results.map(res => <div key={"id_" + res.id} onMouseEnter={() => setHightlightOpponent(res.id || "")} onMouseLeave={() => setHightlightOpponent("")}>{tournament.settings.useTeams ?
                         <FakeUserTileRectangle userName={res.id} height={32} initial={res.id[0]} maxLength={245} colorClass={getOpponentColorClass(res.id)} />
@@ -364,7 +364,7 @@ function MatchTile({ matchId }: { matchId: Id }) {
     }
 
     return (
-        <div className="is-flex-row align-center" style={{ width: isFFA ? 339 : 275 }}>
+        <div className="is-flex-row align-center" style={{ width: isFFA ? 394 : 330 }}>
             <div className="is-vertical is-flex pt-2" style={{ transform: "rotate(-90deg)", width: "2rem", lineHeight: "1rem" }}>{IdToString(match.id)}</div>
             <div className={`is-flex-col ${match.isFinale ? 'has-background-secondary-accent' : 'has-background-secondary-level'} grow p-1 gap-1`}>
                 {isFFA &&

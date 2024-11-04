@@ -1,5 +1,5 @@
 import { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
-import { Fragment, useState } from "react"
+import { useState } from "react"
 import { useLan } from "~/lib/components/contexts/LanContext"
 import { useStats } from "~/lib/components/contexts/StatsContext"
 import { useUsers } from "~/lib/components/contexts/UsersContext"
@@ -71,9 +71,7 @@ function TeamsLeaderboard() {
             <div className="is-flex-col is-scrollable gap-2 p-2 mx-1">
                 <ResultSelectContext.Provider value={{ setActiveResult }}>
                     {teamsStats.map((ts, index) => {
-                        return <Fragment key={ts.teamName}>
-                            <ResultTile place={index + 1} teamName={ts.teamName} stats={ts} showInfo={activeTeam == ts.teamName} />
-                        </Fragment>
+                        return <ResultTile key={ts.teamName} place={index + 1} teamName={ts.teamName} stats={ts} showInfo={activeTeam == ts.teamName} />
                     })}
                 </ResultSelectContext.Provider>
             </div>
@@ -136,11 +134,11 @@ function ResultTile({ place, user, teamName, stats, showInfo }: ResultPlayerTile
                     <div className="">
                         <div className='tournamentsCount fade-text'>Participations aux tournois : {stats.playedTournaments}</div>
                         <div className='teamMembersTitle fade-text'>Membres :</div>
-                        {teamMembers.map(member =>
-                            <div key={member.username} className='pl-5'>
-                                <UserTileRectangle userId={member.id} />
-                            </div>
-                        )}
+                        <div className="pl-5">
+                            {teamMembers.map(member =>
+                                <UserTileRectangle key={member.username} userId={member.id} showTeam={false} />
+                            )}
+                        </div>
                     </div>
                 </div>
             }
@@ -155,7 +153,7 @@ function Achievements() {
         <div className="is-title big p-2 has-text-centered">Achievements</div>
         <div className="is-flex-col is-scrollable gap-2 p-2 mx-1 grow gap-5">
             {achievements.map(achievement => {
-                if (!achievement.active || !achievement.userId|| !achievement.value) return null
+                if (!achievement.active || !achievement.userId || !achievement.value) return null
                 return <div key={achievement.type} className="is-flex-col gap-">
                     <div className="is-title medium mb-2">{achievement.name}</div>
                     <div className="is-flex-row gap-3 align-center">

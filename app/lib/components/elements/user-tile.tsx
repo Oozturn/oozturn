@@ -29,8 +29,8 @@ export function UserTileRectangle({ userId, colorClass, height, maxLength, showT
     if (maxLength < height)
         maxLength = 2 * height
     const maxTeamLength = (maxLength - height) * 1 / 3
-    const maxUsernameLength = showTeam ? (maxLength - height) * 2 / 3 : maxLength - height
-    return <div key={user.id} className={`is-flex grow gap-1 pr-3 align-center is-unselectable ${colorClass ? colorClass : ''}`} style={{ maxWidth: maxLength }}>
+    const maxUsernameLength = showTeam ? (maxLength - height) * 2 / 3 : (maxLength - height) - 8
+    return <div key={user.id} className={`is-flex grow gap-1 align-center justify-stretch is-unselectable ${colorClass ? colorClass : ''}`} style={{ maxWidth: maxLength }}>
         {initial ?
             <AvatarComponent
                 useGravatar={false}
@@ -44,7 +44,7 @@ export function UserTileRectangle({ userId, colorClass, height, maxLength, showT
         }
         {isShiny && <div className="is-flex has-text-primary-accent"><ShinySVG /></div>}
         <div style={{ maxWidth: maxUsernameLength + "px", overflow: "hidden", textOverflow: "ellipsis" }}>{isForfeit ? <s>{user.username}</s> : user.username}</div>
-        {showTeam && user.team && <div className='fade-text' style={{ maxWidth: maxTeamLength + "px", overflow: "hidden", textOverflow: "ellipsis" }}>[{user.team}]</div>}
+        {showTeam && user.team && <div className='grow no-basis fade-text' style={{ maxWidth: maxTeamLength + "px", overflow: "hidden", textOverflow: "ellipsis", textWrap: "nowrap" }}>[{user.team}]</div>}
     </div>
 }
 interface FakeUserTileProps {
@@ -62,13 +62,13 @@ export function FakeUserTileRectangle({ userName, initial, teamName, colorClass,
     if (maxLength < height)
         maxLength = 2 * height
     const maxTeamLength = (maxLength - height) * 1 / 3
-    const maxUsernameLength = teamName ? (maxLength - height) * 2 / 3 : maxLength - height
-    return <div className={`is-flex grow gap-1 pr-3 align-center is-unselectable ${colorClass ? colorClass : ''}`} style={{ maxWidth: maxLength }}>
+    const maxUsernameLength = teamName ? (maxLength - height) * 2 / 3 : (maxLength - height) - 8
+    return <div className={`is-flex gap-1 align-center justify-stretch is-unselectable ${colorClass ? colorClass : ''}`} style={{ maxWidth: maxLength, textAlign: "initial" }}>
         <div className='is-flex'>
             <UserAvatar username={initial || userName} avatar={""} size={height} />
         </div>
         <div style={{ maxWidth: maxUsernameLength + "px", overflow: "hidden", textOverflow: "ellipsis" }}>{userName}</div>
-        {teamName && <div className='fade-text' style={{ maxWidth: maxTeamLength + "px", overflow: "hidden", textOverflow: "ellipsis" }}>[{teamName}]</div>}
+        {teamName && <div className='fade-text' style={{ maxWidth: maxTeamLength + "px", overflow: "hidden", textOverflow: "ellipsis", textWrap: "nowrap" }}>[{teamName}]</div>}
     </div>
 }
 
