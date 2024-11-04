@@ -100,7 +100,7 @@ export function updateStats() {
                         userStat.winsAgainstBetterSeed += matchResult.filter(mr => mr.score && (mr.score < (playerMatchResult?.score || 0)) && mr.seed > tournament.getOpponentSeed(player.userId, bracket)).length
 
                     if (tournament.getSettings(match.bracket).type == BracketType.Duel && tournament.getSettings(match.bracket).last == Duel.LB) {
-                        if (match.id.s == Duel.LB && match.score[match.opponents.findIndex(o => o == tournament.getOpponentId(player))] == Math.max(...match.score.map(s => s || 0))) {
+                        if (match.id.s == Duel.LB && !match.isFinale && match.score[match.opponents.findIndex(o => o == tournament.getOpponentId(player))] == Math.max(...match.score.map(s => s || 0))) {
                             LBwins += 1
                         }
                     }
