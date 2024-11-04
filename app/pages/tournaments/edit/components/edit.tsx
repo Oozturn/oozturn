@@ -313,7 +313,7 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                                     <CustomSelect
                                         variable={tQualifSettings.groupSize}
                                         setter={(v: string) => handleQualifSettingsChange({ groupSize: Number(v), sizes: [Number(v)] })}
-                                        items={range(2, 8, 1).map(d => { return { label: String(d), value: d } })}
+                                        items={range(2, 64, 1).map(d => { return { label: String(d), value: d } })}
                                     />
                                 </div>
                                 <div className='is-flex align-center gap-5'>

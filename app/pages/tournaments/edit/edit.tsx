@@ -30,12 +30,10 @@ export async function action({ request }: ActionFunctionArgs) {
     const jsonData = await request.json()
     const tournamentId = jsonData.tournamentId as string
     const partialTournamentSettings = JSON.parse(jsonData.tournamentSettings) as Partial<TournamentSettings>
-    const partialTournamentBracketSettings = JSON.parse(jsonData.tournamentBracketSettings) as Partial<BracketSettings>[]
+    const tournamentBracketSettings = JSON.parse(jsonData.tournamentBracketSettings) as BracketSettings[]
     const partialTournamentProperties = JSON.parse(jsonData.tournamentProperties) as Partial<TournamentProperties>
     if ([TournamentStatus.Open, TournamentStatus.Balancing].includes(getTournament(tournamentId).getStatus())) {
-        partialTournamentBracketSettings.forEach((ptbs, index) => {
-            updateTournamentBracketSettings(tournamentId, index, ptbs)
-        });
+        updateTournamentBracketSettings(tournamentId, tournamentBracketSettings)
         updateTournamentSettings(tournamentId, partialTournamentSettings)
     }
     updateTournamentProperties(tournamentId, partialTournamentProperties)

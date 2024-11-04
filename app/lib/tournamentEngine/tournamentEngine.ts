@@ -41,7 +41,7 @@ interface TournamentSpecification {
 
 	updateProperties(partialProperties: Partial<TournamentProperties>): void
 	updateSettings(partialSettings: Partial<TournamentSettings>): void
-	updateBracketSettings(partialSettings: Partial<BracketSettings>, bracket?: number): void
+	updateBracketsSettings(bracketsSettings: BracketSettings[]): void
 
 	getPlayers(): Player[]
 	addPlayer(userId: string): void
@@ -183,11 +183,10 @@ export class TournamentEngine implements TournamentSpecification {
 			throw new Error(`Impossible to change settings: tournament ${this.id} already started.`)
 		this.settings = { ...this.settings, ...partialSettings }
 	}
-	public updateBracketSettings(partialSettings: Partial<BracketSettings>, bracket: number = this.activeBracket): void {
+	public updateBracketsSettings(bracketSettings: BracketSettings[]): void {
 		if (![TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status))
 			throw new Error(`Impossible to change settings: tournament ${this.id} already started.`)
-		const currentSettings = this.brackets[bracket].settings
-		this.brackets[bracket].settings = { ...currentSettings, ...partialSettings }
+		this.brackets = bracketSettings.map(bracketSetting => Bracket.create(bracketSetting))
 	}
 
 	public getPlayers(): Player[] {

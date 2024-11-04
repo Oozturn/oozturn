@@ -70,10 +70,10 @@ export function updateTournamentSettings(tournamentId: string, partialSettings: 
     EventUpdateTournamentSettings(tournamentId)
 }
 
-export function updateTournamentBracketSettings(tournamentId: string, bracket: number, partialSettings: Partial<BracketSettings>) {
+export function updateTournamentBracketSettings(tournamentId: string, settings: BracketSettings[]) {
     const tournament = global.tournaments.find(tournament => tournament.getId() == tournamentId)
     if (!tournament) throw new Error(`Tournament ${tournamentId} not found`)
-    tournament.updateBracketSettings(partialSettings, bracket)
+    tournament.updateBracketsSettings(settings)
     EventUpdateTournamentBracket(tournamentId)
 }
 
