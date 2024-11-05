@@ -427,7 +427,7 @@ function TeamTile({ team, seed, draggedPlayer, addPlayerToTeam, removePlayerFrom
                                         <div className="is-flex align-center gap-3">
                                             <div>Nom de l&apos;équipe : </div>
                                             <div>
-                                                <input className='input' type="text" placeholder="Nom de l'équipe" value={teamName} onChange={(e) => { setTeamName(e.target.value); }} />
+                                                <input className='input' maxLength={30} type="text" placeholder="Nom de l'équipe" value={teamName} onChange={(e) => { setTeamName(e.target.value); }} />
                                             </div>
                                         </div>
                                     </div>
