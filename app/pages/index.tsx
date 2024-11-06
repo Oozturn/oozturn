@@ -1,6 +1,5 @@
 import { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 import { Link } from "@remix-run/react"
-import React from "react"
 import { useGames } from "~/lib/components/contexts/GamesContext"
 import { useLan } from "~/lib/components/contexts/LanContext"
 import { useTournaments } from "~/lib/components/contexts/TournamentsContext"
@@ -58,9 +57,7 @@ export default function Index() {
                 </Link>
               }
               {tournaments.map(tournament =>
-                <React.Fragment key={tournament.id}>
-                  <IndexTournamentTile tournament={tournament} userId={me.id} game={games?.find(game => game.id == tournament.game)} />
-                </React.Fragment>
+                <IndexTournamentTile key={tournament.id} tournament={tournament} userId={me.id} game={games?.find(game => game.id == tournament.game)} />
               )}
             </div>
           </div>

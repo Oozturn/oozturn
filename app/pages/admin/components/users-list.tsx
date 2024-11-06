@@ -1,5 +1,5 @@
 import { useFetcher } from "@remix-run/react"
-import React, { useState } from "react"
+import { useState } from "react"
 import { Item, ItemParams, Menu, TriggerEvent, useContextMenu } from "react-contexify"
 import { useTournaments } from "~/lib/components/contexts/TournamentsContext"
 import { useUsers } from "~/lib/components/contexts/UsersContext"
@@ -103,32 +103,30 @@ export function UsersList() {
         <div className="UserTilesContainer is-flex-col p-0 m-0 is-scrollable pr-2">
             {/* <div className="is-flex align-center justify-center has-background-primary-accent fade-on-mouse-out is-clickable is-unselectable" style={{minHeight:"40px"}} {...clickorkey(() => setShowAddUsers(true))}>Ajouter des joueurs</div> */}
             {users && users.sort((a, b) => a.username.toLowerCase().localeCompare(b.username.toLowerCase())).map(user =>
-                <React.Fragment key={user.id}>
-                    <div className={`userTile is-flex-col is-clickable ${activeUser == user.id ? 'is-active' : ''}`} onMouseEnter={() => setHooveredUser(user.id)} onMouseLeave={() => setHooveredUser("")}>
-                        <div className="is-flex justify-space-between align-center">
-                            <div className="is-flex is-clickable grow" {...clickorkey(() => setActiveUser(activeUser == user.id ? '' : user.id))}>
-                                <UserTileRectangle userId={user.id} height={40} />
-                            </div>
-                            <SquareButton contentItems={[MoreSVG()]} height={40} show={hooveredUser == user.id} callback={(e: TriggerEvent) => {
-                                showMenu({
-                                    id: "usersMenu",
-                                    event: e,
-                                    props: {
-                                        user: user
-                                    }
-                                })
-                            }}
-                            />
+                <div key={user.id} className={`userTile is-flex-col is-clickable ${activeUser == user.id ? 'is-active' : ''}`} onMouseEnter={() => setHooveredUser(user.id)} onMouseLeave={() => setHooveredUser("")}>
+                    <div className="is-flex justify-space-between align-center">
+                        <div className="is-flex is-clickable grow" {...clickorkey(() => setActiveUser(activeUser == user.id ? '' : user.id))}>
+                            <UserTileRectangle userId={user.id} height={40} />
                         </div>
-                        <div className='userTooltip is-flex pl-3' {...clickorkey(() => setActiveUser(activeUser == user.id ? '' : user.id))}>
-                            <div className='is-flex-col'>
-                                <div>IP: {user.ips ? user.ips[0] : 'unknown'}</div>
-                                <div>Tournois: {tournaments?.filter(tournament => tournament.players.find(player => player.userId == user.id)).length || 0}</div>
-                                <div>Points: {leaderboard?.find(pscore => pscore.player.id == user.id)?.points || 0}</div>
-                            </div>
+                        <SquareButton contentItems={[MoreSVG()]} height={40} show={hooveredUser == user.id} callback={(e: TriggerEvent) => {
+                            showMenu({
+                                id: "usersMenu",
+                                event: e,
+                                props: {
+                                    user: user
+                                }
+                            })
+                        }}
+                        />
+                    </div>
+                    <div className='userTooltip is-flex pl-3' {...clickorkey(() => setActiveUser(activeUser == user.id ? '' : user.id))}>
+                        <div className='is-flex-col'>
+                            <div>IP: {user.ips ? user.ips[0] : 'unknown'}</div>
+                            <div>Tournois: {tournaments?.filter(tournament => tournament.players.find(player => player.userId == user.id)).length || 0}</div>
+                            <div>Points: {leaderboard?.find(pscore => pscore.player.id == user.id)?.points || 0}</div>
                         </div>
                     </div>
-                </React.Fragment>
+                </div>
             )}
         </div>
         <Menu id="usersMenu" animation="slide" >

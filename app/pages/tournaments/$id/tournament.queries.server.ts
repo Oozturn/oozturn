@@ -121,7 +121,7 @@ export function reorderTeams(tournamentId: string, oldIndex: number, newIndex: n
 export function addTeamToTournament(tournamentId: string, teamName: string) {
     try {
         const tournament = getTournament(tournamentId)
-        tournament.addTeam(teamName)
+        tournament.addTeam(teamName.slice(0, 30))
         EventUpdateTournamentInfo(tournamentId)
     } catch (error) {
         logger.error(`Error while trying to add team ${teamName} to tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
@@ -139,7 +139,7 @@ export function removeTeamFromTournament(tournamentId: string, teamName: string)
 export function renameTeam(tournamentId: string, oldTeamName: string, newTeamName: string) {
     try {
         const tournament = getTournament(tournamentId)
-        tournament.renameTeam(oldTeamName, newTeamName)
+        tournament.renameTeam(oldTeamName, newTeamName.slice(0, 30))
         EventUpdateTournamentInfo(tournamentId)
     } catch (error) {
         logger.error(`Error while trying to rename team ${oldTeamName}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
