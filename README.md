@@ -6,7 +6,7 @@ Manage your multi-tournament LAN without opening Excel
 
 ## Features
 
- ⚙️ Complete configuration from app interface  
+ ⚙️ Complete LAN configuration from app interface  
  ⚔️ Duels and FFA tournaments  
  🏆 Global tournament, with cutomizable points for each tournament  
  👤 Players management  
@@ -26,17 +26,19 @@ This app requires the LTS version of [NodeJS](https://nodejs.org). Then:
   You can get your token from [IGDB](https://api.igdb.com) website.
 
 - To run the server in dev mode run `npm run dev`
-- To run the server in production mode, build the application with `npm run build` then start the server with `npm run start`
+- To run the server in production mode, build the application with `npm run build` then start the server with `npm run start`. If you can't use HTTPS, make sure to set `"use_http_only": true` in config.json **before** building the application.
 - Open http://localhost:3000 with your browser to see the app
-- To access Admin panel, visit http://localhost:3000/admin
+- To access Admin panel after login, visit http://localhost:3000/admin
 
-## Demo V1
+## Demo
 
-Here is a [Demo](https://oozturn.bug38.com) running on a Raspberry Pi 4, itself hosting other stuff. V1 was less efficient than V2.
+Here is a [Demo](https://oozturn.bug38.com) running on a Raspberry Pi 4, itself hosting other stuff. This demo uses the Lan'Oween 2024 database.
 
 ## Used By
 
-This app was used for the Lan'Oween 2023 event, organized by the [Azerty team](https://www.team-azerty.com/)
+V1 was used for the Lan'Oween 2023 event, organized by the [Azerty team](https://www.team-azerty.com/).
+
+V2 was used for the Lan'Oween 2024 event.
 
 ## Credits
 
