@@ -44,10 +44,18 @@ export default function TournamentBracket() {
         const mainDiv = document.getElementsByTagName("main")[0]
         mainDiv.style.height = "unset"
         mainDiv.classList.remove("is-clipped")
+        
+        const navDiv = document.getElementsByTagName("nav")[0]
+        navDiv.style.display = "none"
+        
+        const footerDiv = document.getElementsByTagName("footer")[0]
+        footerDiv.classList.remove("is-flex")
+        footerDiv.style.display = "none"
+
     })
 
 
-    return <div className="p-4 is-relative">
+    return <div className="is-relative">
         {tournament.bracketsCount == 2 &&
             <div className="is-flex-row justify-center gap-3 p-2" style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 2 }} >
                 <div className={currentBracketView == 0 ? "has-text-weight-bold" : "fade-on-mouse-out is-clickable"} {...clickorkey(() => setCurrentBracketView(0))}>Poules</div>
