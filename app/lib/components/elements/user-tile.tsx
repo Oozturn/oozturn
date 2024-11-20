@@ -30,7 +30,7 @@ export function UserTileRectangle({ userId, colorClass, height, maxLength, showT
         maxLength = 2 * height
     const maxTeamLength = (maxLength - height) * 1 / 3
     const maxUsernameLength = showTeam ? (maxLength - height) * 2 / 3 : (maxLength - height) - 8
-    return <div key={user.id} className={`is-flex grow gap-1 align-center justify-stretch is-unselectable ${colorClass ? colorClass : ''}`} style={{ maxWidth: maxLength }}>
+    return <div key={user.id} className={`is-flex grow gap-1 align-center justify-stretch ${colorClass ? colorClass : ''}`} style={{ maxWidth: maxLength }}>
         {initial ?
             <AvatarComponent
                 useGravatar={false}

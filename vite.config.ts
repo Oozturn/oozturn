@@ -25,6 +25,7 @@ export default defineConfig({
         })
         route("tournaments/new", "pages/tournaments/new/new.tsx")
         route("tournaments/edit/:id", "pages/tournaments/edit/edit.tsx")
+        route("tournaments/:id/bracket", "pages/tournaments/$id/bracket/bracket.tsx")
         route("info", "pages/info/info.tsx")
         route("info/users", "pages/info/users/users.tsx")
         route(":otherPage", "pages/404.tsx")
