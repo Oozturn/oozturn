@@ -120,7 +120,7 @@ export default function AddGames() {
                 <div className='grow has-background-primary-level is-scrollable is-relative'>
                     {gameSearchResults.map(game =>
                         <div key={game.id} className={`selectable ${game.id == gameToConfigure?.id && 'is-active'} px-1 py-2 m-0 is-clickable is-flex align-center gap-2`} {...clickorkey(() => setGameToConfigure(game))}>
-                            <img className='is-full-height' src={`/igdb_image/t_cover_small/${game.cover}.jpg`} alt=""/>
+                            <img className='is-full-height' src={`https://images.igdb.com/igdb/image/upload/t_cover_small/${game.cover}.jpg`} alt=""/>
                             <div className='is-flex-col is-clipped' style={{}}>
                                 <div className='is-clipped' style={{ lineHeight: "1.5rem", textOverflow: "ellipsis" }}>{game.name}</div>
                                 {game.release && <div className='fade-text is-size-6' style={{ lineHeight: "1rem" }}>{game.release}</div>}
@@ -136,7 +136,7 @@ export default function AddGames() {
                     <div className='is-full-height is-flex-col align-center'>
                         <div className='is-title medium is-full-width'>Configuration du jeu</div>
                         <div className='is-flex align-center gap-3'>
-                            <img src={`/igdb_image/t_cover_small/${gameToConfigure.cover}.jpg`} alt="" style={{height: "8rem"}}/>
+                            <img src={`https://images.igdb.com/igdb/image/upload/t_cover_small/${gameToConfigure.cover}.jpg`} alt="" style={{height: "8rem"}}/>
                             <div className='is-flex-col justify-space-evenly is-full-height'>
                                 <div className='is-title medium'>{gameToConfigure.name}</div>
                                 <div className='fade-text'>{gameToConfigure.release}</div>
@@ -153,7 +153,7 @@ export default function AddGames() {
                                 <img
                                     key={pictureURL}
                                     className={`selectable is-clickable ${pictureURL == selectedImage ? 'is-active' : ''}`}
-                                    src={`/igdb_image/t_720p/${pictureURL}.jpg`}
+                                    src={`https://images.igdb.com/igdb/image/upload/t_720p/${pictureURL}.jpg`}
                                     alt="" {...clickorkey(() => setSelectedImage(selectedImage == pictureURL ? '' : pictureURL))}
                                     style={{height: "15rem"}}
                                 />

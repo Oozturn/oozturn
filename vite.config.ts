@@ -31,14 +31,5 @@ export default defineConfig({
         route("results", "pages/results/results.tsx")
       });
     },
-  }), tsconfigPaths()],
-  server: {
-    proxy: {
-      '/igdb_image': {
-        target: 'https://images.igdb.com/igdb/image/upload',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/igdb_image/, ''),
-      }
-    }
-  }
+  }), tsconfigPaths()]
 });

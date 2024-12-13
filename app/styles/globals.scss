@@ -34,7 +34,7 @@ $tournament-side-list-width: 350px;
     // Dark / Light mode
     --background-primary-level: #333539;
     --background-secondary-level: #4B4C50;
-    --generic-game-image: 'url(/../genericGameDark.jpg)';
+    --generic-game-image: 'url(/genericGameDark.jpg)';
     --text-color: #FFFFFF;
     --text-color-70: #FFFFFFB3;
     --toastify-icon-color-info: white !important;
@@ -547,7 +547,7 @@ textarea {
 a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-link:focus, .navbar-link:focus-within, .navbar-link:hover {
     color: unset;
 }
-.navbar-item.is-tab.active {
+.navbar-item.is-tab.is-active {
     border-bottom-color: var(--accent-primary-color);
     color: var(--accent-primary-color);
 }

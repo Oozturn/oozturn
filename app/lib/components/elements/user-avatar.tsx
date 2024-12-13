@@ -1,5 +1,3 @@
-"use server"
-
 import useLocalStorageState from "use-local-storage-state"
 import { BaseAvatar } from "../tools/base-avatar"
 import { accentsList } from "../data/themes"

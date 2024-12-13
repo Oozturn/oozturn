@@ -7,8 +7,8 @@ export interface Mode {
 }
 
 export const modesList: Mode[] = [
-    { name: "Dark", primary: "#333539", secondary: "#4B4C50", text: "#FFFFFF", genericGame: 'url(/../genericGameDark.jpg)' },
-    { name: "Light", primary: "#E5E5E5", secondary: "#F9F9F9", text: "#3A3A3A", genericGame: 'url(/../genericGameLight.jpg)' },
+    { name: "Dark", primary: "#333539", secondary: "#4B4C50", text: "#FFFFFF", genericGame: 'url(/genericGameDark.jpg)' },
+    { name: "Light", primary: "#E5E5E5", secondary: "#F9F9F9", text: "#3A3A3A", genericGame: 'url(/genericGameLight.jpg)' },
 ]
 
 export interface Accent {
