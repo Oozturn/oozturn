@@ -1,20 +1,20 @@
 {
     "security": {
-        "new_users_by_admin_only": true,
-        "authentication_needed": true,
-        "secure_users_password": true,
-        "use_http_only": false,
-        "admin_password": ""
+        "newUsersByAdmin": true,
+        "authentication": true,
+        "securePassword": true,
+        "useHttpOnly": false
     },
-    "igdb_api": {
-        "igdb_client_id": "",
-        "igdb_client_secret": ""
+    "credentials": {
+        "igdbClientId": "",
+        "igdbClientSecret": "",
+        "adminPasswordHash": ""
     },
     "notifications": {
-        "notify_all_users_on_tournament_start_stop": true
+        "tournamentStartStop": true
     },
     "autorefresh": {
-        "tournaments_list": true,
-        "users_list": true
+        "tournaments": true,
+        "users": true
     }
 }

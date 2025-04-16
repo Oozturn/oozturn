@@ -3,7 +3,7 @@ import { Form, MetaFunction, useActionData } from "@remix-run/react"
 import { requireUserLoggedIn } from "~/lib/session.server"
 import { adminLogin } from "./admin-login.queries.server"
 import { getLan } from "~/lib/persistence/lan.server"
-import lanConfig from "config.json"
+import { getAdminPasswordHash } from "~/lib/settings.server"
 import { useEffect, useState } from "react"
 import { notifyError } from "~/lib/components/notification"
 import { EyeSVG } from "~/lib/components/data/svg-container"
@@ -32,7 +32,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function AdminLogin() {
-    if (!lanConfig.security.admin_password) return <AdminLoginNoPassword />
+    if (!getAdminPasswordHash()) return <AdminLoginNoPassword />
     return <AdminLoginForm />
 }
 

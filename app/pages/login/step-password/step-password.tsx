@@ -6,7 +6,7 @@ import { CustomButton } from "~/lib/components/elements/custom-button"
 import { getLan } from "~/lib/persistence/lan.server"
 import { checkPassword, hasPassword } from "~/lib/persistence/password.server"
 import { getUserId, updateSessionWithPasswordAuth } from "~/lib/session.server"
-import lanConfig from "config.json"
+import { getSettings } from "~/lib/settings.server"
 import { notifyError } from "~/lib/components/notification"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -16,7 +16,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  if (!lanConfig.security.authentication_needed) {
+  if (!getSettings().security.authentication) {
     throw redirect('/login')
   }
 

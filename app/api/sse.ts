@@ -4,7 +4,7 @@ import { emitter } from "~/lib/emitter.server"
 import { EVENT_UPDATE_LAN, EVENT_UPDATE_TOURNAMENT, EVENT_UPDATE_TOURNAMENTS, EVENT_UPDATE_USERS, notificationProps, TOURNAMENT_UPDATE_TYPES, tournamentUpdateEventProps } from "~/lib/events/types"
 import { getTournament } from "~/lib/persistence/tournaments.server"
 import { getUserId, requireUserLoggedIn } from "~/lib/session.server"
-import lanConfig from "config.json"
+import { getSettings } from "~/lib/settings.server"
 
 export const SSE_NOTIFICATION_MESSAGE_EVENT = "notificationMessage"
 
@@ -16,7 +16,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         function handleUpdateTournament({ updateType, tournamentId }: tournamentUpdateEventProps) {
             const tournament = getTournament(tournamentId)
             if (
-                lanConfig.notifications.notify_all_users_on_tournament_start_stop ||
+                getSettings().notifications.tournamentStartStop ||
                 (userId && tournament.getPlayers().map(p => p.userId).includes(userId))
             ) {
                 if (updateType == TOURNAMENT_UPDATE_TYPES.START)

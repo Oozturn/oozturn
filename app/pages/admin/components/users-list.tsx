@@ -10,7 +10,7 @@ import { User } from "~/lib/types/user"
 import { AdminIntents } from "../admin"
 import { clickorkey } from "~/lib/utils/clickorkey"
 import { useRevalidateOnUsersUpdate } from "~/api/sse.hook"
-import lanConfig from "config.json"
+import { useSettings } from "~/lib/components/contexts/SettingsContext"
 import { MoreSVG, SmallCrossSVG } from "~/lib/components/data/svg-container"
 
 export function UsersList() {
@@ -20,6 +20,7 @@ export function UsersList() {
     const [newUsername, setNewUsername] = useState("")
     const { show: showMenu } = useContextMenu()
     const users = useUsers()
+    const settings = useSettings()
     const tournaments = useTournaments()
     useRevalidateOnUsersUpdate()
 
@@ -131,7 +132,7 @@ export function UsersList() {
         </div>
         <Menu id="usersMenu" animation="slide" >
             <Item id="renameUser" onClick={handleMenuItemClick}>Renommer</Item>
-            {lanConfig.security.authentication_needed &&
+            {settings.security.authentication &&
                 <Item id="resetPassword" onClick={handleMenuItemClick}>Réinitialiser le mot de passe</Item>
             }
             <Item id="deleteUser" onClick={handleMenuItemClick}>Supprimer</Item>

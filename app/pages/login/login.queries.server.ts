@@ -1,6 +1,6 @@
 import { json, redirect } from "@remix-run/node"
 import { logger } from "~/lib/logging/logging"
-import lanConfig from "config.json"
+import { getSettings } from "~/lib/settings.server"
 import { getUserByUsername, registerNewUser, updateUser } from "~/lib/persistence/users.server"
 import { createSessionWithUser } from "~/lib/session.server"
 
@@ -20,7 +20,7 @@ export async function doLogin(rawUsername: string) {
         updateUser(user.id, {isAdmin: false})
         logger.info({ username: username }, `${username} logged in`)
     }
-    else if (lanConfig.security.new_users_by_admin_only) {
+    else if (getSettings().security.newUsersByAdmin) {
         return json({ error: "Utilisateur inconnu." })
     } else {
         logger.info({ username: username }, `New user ${username} logged in`)
@@ -28,7 +28,7 @@ export async function doLogin(rawUsername: string) {
     }
 
     const cookie = await createSessionWithUser(user)
-    return redirect(lanConfig.security.authentication_needed ? "step-password" : "/", {
+    return redirect(getSettings().security.authentication ? "step-password" : "/", {
         headers: {
             "Set-Cookie": cookie
         }
