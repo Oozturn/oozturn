@@ -1,6 +1,6 @@
 import { json, redirect } from "@remix-run/node"
 import { logger } from "~/lib/logging/logging"
-import { getUserByUsername, registerNewUser, updateUser } from "~/lib/persistence/users.server"
+import { getUserByUsername, getUsers, registerNewUser, updateUser } from "~/lib/persistence/users.server"
 import { createSessionWithUser } from "~/lib/session.server"
 
 export async function doLogin(rawUsername: string) {
@@ -19,7 +19,7 @@ export async function doLogin(rawUsername: string) {
         updateUser(user.id, {isAdmin: false})
         logger.info({ username: username }, `${username} logged in`)
     }
-    else if (process.env.NEW_USERS_BY_ADMIN === "true") {
+    else if (process.env.NEW_USERS_BY_ADMIN === "true" && getUsers().length > 0) {
         return json({ error: "Utilisateur inconnu." })
     } else {
         logger.info({ username: username }, `New user ${username} logged in`)

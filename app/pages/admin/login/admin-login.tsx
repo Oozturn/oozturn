@@ -20,7 +20,7 @@ export async function loader({
     adminLoginNoPassword: boolean
 }> {
     await requireUserLoggedIn(request)
-    return { lanName: getLan().name, adminLoginNoPassword: !process.env.ADMIN_PASSWORD_HASH || process.env.ADMIN_PASSWORD_HASH === '' ? true : false }
+    return { lanName: getLan().name, adminLoginNoPassword: !process.env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD === '' ? true : false }
 }
 
 

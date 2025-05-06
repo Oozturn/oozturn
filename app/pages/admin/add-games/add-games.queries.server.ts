@@ -103,8 +103,8 @@ async function downloadFile(url: string, targetFile: string) {
 
 async function getIGDBToken() {
     const rawRes = await fetch(
-        "https://id.twitch.tv/oauth2/token?client_id=" + process.env.IGDB_CLIENT_ID || ""
-        + "&client_secret=" + process.env.IGDB_CLIENT_SECRET || ""
+        "https://id.twitch.tv/oauth2/token?client_id=" + (process.env.IGDB_CLIENT_ID || "")
+        + "&client_secret=" + (process.env.IGDB_CLIENT_SECRET || "")
         + "&grant_type=client_credentials",
         { method: 'POST', redirect: 'follow' })
     if (!rawRes.ok) return null

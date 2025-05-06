@@ -6,12 +6,12 @@ Manage your multi-tournament LAN without opening Excel
 
 ## Features
 
- ⚙️ Complete LAN configuration from app interface  
- ⚔️ Duels and FFA tournaments  
- 🏆 Global tournament, with cutomizable points for each tournament  
- 👤 Players management  
- 🎯 Achievements  
- 🏅 Leaderboard for both players and teams  
+ ⚙️ Complete LAN configuration from app interface
+ ⚔️ Duels and FFA tournaments
+ 🏆 Global tournament, with cutomizable points for each tournament
+ 👤 Players management
+ 🎯 Achievements
+ 🏅 Leaderboard for both players and teams
 
 ## Getting Started
 
@@ -21,34 +21,30 @@ This app can be used either using Docker or manually.
 
 OOZTURN accepts the following settings, to set with environment variables:
 
-Environment variables | Usage | Default value    
----|---|---
-NEW_USERS_BY_ADMIN | Only admins can register new users | true
-AUTHENTICATION_NEEDED | A password is needed for the users to log-in | true
-SECURE_PASSWORD | Users passwords must be of at least 8 character and contain:<br>- a lowercase<br>- an uppercase<br>- a number<br>- a special character | true
-USE_HTTP_ONLY | Allow to use HTTP environment (useful for LANs for exemple) | false
-NOTIFY_TOURNAMENT_CHANGE | Notify concerned users when a tournament gets an update | true
-AUTO_REFRESH_TOURNAMENTS | Refresh tournaments list dynamically | true
-AUTO_REFRESH_USERS | Refresh users list dynamically | true
-IGDB_CLIENT_ID | IGDB API client id to fetch games covers | empty
-IGDB_CLIENT_SECRET | IGDB API client secret | empty
-ADMIN_PASSWORD_HASH | Admin password hash. You can get it from  [bcrypt](https://www.bcrypt.fr/) | empty
-
-**ADMIN_PASSWORD_HASH is mandatory to enable the admin panel.** Without an admin password, admin pages can't be accessed.
-
+| Environment variables    | Usage                                                                                                                                          | Default value |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| NEW_USERS_BY_ADMIN       | Only admins can register new users. This is ignored for the first account to be created.                                                       | true          |
+| AUTHENTICATION_NEEDED    | A password is needed for the users to log-in                                                                                                   | true          |
+| SECURE_PASSWORD          | Users passwords must be of at least 8 character and contain:<br />- a lowercase<br />- an uppercase<br />- a number<br />- a special character | true          |
+| USE_HTTP_ONLY            | Allow to use HTTP environment (useful for LANs for exemple)                                                                                    | false         |
+| NOTIFY_TOURNAMENT_CHANGE | Notify concerned users when a tournament gets an update                                                                                        | true          |
+| AUTO_REFRESH_TOURNAMENTS | Refresh tournaments list dynamically                                                                                                           | true          |
+| AUTO_REFRESH_USERS       | Refresh users list dynamically                                                                                                                 | true          |
+| IGDB_CLIENT_ID           | IGDB API client id to fetch games covers                                                                                                       | empty         |
+| IGDB_CLIENT_SECRET       | IGDB API client secret                                                                                                                         | empty         |
+| ADMIN_PASSWORD           | Admin password. This parameter is mandatory to enable the admin panel. Without it, admin pages can't be accessed.                              | empty         |
 
 ### Docker
 
 You can run the following command to start your OOZTURN instance:
 
 ```
-Docker run -p <PORT>:3000 -e ADMIN_PASSWORD_HASH <PASSWORD_HASH> bug38/oozturn
+Docker run -p <PORT>:3000 -e ADMIN_PASSWORD=<PASSWORD> bug38/oozturn
 ```
 
 If you want to access your DB from the host, or reuse an existing one, you can mount `/app/db`.
 
 To access uploads (users avatars, igdb covers, lan Map) you can mount `/app/uploads`.
-
 
 ### Manually
 
@@ -56,7 +52,7 @@ This app requires the LTS version of [NodeJS](https://nodejs.org). Then:
 
 - Clone this repository and `cd` into it
 - Install dependencies with `npm install`
-- create a **.env** file and fill it with the required settings from above. 
+- create a **.env** file and fill it with the required settings from above.
 - To run the server in dev mode run `npm run dev`
 - To run the server in production mode, build the application with `npm run build` then start the server with `npm run start`.
 - Open http://localhost:3000 with your browser to see the app
