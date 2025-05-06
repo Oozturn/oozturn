@@ -1,6 +1,5 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction, json, redirect } from "@remix-run/node"
 import { Form, useActionData, useLoaderData, useLocation } from "@remix-run/react"
-import { getSettings } from "~/lib/settings.server"
 import { getLan } from "~/lib/persistence/lan.server"
 import { storePassword } from "~/lib/persistence/password.server"
 import { getUserFromRequest, getUserId, updateSessionWithPasswordAuth } from "~/lib/session.server"
@@ -18,7 +17,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  if (!getSettings().security.authentication) {
+  if (process.env.AUTHENTICATION === 'false') {
     throw redirect('/login')
   }
 

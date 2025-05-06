@@ -2,12 +2,11 @@ import { json, redirect } from "@remix-run/node"
 import { logger } from "~/lib/logging/logging"
 import { updateUser } from "~/lib/persistence/users.server"
 import { getUserId, updateSessionWithAdminElevation } from "~/lib/session.server"
-import { getAdminPasswordHash } from "~/lib/settings.server"
 import { compareHash } from "~/lib/persistence/password.server"
 
 export async function adminLogin(rawPassword: string, request: Request) {
     const password = rawPassword.trim()
-    if (!compareHash(password, getAdminPasswordHash())) {
+    if (!compareHash(password, process.env.ADMIN_PASSWORD_HASH || '')) {
         logger.warn(`${await getUserId(request)} tried to get admin rights with wrong password`)
         return json({ error: "Wrong password." }, 400)
     }

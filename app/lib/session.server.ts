@@ -1,7 +1,6 @@
 import { createCookieSessionStorage, redirect } from "@remix-run/node"
 import { getUserById } from "./persistence/users.server"
 import { User } from "./types/user"
-import { getSettings } from "./settings.server"
 import os from 'os'
 
 const sessionSecret = os.hostname() + os.cpus()[0].model
@@ -17,7 +16,7 @@ const secureStorage =
                 path: "/",
                 sameSite: "lax",
                 secrets: [sessionSecret],
-                secure: !getSettings().security.useHttpOnly && process.env.NODE_ENV === "production",
+                secure: !(process.env.USE_HTTP_ONLY === 'true') && process.env.NODE_ENV === "production",
             },
         }
     )
@@ -55,7 +54,7 @@ export async function updateSessionWithPasswordAuth(request: Request) {
 
 export async function isUserLoggedIn(request: Request) {
     const session = await getSession(request)
-    if (getSettings().security.authentication) {
+    if (process.env.AUTHENTICATION === "true") {
         return session.has("userId")
             && session.get("auth") === "password"
     }

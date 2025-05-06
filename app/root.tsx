@@ -16,7 +16,6 @@ import { StatsContext } from "./lib/components/contexts/StatsContext"
 import Navbar from "./lib/components/layout/navbar"
 import { GetUserTheme, useIconUrl } from "./lib/components/tools/user-theme"
 import { getGames } from "./lib/persistence/games.server"
-import { getSettings } from "./lib/settings.server"
 import { getLan } from "./lib/persistence/lan.server"
 import { getTournaments } from "./lib/persistence/tournaments.server"
 import { getUsers } from "./lib/persistence/users.server"
@@ -44,9 +43,24 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<{
   games?: Game[]
   stats?: Statistics
 }> {
+  const settings: Settings = {
+    autoRefresh: {
+      tournaments: process.env.AUTO_REFRESH_TOURNAMENTS === "false" ? false : true,
+      users: process.env.AUTO_REFRESH_USERS === "false" ? false : true
+    },
+    security: {
+      newUsersByAdmin: process.env.NEW_USERS_BY_ADMIN === "false" ? false : true,
+      authentication: process.env.AUTHENTICATION === "false" ? false : true,
+      securePassword: process.env.SECURE_PASSWORD === "false" ? false : true,
+      useHttpOnly: process.env.USE_HTTP_ONLY === "true" ? true : false,
+    },
+    notifications: {
+      tournamentStartStop: process.env.NOTIFICATION_TOURNAMENT_CHANGE === "false" ? false : true,
+    }
+  }
   if (await isUserLoggedIn(request)) {
     return {
-      settings: getSettings(),
+      settings: settings,
       lan: getLan(),
       user: await getUserFromRequest(request),
       users: getUsers(),
@@ -56,7 +70,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<{
     }
   } else {
     return {
-      settings: getSettings(),
+      settings: settings,
       lan: getLan(),
       tournaments: [],
       users: []
