@@ -14,7 +14,7 @@ RUN npm ci --include=dev
 # Build application
 COPY ./app /app/app
 COPY ./public /app/public
-COPY ./config.json ./server.js ./tsconfig.json ./vite.config.ts /app/
+COPY ./server.js ./tsconfig.json ./vite.config.ts /app/
 RUN npm run build
 
 # Final stage for app image
@@ -27,19 +27,7 @@ RUN npm ci --omit=dev && npm install @img/sharp-linuxmusl-x64 @img/sharp-libvips
 
 # Copy built application and server files
 COPY --from=build /app/build /app/build
-COPY --from=build /app/config.json /app/server.js /app/
-
-# Application environment variables base values
-ENV NEW_USERS_BY_ADMIN='true'
-ENV AUTHENTICATION='true'
-ENV SECURE_PASSWORD='true'
-ENV USE_HTTP_ONLY='false'
-ENV NOTIFICATION_TOURNAMENT_CHANGE='true'
-ENV AUTO_REFRESH_TOURNAMENTS='true'
-ENV AUTO_REFRESH_USERS='true'
-ENV IGDB_CLIENT_ID=''
-ENV IGDB_CLIENT_SECRET=''
-ENV ADMIN_PASSWORD=''
+COPY --from=build /app/server.js /app/
 
 # Start the server
 EXPOSE 3000
