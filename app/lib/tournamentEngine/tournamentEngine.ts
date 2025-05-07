@@ -85,8 +85,8 @@ export class TournamentEngine implements TournamentSpecification {
 	private settings!: TournamentSettings
 
 	private players!: Player[]
-	private playersMap: Map<string, Player> = new Map()
 	private teams!: Team[]
+	private opponentsMap: Map<string, Player | Team> = new Map()
 
 	private activeBracket!: number
 	private brackets!: Bracket[]
@@ -117,8 +117,8 @@ export class TournamentEngine implements TournamentSpecification {
 		tournament.settings = tournamentStorage.settings
 		tournament.status = tournamentStorage.status
 		tournament.players = tournamentStorage.players
-		tournament.playersMap = new Map(tournament.players.map(player => [player.userId, player]))
 		tournament.teams = tournamentStorage.teams
+		tournament.opponentsMap = new Map((tournament.settings.useTeams ? tournament.teams : tournament.players).map(opponent => ['name' in opponent ? opponent.name : opponent.userId, opponent]))
 		tournament.activeBracket = tournamentStorage.activeBracket
 		tournament.brackets = tournamentStorage.brackets.map(bracket => Bracket.fromStorage(bracket))
 		return tournament
@@ -182,6 +182,7 @@ export class TournamentEngine implements TournamentSpecification {
 		if (![TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status))
 			throw new Error(`Impossible to change settings: tournament ${this.id} already started.`)
 		this.settings = { ...this.settings, ...partialSettings }
+		this.opponentsMap = new Map((this.settings.useTeams ? this.teams : this.players).map(opponent => ['name' in opponent ? opponent.name : opponent.userId, opponent]))
 	}
 	public updateBracketsSettings(bracketSettings: BracketSettings[]): void {
 		if (![TournamentStatus.Open, TournamentStatus.Balancing].includes(this.status))
@@ -192,20 +193,25 @@ export class TournamentEngine implements TournamentSpecification {
 	public getPlayers(): Player[] {
 		return this.players
 	}
+	private getPlayer(userId: string): Player | undefined {
+		return this.players.find(player => player.userId == userId)
+	}
 	public addPlayer(userId: string): void {
-		if (this.playersMap.has(userId)) {
+		if (this.getPlayer(userId)) {
 			throw new Error(`Player ${userId} already in tournament ${this.id}`)
 		}
 		const player = { userId: userId, isForfeit: false }
 		this.players.push(player)
-		this.playersMap.set(userId, { userId: userId, isForfeit: false })
+		if (!this.settings.useTeams)
+			this.opponentsMap.set(userId, player)
 	}
 	public removePlayer(userId: string): void {
 		const index = this.players.findIndex(player => player.userId == userId)
 		if (index == -1)
 			throw new Error(`Player ${userId} not found in tournament ${this.id}`)
 		const deletedPlayer = this.players.splice(index, 1)
-		this.playersMap.delete(deletedPlayer[0].userId)
+		if (!this.settings.useTeams)
+			this.opponentsMap.delete(deletedPlayer[0].userId)
 		const team = this.teams.find(team => team.members.includes(userId))
 		if (team)
 			team.members.splice(team.members.findIndex(m => m == userId), 1)
@@ -221,27 +227,36 @@ export class TournamentEngine implements TournamentSpecification {
 	public getTeams(): Team[] {
 		return this.teams
 	}
+	private getTeam(teamName: string): Team | undefined {
+		return this.teams.find(team => team.name == teamName)
+	}
 	public addTeam(teamName: string): void {
-		if (this.teams.find(team => team.name == teamName))
+		if (this.getTeam(teamName))
 			throw new Error(`Team ${teamName} already exists in tournament ${this.id}`)
-		this.teams.push({ name: teamName, members: [] })
+		const team = { name: teamName, members: [], isForfeit: false }
+		this.teams.push(team)
+		if (this.settings.useTeams)
+			this.opponentsMap.set(teamName, team)
 	}
 	public removeTeam(teamName: string): void {
 		const index = this.teams.findIndex(team => team.name == teamName)
 		if (index == -1)
 			throw new Error(`Team ${teamName} not found in tournament ${this.id}`)
 		this.teams.splice(index, 1)
+		this.opponentsMap.delete(teamName)
 	}
 	public renameTeam(teamName: string, newTeamName: string): void {
-		const team = this.teams.find(team => team.name == teamName)
+		const team = this.getTeam(teamName)
 		if (!team)
 			throw new Error(`Team ${teamName} not found in tournament ${this.id}`)
 		team.name = newTeamName
+		this.opponentsMap.set(newTeamName, team)
+		this.opponentsMap.delete(teamName)
 	}
 	public addPlayerToTeam(teamName: string, userId: string): void {
-		if (!this.playersMap.has(userId))
+		if (!this.getPlayer(userId))
 			this.addPlayer(userId)
-		const team = this.teams.find(team => team.name == teamName)
+		const team = this.getTeam(teamName)
 		if (!team)
 			throw new Error(`Team ${teamName} not found in tournament ${this.id}`)
 		this.removePlayerFromTeams(userId)
@@ -308,6 +323,9 @@ export class TournamentEngine implements TournamentSpecification {
 			this.teams = this.teams.filter(team => team.members.length > 0)
 			this.players = this.players.filter(player => this.teams.flatMap(team => team.members).includes(player.userId))
 		}
+		// resetting forfeit status in case of a re-run
+		this.players.forEach(player => player.isForfeit = false)
+		this.teams.forEach(team => team.isForfeit = false)
 		const opponents = this.settings.useTeams ? this.teams : this.players
 		this.brackets[0].start(opponents)
 		this.status = TournamentStatus.Running
@@ -409,12 +427,18 @@ export class TournamentEngine implements TournamentSpecification {
 
 
 	public toggleForfeitPlayer(userId: string): void {
-		const player = this.playersMap.get(userId)
+		const player = this.getPlayer(userId)
 		if (!player) {
 			throw new Error(`Player ${userId} not found`)
 		}
 		player.isForfeit = !player.isForfeit
-		if (player.isForfeit && !this.settings.useTeams) {
+		if (this.settings.useTeams) {
+			const team = this.teams.find(team => team.members.includes(userId))
+			if (team) {
+				team.isForfeit = team.members.every(member => this.getPlayer(member)!.isForfeit)
+			}
+		}
+		if (player.isForfeit) {
 			this.searchForMatchToBeCompleted()
 		}
 	}
@@ -453,15 +477,15 @@ export class TournamentEngine implements TournamentSpecification {
 	}
 
 	private shouldDuelMatchBeCompleted(match: Match): boolean {
-		const matchPlayers = match.opponents.filter(opponent => opponent != undefined)
-			.map(opponent => this.playersMap.get(opponent!))
-		const forfeitedPlayer = matchPlayers.find(player => player?.isForfeit)
-		return !!forfeitedPlayer
+		const matchOpponents = match.opponents.filter(opponent => opponent != undefined)
+			.map(opponent => this.opponentsMap.get(opponent!))
+		const forfeitedOpponent = matchOpponents.find(opponent => opponent?.isForfeit)
+		return !!forfeitedOpponent
 	}
 
 	private completeDuelMatch(match: Match) {
 		// Don't take into account ff players' scores
-		const usableScores = match.opponents.map(opponent => this.playersMap.get(opponent!))
+		const usableScores = match.opponents.map(opponent => this.opponentsMap.get(opponent!))
 			.map((opponent, index) => opponent!.isForfeit ? undefined : match.score[index])
 			.filter((_, index) => match.score[index] != undefined) as number[]
 		let maxScore = usableScores.length ? Math.max(...usableScores) : 0
@@ -469,35 +493,35 @@ export class TournamentEngine implements TournamentSpecification {
 
 		const lowerScoreIsBetter = this.brackets[match.bracket].settings.lowerScoreIsBetter
 
-		const unscoredMatchPlayers = match.opponents.filter(opponent => opponent != undefined)
-			.map(opponent => this.playersMap.get(opponent!))
+		const unscoredMatchOpponents = match.opponents.filter(opponent => opponent != undefined)
+			.map(opponent => this.opponentsMap.get(opponent!))
 			.filter((opponent, index) => match.score[index] == undefined || opponent!.isForfeit) // rewrite forfeit scores
-		unscoredMatchPlayers.forEach(opponent => {
+		unscoredMatchOpponents.forEach(opponent => {
 			if (lowerScoreIsBetter) {
-				this.internalScore(match.id, opponent!.userId, opponent?.isForfeit ? maxScore + 1 : 0)
+				this.internalScore(match.id, getOpponentId(opponent!), opponent?.isForfeit ? maxScore + 1 : 0)
 				maxScore += 1
 			} else {
-				this.internalScore(match.id, opponent!.userId, opponent?.isForfeit ? minScore - 1 : 0)
+				this.internalScore(match.id, getOpponentId(opponent!), opponent?.isForfeit ? minScore - 1 : 0)
 				minScore -= 1
 			}
 		})
 	}
 
 	private shouldFFAMatchBeCompleted(match: Match): boolean {
-		const ffPlayers = match.opponents.map(opponent => this.playersMap.get(opponent!))
+		const ffOpponent = match.opponents.map(opponent => this.opponentsMap.get(opponent!))
 			.filter(opponent => opponent!.isForfeit)
-		if (ffPlayers.length == match.opponents.length - 1) return true
-		const scoredMatchPlayers = match.opponents.filter(opponent => opponent != undefined)
+		if (ffOpponent.length == match.opponents.length - 1) return true
+		const scoredMatchOpponents = match.opponents.filter(opponent => opponent != undefined)
 			.filter((_, index) => match.score[index] != undefined)
-			.map(opponent => this.playersMap.get(opponent!))
+			.map(opponent => this.opponentsMap.get(opponent!))
 			.filter(opponent => !opponent!.isForfeit)
-		if (ffPlayers.length + scoredMatchPlayers.length == match.opponents.length) return true
+		if (ffOpponent.length + scoredMatchOpponents.length == match.opponents.length) return true
 		return false
 	}
 
 	private completeFFAMatch(match: Match) {
-		// Don't take into account ff players' scores
-		const usableScores = match.opponents.map(opponent => this.playersMap.get(opponent!))
+		// Don't take into account ff opponents' scores
+		const usableScores = match.opponents.map(opponent => this.opponentsMap.get(opponent!))
 			.map((opponent, index) => opponent!.isForfeit ? undefined : match.score[index])
 			.filter((_, index) => match.score[index] != undefined) as number[]
 		let maxScore = usableScores.length ? Math.max(...usableScores) : 0
@@ -505,15 +529,15 @@ export class TournamentEngine implements TournamentSpecification {
 
 		const lowerScoreIsBetter = this.brackets[match.bracket].settings.lowerScoreIsBetter
 
-		const unscoredMatchPlayers = match.opponents.filter(opponent => opponent != undefined)
-			.map(opponent => this.playersMap.get(opponent!))
+		const unscoredMatchOpponents = match.opponents.filter(opponent => opponent != undefined)
+			.map(opponent => this.opponentsMap.get(opponent!))
 			.filter((opponent, index) => match.score[index] == undefined || opponent!.isForfeit) // rewrite forfeit scores
-		unscoredMatchPlayers.forEach(opponent => {
+		unscoredMatchOpponents.forEach(opponent => {
 			if (lowerScoreIsBetter) {
-				this.internalScore(match.id, opponent!.userId, opponent?.isForfeit ? maxScore + 1 : 0)
+				this.internalScore(match.id, getOpponentId(opponent!), opponent?.isForfeit ? maxScore + 1 : 0)
 				maxScore += 1
 			} else {
-				this.internalScore(match.id, opponent!.userId, opponent?.isForfeit ? minScore - 1 : 0)
+				this.internalScore(match.id, getOpponentId(opponent!), opponent?.isForfeit ? minScore - 1 : 0)
 				minScore -= 1
 			}
 		})
@@ -543,7 +567,7 @@ export class TournamentEngine implements TournamentSpecification {
 			bracketResults.forEach((res, index) => {
 				const concernedUsers: string[] = []
 				if (this.settings.useTeams) {
-					const concernedPlayers = this.teams.find(team => team.name == res.id)?.members
+					const concernedPlayers = this.getTeam(res.id)?.members
 					if (concernedPlayers) concernedUsers.push(...concernedPlayers)
 				} else {
 					concernedUsers.push(res.id)

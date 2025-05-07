@@ -79,6 +79,7 @@ export interface Result {
 
 export interface Team {
 	name: string
+	isForfeit: boolean
 	members: string[]
 }
 

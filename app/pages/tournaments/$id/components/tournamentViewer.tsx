@@ -307,6 +307,7 @@ function MatchTile({ matchId }: { matchId: Id }) {
     const fetcher = useFetcher()
     const { hightlightOpponent, setHightlightOpponent } = useContext(HightlightOpponentContext)
 
+    const ffOpponentsIds = [...tournament.players.filter(p => p.isForfeit).map(p => p.userId), ...tournament.teams.filter(t => t.isForfeit).map(t => t.name)]
     const userTeam = tournament.teams.find(team => team.members.includes(user.id))
 
     const match = tournament.matches.find(match => match.id == matchId)
@@ -331,8 +332,6 @@ function MatchTile({ matchId }: { matchId: Id }) {
         }
         return qPlayers
     }()
-
-    const ffPlayerIds = tournament.players.filter(p => p.isForfeit).map(p => p.userId)
 
     const score = (mId: Id, opponent: string, score: number) => {
         fetcher.submit(
@@ -390,7 +389,7 @@ function MatchTile({ matchId }: { matchId: Id }) {
                             :
                             <FakeUserTileRectangle userName="Unknown" initial="?" maxLength={245} />
                         }
-                        {canEditScore && !ffPlayerIds.includes(opponentId!) ?
+                        {canEditScore && !ffOpponentsIds.includes(opponentId!) ?
                             <DebouncedInputNumber name="score"
                                 className="threeDigitsWidth has-text-centered"
                                 defaultValue={opponentScore}
@@ -398,7 +397,7 @@ function MatchTile({ matchId }: { matchId: Id }) {
                                 debounceTimeout={3000}
                             />
                             :
-                            <div className="has-text-centered" style={{ width: "2.5rem" }}>{ffPlayerIds.includes(opponentId!) ? "F" : opponentScore != undefined ? opponentScore : ""}</div>
+                            <div className="has-text-centered" style={{ width: "2.5rem" }}>{ffOpponentsIds.includes(opponentId!) ? "F" : opponentScore != undefined ? opponentScore : ""}</div>
                         }
                         {isFFA &&
                             <div className={`threeDigitsWidth has-text-centered ${((tournament.bracketsCount == 2 && match.bracket == 0) ?
@@ -431,7 +430,7 @@ function GroupStageMatchTile({ matchIds }: { matchIds: Id[] }) {
         )
     }
 
-    const ffPlayerIds = tournament.players.filter(p => p.isForfeit).map(p => p.userId)
+    const ffOpponentsIds = [...tournament.players.filter(p => p.isForfeit).map(p => p.userId), ...tournament.teams.filter(t => t.isForfeit).map(t => t.name)]
     const userTeam = tournament.teams.find(team => team.members.includes(user.id))
 
     const matches = matchIds.map(id => tournament.matches.find(match => match.id == id))
@@ -475,22 +474,15 @@ function GroupStageMatchTile({ matchIds }: { matchIds: Id[] }) {
                             )
 
                         return <div key={IdToString(match.id) + '-' + String(index)} className="is-flex-row align-end justify-space-between gap-2" onMouseEnter={() => setHightlightOpponent(opponentId || "")} onMouseLeave={() => setHightlightOpponent("")}>
-                            {canEditScore && !ffPlayerIds.includes(opponentId!) ?
+                            {canEditScore && !ffOpponentsIds.includes(opponentId!) ?
                                 <DebouncedInputNumber name="score"
                                     className="threeDigitsWidth has-text-centered"
                                     defaultValue={opponentScore}
                                     setter={(v: number) => { score(match.id, opponentId || "", v) }}
                                     debounceTimeout={3000}
                                 />
-                                // <input type="number" name="score"
-                                //     className="threeDigitsWidth has-text-centered"
-                                //     defaultValue={opponentScore}
-                                //     onChange={(event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-                                //         score(match.id, opponentId || "", Number(event.target.value))
-                                //     }}
-                                // />
                                 :
-                                <div className={`has-text-centered ${opponentScore != undefined ? "" : "fade-on-mouse-out"}`} style={{ width: "2.5rem", height: 32 }}>{opponentScore != undefined ? ffPlayerIds.includes(opponentId!) ? "F" : opponentScore : "?"}</div>
+                                <div className={`has-text-centered ${opponentScore != undefined ? "" : "fade-on-mouse-out"}`} style={{ width: "2.5rem", height: 32 }}>{opponentScore != undefined ? ffOpponentsIds.includes(opponentId!) ? "F" : opponentScore : "?"}</div>
                             }
                         </div>
                     })}
