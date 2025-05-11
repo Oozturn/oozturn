@@ -59,11 +59,11 @@ export function registerNewUser(username: string, refreshEvent=true) {
 }
 
 export function updateUser(userId: string, partialUser: Partial<User>) {
-    EventUpdateUsers()
     const userIndex = global.users.findIndex(user => user.id == userId)
     if (userIndex != -1) {
         global.users[userIndex] = { ...global.users[userIndex], ...partialUser }
     }
+    EventUpdateUsers()
 }
 
 function normalize(text: string) {

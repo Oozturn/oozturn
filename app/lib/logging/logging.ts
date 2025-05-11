@@ -8,3 +8,8 @@ declare module "http" {
         logger: Logger
     }
 }
+
+export function logErrorAndThrow(message: string) {
+    logger.error(message)
+    throw new Error(message)
+}

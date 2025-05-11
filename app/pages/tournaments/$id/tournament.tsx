@@ -18,6 +18,8 @@ import { getLan } from "~/lib/persistence/lan.server"
 import Dropdown from "~/lib/components/elements/custom-dropdown"
 import { useRevalidateOnTournamentUpdate } from "~/api/sse.hook"
 import useLocalStorageState from "use-local-storage-state"
+import { EventServerError } from "~/lib/emitter.server"
+import { getUserId } from "~/lib/session.server"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
@@ -41,67 +43,71 @@ export async function loader({
 export async function action({ request }: ActionFunctionArgs) {
     const jsonData = await request.json()
     const intent = jsonData.intent as string
-
-    switch (intent) {
-        case TournamentManagementIntents.START:
-            startTournament(jsonData.tournamentId as string)
-            break
-        case TournamentManagementIntents.STOP:
-            stopTournament(jsonData.tournamentId as string)
-            break
-        case TournamentManagementIntents.CANCEL:
-            cancelTournament(jsonData.tournamentId as string)
-            break
-        case TournamentManagementIntents.VALIDATE:
-            validateTournament(jsonData.tournamentId as string)
-            break
-        case TournamentManagementIntents.PAUSE:
-            togglePauseTournament(jsonData.tournamentId as string)
-            break
-        case TournamentManagementIntents.BALANCE:
-            toggleBalanceTournament(jsonData.tournamentId as string)
-            break
-        case TournamentManagementIntents.ADD_PLAYER:
-            addPlayerToTournament(jsonData.tournamentId as string, jsonData.userId as string)
-            break
-        case TournamentManagementIntents.TOGGLE_FORFEIT_PLAYER:
-            toggleForfeitPlayerForTournament(jsonData.tournamentId as string, jsonData.userId as string)
-            break
-        case TournamentManagementIntents.REMOVE_PLAYER:
-            removePlayerFromTournament(jsonData.tournamentId as string, jsonData.userId as string)
-            break
-        case TournamentManagementIntents.REORDER_PLAYERS:
-            reorderPlayers(jsonData.tournamentId as string, jsonData.oldIndex as number, jsonData.newIndex as number)
-            break
-        case TournamentManagementIntents.REORDER_TEAMS:
-            reorderTeams(jsonData.tournamentId as string, jsonData.oldIndex as number, jsonData.newIndex as number)
-            break
-        case TeamsManagementIntents.CREATE:
-            addTeamToTournament(jsonData.tournamentId as string, jsonData.teamName as string)
-            break
-        case TeamsManagementIntents.DELETE:
-            removeTeamFromTournament(jsonData.tournamentId as string, jsonData.teamName as string)
-            break
-        case TeamsManagementIntents.RENAME:
-            renameTeam(jsonData.tournamentId as string, jsonData.oldTeamName as string, jsonData.newTeamName as string)
-            break
-        case TeamsManagementIntents.ADD_PLAYER:
-            addPlayerToTeam(jsonData.tournamentId as string, jsonData.teamName as string, jsonData.userId as string)
-            break
-        case TeamsManagementIntents.REMOVE_PLAYER:
-            removePlayerFromTeams(jsonData.tournamentId as string, jsonData.userId as string)
-            break
-        case TeamsManagementIntents.DISTRIBUTE:
-            distributePlayersOnTeams(jsonData.tournamentId as string)
-            break
-        case TeamsManagementIntents.BALANCE:
-            balanceTeams(jsonData.tournamentId as string)
-            break
-        case TeamsManagementIntents.RANDOMIZE:
-            randomizePlayersOnTeams(jsonData.tournamentId as string)
-            break
-        case MatchesIntents.SCORE:
-            scoreMatch(jsonData.tournamentId as string, jsonData.matchID as string, jsonData.opponent as string, jsonData.score as number)
+    try {
+        switch (intent) {
+            case TournamentManagementIntents.START:
+                startTournament(jsonData.tournamentId as string)
+                break
+            case TournamentManagementIntents.STOP:
+                stopTournament(jsonData.tournamentId as string)
+                break
+            case TournamentManagementIntents.CANCEL:
+                cancelTournament(jsonData.tournamentId as string)
+                break
+            case TournamentManagementIntents.VALIDATE:
+                validateTournament(jsonData.tournamentId as string)
+                break
+            case TournamentManagementIntents.PAUSE:
+                togglePauseTournament(jsonData.tournamentId as string)
+                break
+            case TournamentManagementIntents.BALANCE:
+                toggleBalanceTournament(jsonData.tournamentId as string)
+                break
+            case TournamentManagementIntents.ADD_PLAYER:
+                addPlayerToTournament(jsonData.tournamentId as string, jsonData.userId as string)
+                break
+            case TournamentManagementIntents.TOGGLE_FORFEIT_PLAYER:
+                toggleForfeitPlayerForTournament(jsonData.tournamentId as string, jsonData.userId as string)
+                break
+            case TournamentManagementIntents.REMOVE_PLAYER:
+                removePlayerFromTournament(jsonData.tournamentId as string, jsonData.userId as string)
+                break
+            case TournamentManagementIntents.REORDER_PLAYERS:
+                reorderPlayers(jsonData.tournamentId as string, jsonData.oldIndex as number, jsonData.newIndex as number)
+                break
+            case TournamentManagementIntents.REORDER_TEAMS:
+                reorderTeams(jsonData.tournamentId as string, jsonData.oldIndex as number, jsonData.newIndex as number)
+                break
+            case TeamsManagementIntents.CREATE:
+                addTeamToTournament(jsonData.tournamentId as string, jsonData.teamName as string)
+                break
+            case TeamsManagementIntents.DELETE:
+                removeTeamFromTournament(jsonData.tournamentId as string, jsonData.teamName as string)
+                break
+            case TeamsManagementIntents.RENAME:
+                renameTeam(jsonData.tournamentId as string, jsonData.oldTeamName as string, jsonData.newTeamName as string)
+                break
+            case TeamsManagementIntents.ADD_PLAYER:
+                addPlayerToTeam(jsonData.tournamentId as string, jsonData.teamName as string, jsonData.userId as string)
+                break
+            case TeamsManagementIntents.REMOVE_PLAYER:
+                removePlayerFromTeams(jsonData.tournamentId as string, jsonData.userId as string)
+                break
+            case TeamsManagementIntents.DISTRIBUTE:
+                distributePlayersOnTeams(jsonData.tournamentId as string)
+                break
+            case TeamsManagementIntents.BALANCE:
+                balanceTeams(jsonData.tournamentId as string)
+                break
+            case TeamsManagementIntents.RANDOMIZE:
+                randomizePlayersOnTeams(jsonData.tournamentId as string)
+                break
+            case MatchesIntents.SCORE:
+                scoreMatch(jsonData.tournamentId as string, jsonData.matchID as string, jsonData.opponent as string, jsonData.score as number)
+        }
+    } catch (error) {
+        const userId = await getUserId(request) as string
+        EventServerError(userId, intent + ": " + error as string)
     }
 
     return null

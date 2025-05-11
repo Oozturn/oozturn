@@ -21,6 +21,11 @@ export function Notification() {
         }
       )
     }
+    else if (messageType == "error") {
+      toast.error(data, {
+        toastId: time
+      })
+    }
     else
       toast.error(message)
   }, [message])

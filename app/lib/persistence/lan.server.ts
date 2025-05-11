@@ -54,12 +54,12 @@ export function getLan() {
 }
 
 export function updateLan(partialLan: Partial<Lan>) {
-    EventUpdateLan()
     global.lan = { ...lan, ...partialLan }
     if (partialLan.weightTeamsResults != undefined
         || partialLan.showPartialResults != undefined) {
         invalidateStats()
     }
+    EventUpdateLan()
 }
 
 export function updateAchievements(partialAchievements: Partial<Achievement>[]) {
