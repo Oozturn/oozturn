@@ -1,5 +1,5 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
-import { useFetcher, useLoaderData, useNavigate } from "@remix-run/react"
+import { Link, useFetcher, useLoaderData, useNavigate } from "@remix-run/react"
 import useLocalStorageState from "use-local-storage-state"
 import { useGames } from "~/lib/components/contexts/GamesContext"
 import { useLan } from "~/lib/components/contexts/LanContext"
@@ -20,8 +20,12 @@ import { ChangeEvent, useRef, useState } from "react"
 import { clickorkey } from "~/lib/utils/clickorkey"
 import { CustomModalBinary } from "~/lib/components/elements/custom-modal"
 import { Achievement, AchievementDecriptors, AchievementType } from "~/lib/types/achievements"
-import { getAchievements } from "~/lib/statistics/achievements.server"
+import { getAchievements } from "~/lib/runtimeGlobals/achievements.server"
 import { notifyError } from "~/lib/components/notification"
+import { PlayableMatch, TournamentInfo, TournamentStatus } from "~/lib/tournamentEngine/types"
+import { getAllPlayableMatches } from "~/lib/runtimeGlobals/playableMatches.server"
+import { IdToString } from "~/lib/utils/tournaments"
+import { useRevalidateOnTournamentUpdate } from "~/api/sse.hook"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
@@ -34,9 +38,10 @@ export async function loader({
 }: LoaderFunctionArgs): Promise<{
     lanName: string
     achievements: Achievement[]
+    playableMatches: PlayableMatch[]
 }> {
     await requireUserAdmin(request)
-    return { lanName: getLan().name, achievements: getAchievements() }
+    return { lanName: getLan().name, achievements: getAchievements(), playableMatches: getAllPlayableMatches() }
 }
 
 export enum AdminIntents {
@@ -131,6 +136,8 @@ export default function Admin() {
                         <SectionLanSettings isActive={activeSection == "lanSettings"} />
                         <SectionTournamentsSettings isActive={activeSection == "tournamentsSettings"} />
                         <SectionGlobalTournamentSettings isActive={activeSection == "globalTournamentSettings"} />
+                        <SectionOnGoingMatches isActive={activeSection == "ongoingMatches"} />
+
                         {/* <SectionCommunicationSettings isActive={activeSection == "communicationSettings"} /> */}
                     </AdminSectionContext.Provider>
                 </div>
@@ -324,6 +331,60 @@ export function SectionGlobalTournamentSettings({ isActive }: { isActive: boolea
                 <CustomCheckbox variable={lan.showAchievements} customClass='justify-flex-end is-one-fifth' setter={(value: boolean) => updateLan("lan_showAchievements", JSON.stringify(value))} />
                 <div>Afficher les achievements</div>
                 <AchievementSelector />
+            </div>
+        </div>
+    </div>
+}
+
+export function SectionOnGoingMatches({ isActive }: { isActive: boolean }) {
+    const { setActiveSection } = useAdminSection()
+    const { playableMatches } = useLoaderData<typeof loader>()
+    const tournaments = useTournaments()
+    const navigate = useNavigate()
+    const tournamentsWaitingForValidation = tournaments.filter(t => t.status == TournamentStatus.Validating)
+    const playableTournaments = tournaments.filter(t => playableMatches.map(pm => pm.tournamentId).includes(t.id))
+    playableTournaments.forEach(pt => useRevalidateOnTournamentUpdate(pt.id))
+
+    function sortTournaments(tournaments: TournamentInfo[]) {
+        return tournaments.map(tournament => [tournament.status == TournamentStatus.Validating, tournament]).sort()
+    }
+
+    return <div className={`is-clipped has-background-secondary-level px-4 is-flex-col ${isActive ? "grow no-basis" : ""}`}>
+        <div className="is-title medium is-uppercase py-2 px-1 is-clickable" {...clickorkey(() => setActiveSection("ongoingMatches"))} style={{ flex: "none" }}>
+            Tournois et matchs en cours
+        </div>
+        <div className="is-flex-col gap-4 align-stretch" style={{ maxHeight: isActive ? undefined : 0 }} >
+            {/* Tournaments waiting for validation */}
+            <div className="is-flex gap-3 ">
+                <div className="has-text-right is-one-fifth mt-4">Tournois à valider :</div>
+                <div className="is-flex wrap grow gap-1 p-2 has-background-primary-level is-scrollable">
+                    {tournamentsWaitingForValidation.map(tournament =>
+                        <CustomButton key={tournament.id} customClasses="grow" contentItems={[tournament.name]} colorClass="has-background-secondary-level" callback={() => { navigate("/tournaments/" + tournament.id) }} />
+                    )}
+                    <div className="growmax" style={{ width: 0, margin: "-.5rem" }}></div>
+                </div>
+            </div>
+            {/* Matches waiting for a score */}
+            <div className="is-flex gap-3">
+                <div className="has-text-right is-one-fifth mt-4">Matchs en cours :</div>
+                <div className="is-flex-col grow gap-2 p-2 has-background-primary-level is-scrollable align-stretch">
+                    {playableTournaments.map(tournament =>
+                        <div className="is-flex-col gap-1">
+                            <Link to={"/tournaments/" + tournament.id} className="is-uppercase has-background-secondary-level p-1 has-text-weight-semibold fade-on-mouse-out">{tournament.name}</Link>
+                            <div className="is-flex wrap grow gap-1">
+                                {playableMatches.filter(pm => pm.tournamentId == tournament.id).map(pMatch => {
+                                    return <Link to={"/tournaments/" + tournament.id} className="is-flex-col align-center customButton gap-1 fade-on-mouse-out is-unselectable has-background-secondary-level" style={{height:"80px"}}>
+                                        <div>Match {IdToString(pMatch.matchId)}</div>
+                                        {pMatch.opponents.length == 2 ?
+                                            <div className="is-flex gap-2"><span className="has-text-primary-accent">{pMatch.opponents[0]}</span> VS <span className="has-text-secondary-accent">{pMatch.opponents[1]}</span></div>
+                                            : <div>FFA</div>
+                                        }
+                                    </Link>
+                                })}
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     </div>

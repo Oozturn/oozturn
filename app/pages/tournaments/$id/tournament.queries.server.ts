@@ -1,6 +1,7 @@
 import { EventEndTournament, EventStartTournament, EventUpdateTournamentBracket, EventUpdateTournamentInfo, EventUpdateTournaments } from "~/lib/emitter.server"
 import { logErrorAndThrow, logger } from "~/lib/logging/logging"
 import { getTournament, cancelTournament as cancelTournamentOnPersistance } from "~/lib/persistence/tournaments.server"
+import { updatePlayableMatches } from "~/lib/runtimeGlobals/playableMatches.server"
 import { TournamentStatus } from "~/lib/tournamentEngine/types"
 import { StringToId } from "~/lib/utils/tournaments"
 
@@ -14,6 +15,7 @@ export function startTournament(tournamentId: string) {
         tournament.startTournament()
         EventStartTournament(tournamentId)
         EventUpdateTournaments()
+        updatePlayableMatches()
     } catch (error) {
         logErrorAndThrow(`Error while trying to start tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }
@@ -24,6 +26,7 @@ export function stopTournament(tournamentId: string) {
         logger.info(`Stoping tournament ${tournamentId}`)
         tournament.stopTournament()
         EventUpdateTournaments()
+        updatePlayableMatches()
     } catch (error) {
         logErrorAndThrow(`Error while trying to stop tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }
@@ -33,6 +36,7 @@ export function cancelTournament(tournamentId: string) {
         logger.warn(`Deleting tournament ${tournamentId}`)
         cancelTournamentOnPersistance(tournamentId)
         EventUpdateTournaments()
+        updatePlayableMatches()
     } catch (error) {
         logErrorAndThrow(`Error while trying to cancel tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }
@@ -46,6 +50,7 @@ export function validateTournament(tournamentId: string) {
         if (tournament.getStatus() == TournamentStatus.Done) {
             EventEndTournament(tournamentId)
             EventUpdateTournaments()
+            updatePlayableMatches()
         }
     } catch (error) {
         logErrorAndThrow(`Error while trying to validate tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
@@ -56,6 +61,7 @@ export function togglePauseTournament(tournamentId: string) {
         const tournament = getTournament(tournamentId)
         tournament.togglePauseTournament()
         EventUpdateTournamentInfo(tournamentId)
+        updatePlayableMatches()
     } catch (error) {
         logErrorAndThrow(`Error while trying to toggle pause for tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }
@@ -83,6 +89,7 @@ export function toggleForfeitPlayerForTournament(tournamentId: string, userId: s
         const tournament = getTournament(tournamentId)
         tournament.toggleForfeitPlayer(userId)
         EventUpdateTournamentInfo(tournamentId)
+        updatePlayableMatches()
     } catch (error) {
         logErrorAndThrow(`Error while trying to forfeit player ${userId} for tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }
@@ -200,6 +207,7 @@ export function scoreMatch(tournamentId: string, matchID: string, opponent: stri
         const tournament = getTournament(tournamentId)
         tournament.score(StringToId(matchID), opponent, score)
         EventUpdateTournamentBracket(tournamentId)
+        updatePlayableMatches()
     } catch (error) {
         logErrorAndThrow(`Error while trying to score in match ${matchID} of tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }

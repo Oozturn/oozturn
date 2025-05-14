@@ -113,3 +113,11 @@ export interface TournamentFullData {
 	results?: Result[]
 	bracketsResults?: BracketResult[][]
 }
+
+export interface PlayableMatch {
+	tournamentId: string
+	bracket: number
+	matchId: Id
+	opponents: string[]
+	concernedUserIds: string[]
+}

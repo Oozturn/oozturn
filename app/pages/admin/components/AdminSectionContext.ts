@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react"
 
-export type Section = "lanSettings" | "tournamentsSettings" | "globalTournamentSettings" | "communicationSettings"
+export type Section = "lanSettings" | "tournamentsSettings" | "globalTournamentSettings" | "communicationSettings" | "ongoingMatches"
 
 export const AdminSectionContext = createContext<{
     setActiveSection: (section: Section) => void,

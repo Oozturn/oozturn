@@ -4,9 +4,9 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { Lan } from "../types/lan"
 import { EventUpdateLan } from "../emitter.server"
-import { invalidateStats } from "../statistics/statistics.server"
+import { invalidateStats } from "../runtimeGlobals/statistics.server"
 import { Achievement } from "../types/achievements"
-import { getAchievements } from "../statistics/achievements.server"
+import { getAchievements } from "../runtimeGlobals/achievements.server"
 
 declare global {
     // eslint-disable-next-line no-var
