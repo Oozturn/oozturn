@@ -54,7 +54,7 @@ export async function updateSessionWithPasswordAuth(request: Request) {
 
 export async function isUserLoggedIn(request: Request) {
     const session = await getSession(request)
-    if (process.env.AUTHENTICATION === "true") {
+    if (!(process.env.AUTHENTICATION === "false")) {
         return session.has("userId")
             && session.get("auth") === "password"
     }

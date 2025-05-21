@@ -24,7 +24,7 @@ OOZTURN accepts the following settings, to set with environment variables:
 | Environment variables    | Usage                                                                                                                                          | Default value |
 | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
 | NEW_USERS_BY_ADMIN       | Only admins can register new users. This is ignored for the first account to be created.                                                       | true          |
-| AUTHENTICATION_NEEDED    | A password is needed for the users to log-in                                                                                                   | true          |
+| AUTHENTICATION    | A password is needed for the users to log-in                                                                                                   | true          |
 | SECURE_PASSWORD          | Users passwords must be of at least 8 character and contain:<br />- a lowercase<br />- an uppercase<br />- a number<br />- a special character | true          |
 | USE_HTTP_ONLY            | Allow to use HTTP environment (useful for LANs for exemple)                                                                                    | false         |
 | NOTIFY_TOURNAMENT_CHANGE | Notify concerned users when a tournament gets an update                                                                                        | true          |
