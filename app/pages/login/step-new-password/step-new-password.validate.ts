@@ -1,5 +1,3 @@
-import lanConfig from "config.json"
-
 const PASSWORD_REGEX = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,18}$/
 
 export async function validate(password: string, confirmPassword: string) {
@@ -9,7 +7,7 @@ export async function validate(password: string, confirmPassword: string) {
         errors.password = "Mot de passe requis."
     } else if (password !== confirmPassword) {
         errors.password = "La confirmation ne correspond pas au mot de passe."
-    } else if (lanConfig?.security?.secure_users_password != false && !PASSWORD_REGEX.test(password)) {
+    } else if (!(process.env.SECURE_PASSWORD === 'false') && !PASSWORD_REGEX.test(password)) {
         errors.password = "Mot de passe non sécurisé."
     }
 

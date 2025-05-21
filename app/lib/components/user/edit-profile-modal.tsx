@@ -7,7 +7,7 @@ import { CloseCrossSVG } from "../data/svg-container"
 import { accentsList, modesList } from "../data/themes"
 import { CustomRadio } from "../elements/custom-radio"
 import { UserAvatar } from "../elements/user-avatar"
-import lanConfig from "config.json"
+import { useSettings } from "../contexts/SettingsContext"
 import { clickorkey } from "~/lib/utils/clickorkey"
 import { CustomButton } from "../elements/custom-button"
 import { Intents } from "~/api/api"
@@ -22,6 +22,7 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
   const [modeLocalStorage, setModeLocalStorage] = useLocalStorageState("mode", { defaultValue: "Dark" })
   const [accentLocalStorage, setAccentLocalStorage] = useLocalStorageState("accent", { defaultValue: "Switch" })
   const me = useContext(UserContext)
+  const settings = useSettings()
   const fetcherUpdateTeam = useFetcher()
   const fetcherRemoveAvatar = useFetcher()
   const fetcherUpdateAvatar = useFetcher()
@@ -82,7 +83,7 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
                   </div>
                 </div>
               </fetcherUpdateTeam.Form>
-              {lanConfig.security.authentication_needed &&
+              {settings.security.authentication &&
               <CustomButton callback={handleChangePassword} colorClass="has-background-secondary-accent" contentItems={["Changer mdp"]}/>
                 // <button
                 //   onClick={handleChangeMdp}

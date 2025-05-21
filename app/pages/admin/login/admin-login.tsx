@@ -1,9 +1,8 @@
 import { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node"
-import { Form, MetaFunction, useActionData } from "@remix-run/react"
+import { Form, MetaFunction, useActionData, useLoaderData } from "@remix-run/react"
 import { requireUserLoggedIn } from "~/lib/session.server"
 import { adminLogin } from "./admin-login.queries.server"
 import { getLan } from "~/lib/persistence/lan.server"
-import lanConfig from "config.json"
 import { useEffect, useState } from "react"
 import { notifyError } from "~/lib/components/notification"
 import { EyeSVG } from "~/lib/components/data/svg-container"
@@ -18,9 +17,10 @@ export async function loader({
     request
 }: LoaderFunctionArgs): Promise<{
     lanName: string
+    adminLoginNoPassword: boolean
 }> {
     await requireUserLoggedIn(request)
-    return { lanName: getLan().name }
+    return { lanName: getLan().name, adminLoginNoPassword: !process.env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD === '' ? true : false }
 }
 
 
@@ -32,7 +32,8 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function AdminLogin() {
-    if (!lanConfig.security.admin_password) return <AdminLoginNoPassword />
+    const data = useLoaderData<typeof loader>()
+    if (data.adminLoginNoPassword) return <AdminLoginNoPassword />
     return <AdminLoginForm />
 }
 
