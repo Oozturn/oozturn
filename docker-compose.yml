@@ -1,0 +1,19 @@
+services:
+  oozturn:
+    image: bug38/oozturn
+    ports:
+      - 3000:3000
+    volumes:
+      - ./db:/app/db
+      - ./uploads:/app/uploads
+    environment:
+      - NEW_USERS_BY_ADMIN=true
+      - AUTHENTICATION=true
+      - SECURE_PASSWORD=true
+      - USE_HTTP_ONLY=false
+      - NOTIFICATION_TOURNAMENT_CHANGE=true
+      - AUTO_REFRESH_TOURNAMENTS=true
+      - AUTO_REFRESH_USERS=true
+      - IGDB_CLIENT_ID=
+      - IGDB_CLIENT_SECRET=
+      - ADMIN_PASSWORD=superSecretPassword

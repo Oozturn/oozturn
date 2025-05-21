@@ -6,7 +6,7 @@ import { getUserFromRequest, getUserId, updateSessionWithPasswordAuth } from "~/
 import { validate } from "./step-new-password.validate"
 import { useEffect, useRef, useState } from "react"
 import { CustomButton } from "~/lib/components/elements/custom-button"
-import lanConfig from "config.json"
+import { useSettings } from "~/lib/components/contexts/SettingsContext"
 import { notifyError } from "~/lib/components/notification"
 import { EyeSVG, InfoSVG } from "~/lib/components/data/svg-container"
 
@@ -17,7 +17,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  if (!lanConfig.security.authentication_needed) {
+  if (process.env.AUTHENTICATION === 'false') {
     throw redirect('/login')
   }
 
@@ -58,6 +58,7 @@ export default function LoginStepNewPassword() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const formRef = useRef(null)
+  const settings = useSettings()
 
   useEffect(() => {
     if (actionResult?.errors?.password) {
@@ -74,7 +75,7 @@ export default function LoginStepNewPassword() {
           <div className="is-flex-col align-stretch gap-2">
             <div className="is-flex align-center justify-center gap-2">
               <div>Création du mot de passe :</div>
-              {lanConfig.security.secure_users_password &&
+              {settings.security.securePassword &&
                 <div title="Mot de passe de 8 à 18 caractères avec au minimum une majuscule, une minuscule, un chiffre et un caractère special (#?!@$%^&*-)">
                   <InfoSVG />
                 </div>
@@ -93,7 +94,7 @@ export default function LoginStepNewPassword() {
                 // eslint-disable-next-line jsx-a11y/no-autofocus
                 autoFocus
                 maxLength={18}
-                title={"18 caractères max." + lanConfig.security.secure_users_password ? " doit contenir au moins 1 de chaque : minuscule / majuscule / nombre / charcactère spécial" : ""}
+                title={"18 caractères max." + settings.security.securePassword ? " doit contenir au moins 1 de chaque : minuscule / majuscule / nombre / charcactère spécial" : ""}
                 onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); !!password && document.getElementById("confirmPassword")?.focus() } }}
               />
               <div className="pr-2" onMouseEnter={() => setShowPassword(true)} onMouseLeave={() => setShowPassword(false)}><EyeSVG /></div>
