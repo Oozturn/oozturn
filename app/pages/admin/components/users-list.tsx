@@ -122,7 +122,8 @@ export function UsersList() {
                     </div>
                     <div className='userTooltip is-flex pl-3' {...clickorkey(() => setActiveUser(activeUser == user.id ? '' : user.id))}>
                         <div className='is-flex-col'>
-                            <div>IP: {user.ips ? user.ips[0] : 'unknown'}</div>
+                            <div>Place: {user.seat || "non placé"}</div>
+                            <div>IP: {user.ip || 'inconnue'}</div>
                             <div>Tournois: {tournaments?.filter(tournament => tournament.players.find(player => player.userId == user.id)).length || 0}</div>
                             <div>Points: {leaderboard?.find(pscore => pscore.player.id == user.id)?.points || 0}</div>
                         </div>

@@ -52,7 +52,7 @@ export function getUserOrThrow(userId: string) {
 }
 
 export function registerNewUser(username: string, refreshEvent=true) {
-    const user: User = { id: generateUniqueId(username), username: username, avatar: "", team: "", isAdmin: false, ips: [] }
+    const user: User = { id: generateUniqueId(username), username: username, avatar: "", team: "", seat: "", isAdmin: false, ip: null }
     global.users.push(user)
     refreshEvent && EventUpdateUsers()
     return user

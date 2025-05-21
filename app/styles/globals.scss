@@ -946,7 +946,7 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
         background-color: var(--background-primary-level);
         transition: ease-out .125s;
         &.is-active {
-            flex: 0 0 140px;
+            flex: 0 0 170px;
             background-color: var(--accent-secondary-color);
             transition: ease-out .125s;
         }

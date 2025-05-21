@@ -3,6 +3,7 @@ export interface User {
     username: string,
     avatar: string,
     team: string,
+    seat: string,
     isAdmin: boolean,
-    ips: string[]
+    ip: string | null
 }

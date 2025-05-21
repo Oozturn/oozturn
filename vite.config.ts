@@ -13,6 +13,7 @@ export default defineConfig({
           route("", "pages/login/login.tsx", { index: true })
           route("step-new-password", "pages/login/step-new-password/step-new-password.tsx")
           route("step-password", "pages/login/step-password/step-password.tsx")
+          route("first-login", "pages/login/first-login.tsx")
         });
         route("logout", "pages/logout.ts", { index: true });
         route("admin", "pages/admin/admin.tsx")

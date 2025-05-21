@@ -9,6 +9,7 @@ import { CustomButton } from "~/lib/components/elements/custom-button"
 import { useSettings } from "~/lib/components/contexts/SettingsContext"
 import { notifyError } from "~/lib/components/notification"
 import { EyeSVG, InfoSVG } from "~/lib/components/data/svg-container"
+import { User } from "~/lib/types/user"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -40,9 +41,11 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const userId = await getUserId(request) as string
   storePassword(userId, password)
-
+  
+  const user = await getUserFromRequest(request) as User
+  const userIsComplete = (user.seat != '') && (user.team != '')
   const cookie = await updateSessionWithPasswordAuth(request)
-  return redirect("/", {
+  return redirect(userIsComplete ? "/" : "/login/first-login", {
     headers: {
       "Set-Cookie": cookie
     }

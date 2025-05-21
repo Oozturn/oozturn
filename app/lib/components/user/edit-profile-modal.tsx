@@ -1,8 +1,8 @@
 import { useFetcher, useNavigate } from "@remix-run/react"
-import { ChangeEvent, useContext, useRef } from "react"
+import { ChangeEvent, useRef } from "react"
 import useLocalStorageState from "use-local-storage-state"
 import { autoSubmit } from "~/lib/utils/autosubmit"
-import { UserContext } from "../contexts/UserContext"
+import { useUser } from "../contexts/UserContext"
 import { CloseCrossSVG } from "../data/svg-container"
 import { accentsList, modesList } from "../data/themes"
 import { CustomRadio } from "../elements/custom-radio"
@@ -21,15 +21,16 @@ interface EditProfileModalProps {
 export default function EditProfileModal({ show, onHide }: EditProfileModalProps) {
   const [modeLocalStorage, setModeLocalStorage] = useLocalStorageState("mode", { defaultValue: "Dark" })
   const [accentLocalStorage, setAccentLocalStorage] = useLocalStorageState("accent", { defaultValue: "Switch" })
-  const me = useContext(UserContext)
   const settings = useSettings()
+  const user = useUser()
   const fetcherUpdateTeam = useFetcher()
+  const fetcherUpdateSeat = useFetcher()
   const fetcherRemoveAvatar = useFetcher()
   const fetcherUpdateAvatar = useFetcher()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
 
-  if (!show || !me) {
+  if (!show || !user) {
     return null
   }
 
@@ -45,7 +46,7 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
 
   async function handleChangePassword() {
     onHide()
-    navigate("/login/step-new-password", { state: {edit: true} })
+    navigate("/login/step-new-password", { state: { edit: true } })
   }
 
   return (
@@ -62,11 +63,11 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
               <div className="is-title big">PROFIL</div>
               <div className="is-flex align-center gap-2">
                 <div>Nom du joueur :</div>
-                <div className="has-text-weight-semibold">{me.username}</div>
+                <div className="has-text-weight-semibold">{user.username}</div>
               </div>
               <div className="is-flex align-center gap-2">
                 <div>Adresse IP :</div>
-                <div className="has-text-weight-semibold">{me.ips.at(-1) || "127.0.0.1"}</div>
+                <div className="has-text-weight-semibold">{user.ip || "127.0.0.1"}</div>
               </div>
               <fetcherUpdateTeam.Form method="POST" action="/api">
                 <input type="hidden" name="intent" value={Intents.UPDATE_TEAM} />
@@ -76,20 +77,30 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
                     <input id="field"
                       name="team"
                       className="input" type="text"
-                      defaultValue={me.team}
+                      defaultValue={user.team}
                       {...autoSubmit(fetcherUpdateTeam)}
                     />
                     <div className="is-size-7 mt-1">Utilisé pour calculer le score de ton équipe à cette LAN. Te foire pas sur l&apos;orthographe.</div>
                   </div>
                 </div>
               </fetcherUpdateTeam.Form>
+              <fetcherUpdateSeat.Form method="POST" action="/api">
+                <input type="hidden" name="intent" value={Intents.UPDATE_SEAT} />
+                <div className="is-flex is-flex align-start gap-2" style={{ maxWidth: "402px" }}>
+                  <div>Place :</div>
+                  <div className="is-flex-col grow no-basis">
+                    <input id="field"
+                      name="seat"
+                      className="input" type="text"
+                      defaultValue={user.seat}
+                      {...autoSubmit(fetcherUpdateSeat)}
+                    />
+                    <div className="is-size-7 mt-1">Utilisé pour te retrouver facilement lors des duels. Devrait être de la forme "A12". Demande à un admin si tu trouves pas où t'es assis.</div>
+                  </div>
+                </div>
+              </fetcherUpdateSeat.Form>
               {settings.security.authentication &&
-              <CustomButton callback={handleChangePassword} colorClass="has-background-secondary-accent" contentItems={["Changer mdp"]}/>
-                // <button
-                //   onClick={handleChangeMdp}
-                //   className="customButton fade-on-mouse-out is-unselectable has-background-primary-level is-clickable">
-                //   Changer mdp
-                // </button>
+                <CustomButton callback={handleChangePassword} colorClass="has-background-secondary-accent" contentItems={["Changer mdp"]} />
               }
             </div>
             <div className="m-5"></div>
@@ -108,18 +119,18 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
               <div className="is-flex-col gap-2">
                 <div>Avatar :</div>
                 <div className="is-flex align-end gap-4">
-                  <div className="is-clickable" {...clickorkey(() => {fileInputRef.current && fileInputRef.current.click()})}>
-                    <UserAvatar username={me.username} avatar={me.avatar} size={196} />
+                  <div className="is-clickable" {...clickorkey(() => { fileInputRef.current && fileInputRef.current.click() })}>
+                    <UserAvatar username={user.username} avatar={user.avatar} size={196} />
                   </div>
                   <div className="is-flex-col buttons-list">
-                    {me.avatar &&
-                    <fetcherRemoveAvatar.Form method="POST" action="/api">
-                      <input type="hidden" name="intent" value={Intents.REMOVE_AVATAR} />
-                      <button type="submit"
-                        className="customButton fade-on-mouse-out is-unselectable has-background-primary-accent is-clickable">
-                        Supprimer l&apos;avatar
-                      </button>
-                    </fetcherRemoveAvatar.Form>
+                    {user.avatar &&
+                      <fetcherRemoveAvatar.Form method="POST" action="/api">
+                        <input type="hidden" name="intent" value={Intents.REMOVE_AVATAR} />
+                        <button type="submit"
+                          className="customButton fade-on-mouse-out is-unselectable has-background-primary-accent is-clickable">
+                          Supprimer l&apos;avatar
+                        </button>
+                      </fetcherRemoveAvatar.Form>
                     }
                     <fetcherUpdateAvatar.Form method="post" action="/api" encType="multipart/form-data">
                       <input name="intent" type="hidden" hidden value={Intents.UPLOAD_AVATAR} />
@@ -128,7 +139,7 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
                       <button
                         onClick={event => { event.preventDefault(); fileInputRef.current?.click() }}
                         className="customButton fade-on-mouse-out is-unselectable has-background-secondary-accent is-clickable">
-                        {me.avatar ? "Changer d'avatar" : "Nouvel avatar"}
+                        {user.avatar ? "Changer d'avatar" : "Nouvel avatar"}
                       </button>
                     </fetcherUpdateAvatar.Form>
                   </div>

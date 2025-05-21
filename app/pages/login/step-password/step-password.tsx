@@ -5,8 +5,9 @@ import { EyeSVG, LogoUnfolded } from "~/lib/components/data/svg-container"
 import { CustomButton } from "~/lib/components/elements/custom-button"
 import { getLan } from "~/lib/persistence/lan.server"
 import { checkPassword, hasPassword } from "~/lib/persistence/password.server"
-import { getUserId, updateSessionWithPasswordAuth } from "~/lib/session.server"
+import { getUserFromRequest, updateSessionWithPasswordAuth } from "~/lib/session.server"
 import { notifyError } from "~/lib/components/notification"
+import { User } from "~/lib/types/user"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -19,24 +20,25 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw redirect('/login')
   }
 
-  const username = await getUserId(request)
-  if (!username) {
+  const user = await getUserFromRequest(request)
+  if (!user) {
     throw redirect('/login')
   }
-  if (!hasPassword(username)) {
+  if (!hasPassword(user.id)) {
     throw redirect('../step-new-password')
   }
-  return { username: username, lanName: getLan().name }
+  return { lanName: getLan().name, user: user }
 }
 
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData()
   const password = String(formData.get("password") || "").trim()
-  const username = await getUserId(request) as string
+  const user = await getUserFromRequest(request) as User
+  const userIsComplete = (user.seat != '') && (user.team != '')
 
   const errors: { password?: string } = {}
 
-  if (!checkPassword(username, password)) {
+  if (!checkPassword(user.id, password)) {
     errors.password = "Mot de passe incorrect"
   }
 
@@ -45,7 +47,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   const cookie = await updateSessionWithPasswordAuth(request)
-  return redirect("/", {
+  return redirect(userIsComplete ? "/" : "/login/first-login", {
     headers: {
       "Set-Cookie": cookie
     }
@@ -53,7 +55,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function LoginStepPassword() {
-  const { username } = useLoaderData<typeof loader>()
+  const { user } = useLoaderData<typeof loader>()
   const actionResult = useActionData<typeof action>()
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -72,7 +74,7 @@ export default function LoginStepPassword() {
         <LogoUnfolded animate={true} folded={true} />
       </div>
       <div className="is-flex-col align-center gap-5 p-4 has-background-secondary-level " style={{ maxWidth: "50vw" }}>
-        <div className="has-text-centered is-size-3">Bienvenue <i style={{ color: "var(--accent-primary-color)" }}>{username}</i> ! </div>
+        <div className="has-text-centered is-size-3">Bienvenue <i style={{ color: "var(--accent-primary-color)" }}>{user.username}</i> ! </div>
         <Form ref={formRef} method="post" className="is-flex-col gap-6 is-full-width align-stretch">
           <div className="is-flex-col align-stretch gap-2">
             <div>Mot de passe :</div>
