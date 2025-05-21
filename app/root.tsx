@@ -19,12 +19,12 @@ import { getGames } from "./lib/persistence/games.server"
 import { getLan } from "./lib/persistence/lan.server"
 import { getTournaments } from "./lib/persistence/tournaments.server"
 import { getUsers } from "./lib/persistence/users.server"
-import { getStats } from "./lib/statistics/statistics.server"
+import { getStats } from "./lib/runtimeGlobals/statistics.server"
 import { getUserFromRequest, isUserLoggedIn } from "./lib/session.server"
 import { Game } from "./lib/types/games"
 import { Settings } from "./lib/types/settings"
 import { Lan } from "./lib/types/lan"
-import { TournamentInfo } from "./lib/tournamentEngine/types"
+import { PlayableMatch, TournamentInfo } from "./lib/tournamentEngine/types"
 import { User } from "./lib/types/user"
 import { Statistics } from "./lib/types/statistics"
 import "./styles/globals.scss"
@@ -32,6 +32,8 @@ import 'react-contexify/ReactContexify.css'
 import { Notification } from "./lib/components/notification"
 import { useRevalidateOnLanUpdate } from "./api/sse.hook"
 import Footer from "./lib/components/layout/footer"
+import { PlayableMatchesContext } from "./lib/components/contexts/PlayableMatchesContext"
+import { getPlayableMatches } from "./lib/runtimeGlobals/playableMatches.server"
 import { SettingsContext } from "./lib/components/contexts/SettingsContext"
 
 export async function loader({ request }: LoaderFunctionArgs): Promise<{
@@ -42,6 +44,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<{
   tournaments: TournamentInfo[]
   games?: Game[]
   stats?: Statistics
+  playableMatches: PlayableMatch[]
 }> {
   const settings: Settings = {
     autoRefresh: {
@@ -59,27 +62,30 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<{
     }
   }
   if (await isUserLoggedIn(request)) {
+    const user = await getUserFromRequest(request) as User
     return {
       settings: settings,
       lan: getLan(),
-      user: await getUserFromRequest(request),
+      user: user,
       users: getUsers(),
       tournaments: getTournaments(),
       games: getGames(),
-      stats: getStats()
+      stats: getStats(),
+      playableMatches: getPlayableMatches(user.id)
     }
   } else {
     return {
       settings: settings,
       lan: getLan(),
       tournaments: [],
-      users: []
+      users: [],
+      playableMatches: []
     }
   }
 }
 
 export default function App() {
-  const { settings, lan, user, users, tournaments, games, stats } = useLoaderData<typeof loader>()
+  const { settings, lan, user, users, tournaments, games, stats, playableMatches } = useLoaderData<typeof loader>()
   const iconUrl = useIconUrl()
   useRevalidateOnLanUpdate()
   return (
@@ -98,15 +104,17 @@ export default function App() {
               <UsersContext.Provider value={users}>
                 <UserContext.Provider value={user}>
                   <TournamentsContext.Provider value={tournaments}>
-                    <StatsContext.Provider value={stats}>
-                      <GetUserTheme />
-                      <Navbar />
-                      <main className="main is-clipped">
-                        <Outlet />
-                      </main>
-                      <Footer />
-                      <Notification />
-                    </StatsContext.Provider>
+                    <PlayableMatchesContext.Provider value={playableMatches}>
+                      <StatsContext.Provider value={stats}>
+                        <GetUserTheme />
+                        <Navbar />
+                        <main className="main is-clipped">
+                          <Outlet />
+                        </main>
+                        <Footer />
+                        <Notification />
+                      </StatsContext.Provider>
+                    </PlayableMatchesContext.Provider>
                   </TournamentsContext.Provider>
                 </UserContext.Provider>
               </UsersContext.Provider>

@@ -537,7 +537,7 @@ textarea {
 *******************************/
 
 .navbar {
-    height: 56px;
+    height: $navbar-height;
 }
 
 .navbar-item.is-tab {
@@ -560,7 +560,7 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
 .navbar-user {
     font-weight: 600;
     font-size: 20px;
-    max-height: 56px;
+    max-height: $navbar-height;
     min-width: 200px;
 
 	&:before {
@@ -597,7 +597,7 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
     opacity: 0;
     overflow: hidden;
     position: absolute;
-    top: 56px;
+    top: $navbar-height;
     right: 0;
     width: calc(115% + 14.5px); // tan(27.5deg) * (56px / 2)
     border: solid var(--accent-secondary-color);
@@ -625,6 +625,52 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
             transform: skewX(-27.5deg);
         }
     }
+}
+
+@keyframes outlineBlink {
+    0% {
+        outline-offset: -2px;
+        outline-color: var(--accent-primary-color);
+    }
+    15%, 100% {
+        outline-offset: 20px;
+        outline-color: transparent;
+    }
+    
+}
+
+.navbar-notifications {
+    max-height: $navbar-height;
+    min-height: $navbar-height;
+    min-width: $navbar-height;
+    outline: solid var(--accent-primary-color);
+    outline-width: 2px;
+    outline-offset: -2px;
+    animation: outlineBlink 3s ease-in infinite normal;
+    &:hover {
+        outline: unset;
+    }
+    &:hover .navbarNotificationCenter {
+        max-height: unset;
+        opacity: 100%;
+        transition: opacity .2s;
+    }
+    &:first-child {
+        width: $navbar-height;
+        height: $navbar-height;
+    }
+}
+
+.navbarNotificationCenter {
+    max-height: 0;
+    min-width: $navbar-height;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    top: $navbar-height;
+    border: solid var(--accent-primary-color);
+    border-width: 2px;
+    white-space: nowrap;
 }
 
 .navbarUserCustomisationModal {

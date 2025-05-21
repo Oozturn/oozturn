@@ -2,12 +2,15 @@ import { Link, useLocation, useSubmit } from "@remix-run/react"
 import { useContext, useState } from "react"
 import { useLan } from "../contexts/LanContext"
 import { UserContext } from "../contexts/UserContext"
-import { DropDownArrowSVG, EditGearSVG, LogoFolded, LogoSideSVG } from "../data/svg-container"
+import { NotifySVG, DropDownArrowSVG, EditGearSVG, LogoFolded, LogoSideSVG } from "../data/svg-container"
 import { UserAvatar } from "../elements/user-avatar"
 import EditProfileModal from "../user/edit-profile-modal"
 import { clickorkey } from "~/lib/utils/clickorkey"
 import { UserStats } from "~/lib/types/statistics"
 import { useStats } from "../contexts/StatsContext"
+import { usePlayableMatches } from "../contexts/PlayableMatchesContext"
+import { IdToString } from "~/lib/utils/tournaments"
+import { useTournaments } from "../contexts/TournamentsContext"
 
 
 export default function Navbar() {
@@ -40,6 +43,7 @@ export default function Navbar() {
                         {lan?.name}
                     </Link>
                 </div>
+                <NotificationCenter />
                 <div className={`navbar-menu ${showMobileNav && "is-active"}`}>
                     <div className="navbar-end">
                         {user?.isAdmin && <Link className={`navbar-item is-title medium is-uppercase is-tab px-0 mx-3 ${current_page == "/admin" ? 'is-active' : ''}`} to="/admin">Admin</Link>}
@@ -60,7 +64,32 @@ export default function Navbar() {
     )
 }
 
-export function UserProfile() {
+function NotificationCenter() {
+    const playableMatches = usePlayableMatches()
+    const tournaments = useTournaments()
+
+    if (playableMatches.length == 0) {
+        return null
+    }
+
+    return (
+        <div className="navbar-notifications fade-on-mouse-out navbar-item p-0 m-0 ml-4 is-flex-col align-stretch">
+            <div className="grow is-flex justify-center align-center has-background-primary-accent"><NotifySVG /></div>
+            <div className="navbarNotificationCenter has-background-secondary-level is-flex-col align-stretch gap-1">
+                <div className="p-2 pt-4 is-uppercase has-background-secondary-level has-text-primary-accent has-text-weight-semibold">Matchs en attente</div>
+                {playableMatches.map((match) => (
+                    <Link key={IdToString(match.matchId)} to={`/tournaments/${match.tournamentId}`} className="m-2 is-flex align-center gap-1 fade-on-mouse-out">
+                        <div className="is-flex" style={{width: "10px", transform: "rotate(270deg)"}}><DropDownArrowSVG /></div>
+                        <span className="is-uppercase">{tournaments.find(t => t.id == match.tournamentId)?.name}</span> - Match {IdToString(match.matchId)}
+                    </Link>
+                ))}
+            </div>
+        </div>
+    )
+
+}
+
+function UserProfile() {
 
     const submit = useSubmit()
     const me = useContext(UserContext)
