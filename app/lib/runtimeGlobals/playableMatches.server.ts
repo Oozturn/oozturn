@@ -24,7 +24,9 @@ export function updatePlayableMatches() {
                                         .filter(match => match.opponents.every(o => o != undefined) && match.score.every(s => s == undefined))
                                         .map(match => {
         const opponentsAreTeams = tournament.getFullData().settings.useTeams
-        const concerned = match.opponents.flatMap(opponent => opponentsAreTeams ? tournament.getTeams().filter(team => team.name == opponent)[0]?.members : opponent) as string[]
+        const tournamentForfeits = tournament.getPlayers().filter(player => player.isForfeit).map(player => player.userId)
+        const concerned = match.opponents.flatMap(opponent => opponentsAreTeams ? tournament.getTeams().filter(team => team.name == opponent)[0]?.members : opponent)
+                                         .filter(player => (player != undefined) && !tournamentForfeits.includes(player)) as string[]
         return {
             tournamentId: tournament.getId(),
             bracket: match.bracket,
