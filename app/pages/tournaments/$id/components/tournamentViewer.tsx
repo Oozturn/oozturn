@@ -12,9 +12,10 @@ import { FakeUserTileRectangle, UserTileRectangle } from "~/lib/components/eleme
 import { useTournament } from "~/lib/components/contexts/TournamentsContext"
 import useLocalStorageState from "use-local-storage-state"
 import { clickorkey } from "~/lib/utils/clickorkey"
-import { FitSVG, PanSVG, ZoomInSVG, ZoomOutSVG } from "~/lib/components/data/svg-container"
+import { FitSVG, GroupSVG, MapPinSVG, PanSVG, ZoomInSVG, ZoomOutSVG } from "~/lib/components/data/svg-container"
 import { range } from "~/lib/utils/ranges"
 import { DebouncedInputNumber } from "~/lib/components/elements/debounced-input"
+import { useUsers } from "~/lib/components/contexts/UsersContext"
 
 export function TournamentViewer() {
     const tournament = useTournament()
@@ -26,6 +27,7 @@ export function TournamentViewer() {
     const [hightlightOpponent, setHightlightOpponent] = useState("")
     const [tournamentWideView, setTournamentWideView] = useLocalStorageState<string[]>("tournamentWideView", { defaultValue: [] })
     const [currentBracketView, setCurrentBracketView] = useState(tournament.currentBracket)
+    const user = useUser()
 
     useEffect(() => {
         const ref = containerRef.current as unknown as HTMLDivElement
@@ -44,13 +46,13 @@ export function TournamentViewer() {
 
     useEffect(() => {
         if (hightlightOpponent == "") return
-        const TeamInfosContainer = document.getElementById('TeamInfosContainer')
-        const TeamInfos = document.getElementById('TeamInfos')
-        if (!TeamInfosContainer || !TeamInfos) return
-        TeamInfos.classList.remove('animateFromTopToBottom')
-        if (TeamInfosContainer.offsetHeight < TeamInfos.offsetHeight) {
-            TeamInfos.classList.add('animateFromTopToBottom')
-            TeamInfos.style.setProperty('--dist', String(TeamInfosContainer.offsetHeight - TeamInfos.offsetHeight) + "px")
+        const OpponentInfosContainer = document.getElementById('OpponentInfosContainer')
+        const OpponentInfos = document.getElementById('OpponentInfos')
+        if (!OpponentInfosContainer || !OpponentInfos) return
+        OpponentInfos.classList.remove('animateFromTopToBottom')
+        if (OpponentInfosContainer.offsetHeight < OpponentInfos.offsetHeight) {
+            OpponentInfos.classList.add('animateFromTopToBottom')
+            OpponentInfos.style.setProperty('--dist', String(OpponentInfosContainer.offsetHeight - OpponentInfos.offsetHeight) + "px")
         }
     }, [hightlightOpponent])
 
@@ -99,9 +101,10 @@ export function TournamentViewer() {
                     </TransformComponent>
                 </TransformWrapper>
             </div>
-            {tournament.teams && tournament.teams.map(team => team?.name).includes(hightlightOpponent) &&
-                <div id='TeamInfosContainer' className="TeamInfosContainer has-background-primary-level">
-                    <div id='TeamInfos' className='is-flex-col p-4 gap-4 is-relative'>
+            {tournament.settings.useTeams ? (tournament.teams &&
+                tournament.teams.map(team => team?.name).includes(hightlightOpponent) &&
+                <div id='OpponentInfosContainer' className="OpponentInfosContainer has-background-primary-level">
+                    <div id='OpponentInfos' className='is-flex-col p-4 gap-4 is-relative'>
                         <div className='is-title medium has-text-primary-accent'>Équipe {hightlightOpponent}</div>
                         <div className='pl-2 is-flex-col gap-1'>
                             {tournament.teams.find(team => team?.name == hightlightOpponent)?.members.map((player, index) =>
@@ -109,8 +112,21 @@ export function TournamentViewer() {
                             )}
                         </div>
                     </div>
-                </div>
-            }
+                </div>)
+                :
+                ( hightlightOpponent && tournament.players.filter(player => player?.userId == hightlightOpponent).map(player => {
+                    const user = useUsers().find(user => user.id == player.userId)
+                    if (!user) return null
+                    return <div id='OpponentInfosContainer' className="OpponentInfosContainer has-background-primary-level">
+                        <div id='OpponentInfos' className='is-flex-col p-4 gap-4 is-relative'>
+                            <div className='is-title medium has-text-primary-accent'>{user.username}</div>
+                            <div className='pl-2 is-flex-col gap-1'>
+                                <div className="is-flex align-center gap-2"><GroupSVG />{user.team ? user.team : "Solo"}</div>
+                                <div className="is-flex align-center gap-2"><MapPinSVG /> {user.seat ? user.seat : "Not set"}</div>
+                            </div>
+                        </div>
+                    </div>
+                }))}
         </HightlightOpponentContext.Provider>
         <div
             style={{ position: "absolute", bottom: 0, left: 0, zIndex: 2 }}
