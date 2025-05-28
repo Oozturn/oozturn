@@ -103,7 +103,7 @@ export async function action({ request }: ActionFunctionArgs) {
                 randomizePlayersOnTeams(jsonData.tournamentId as string)
                 break
             case MatchesIntents.SCORE:
-                scoreMatch(jsonData.tournamentId as string, jsonData.matchID as string, jsonData.opponent as string, jsonData.score as number)
+                scoreMatch(jsonData.tournamentId as string, jsonData.matchID as string, jsonData.opponent as string, jsonData.score as number | null)
         }
     } catch (error) {
         const userId = await getUserId(request) as string

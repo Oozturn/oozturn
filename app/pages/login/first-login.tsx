@@ -1,5 +1,5 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
-import { Form, redirect, useLoaderData } from "@remix-run/react"
+import { Form, redirect, useLoaderData, useNavigate } from "@remix-run/react"
 import { getLan } from "~/lib/persistence/lan.server"
 import { useRef, useState } from "react"
 import { CustomButton } from "~/lib/components/elements/custom-button"
@@ -25,7 +25,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<{
 
 export async function action({ request, }: ActionFunctionArgs) {
   const body = await request.formData()
-  updateUser(String(body.get('userId')), {team: String(body.get('team')), seat: String(body.get('seat'))})
+  updateUser(String(body.get('userId')), { team: String(body.get('team')), seat: String(body.get('seat')) })
   return redirect('/')
 }
 
@@ -38,6 +38,7 @@ function FirstLoginForm() {
   const [team, setTeam] = useState(user.team)
   const [seat, setSeat] = useState(user.seat)
   const formRef = useRef(null)
+  const navigate = useNavigate()
 
   async function handleSubmit() {
     if (!formRef.current) return
@@ -87,13 +88,21 @@ function FirstLoginForm() {
                 </div>
               </div>
             </div>
-            <CustomButton
-              active={!!team && !!seat}
-              colorClass="has-background-secondary-accent"
-              customClasses="is-align-self-flex-end"
-              callback={handleSubmit}
-              contentItems={["Enregistrer"]}
-            />
+            {(!!team && !!seat) ?
+              <CustomButton
+                colorClass="has-background-secondary-accent"
+                customClasses="is-align-self-flex-end"
+                callback={handleSubmit}
+                contentItems={["Enregistrer"]}
+              />
+              :
+              <CustomButton
+                colorClass="has-background-primary-level"
+                customClasses="is-align-self-flex-end"
+                callback={() => navigate("/")}
+                contentItems={["Passer"]}
+              />
+            }
           </Form>
         </div>
       </div >

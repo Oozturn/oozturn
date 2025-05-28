@@ -1,7 +1,7 @@
 import { useRef, useState } from "react"
 
 
-export function DebouncedInputNumber({ name, defaultValue, setter, className, debounceTimeout }: { name: string, defaultValue: number | undefined, setter: (value: number) => void, className: string, debounceTimeout: number }) {
+export function DebouncedInputNumber({ name, defaultValue, setter, className, debounceTimeout }: { name: string, defaultValue: number | undefined, setter: (value: number | undefined) => void, className: string, debounceTimeout: number }) {
 	const [value, setValue] = useState(defaultValue)
 	const timeoutRef = useRef<NodeJS.Timeout>()
 
@@ -9,19 +9,16 @@ export function DebouncedInputNumber({ name, defaultValue, setter, className, de
 		if (timeoutRef.current) {
 			clearTimeout(timeoutRef.current)
 		}
-		if (e.target.value) {
-			setValue(Number(e.target.value))
-			timeoutRef.current = setTimeout(() => {
-				setter(Number(e.target.value))
-			}, debounceTimeout)
-		}
+		setValue(e.target.value ? Number(e.target.value) : undefined)
+		timeoutRef.current = setTimeout(() => {
+			setter(value)
+		}, debounceTimeout)
 	}
 	const applyNow = (e: React.FocusEvent<HTMLInputElement>) => {
 		if (timeoutRef.current) {
 			clearTimeout(timeoutRef.current)
 		}
-		if (e.target.value)
-			setter(Number(e.target.value))
+		setter(value)
 	}
 
 	return <input type="number" name={name}

@@ -1,6 +1,6 @@
 import { IdToString } from "~/lib/utils/tournaments"
 import { useContext, useEffect, useRef, useState } from "react"
-import { BracketType, TournamentStatus } from "~/lib/tournamentEngine/types"
+import { BracketType, TournamentFullData, TournamentStatus } from "~/lib/tournamentEngine/types"
 import { Duel } from "~/lib/tournamentEngine/tournament/duel"
 import { TransformComponent, TransformWrapper, useTransformContext } from "react-zoom-pan-pinch"
 import { HightlightOpponentContext } from "./HightlightOpponentContext"
@@ -16,6 +16,8 @@ import { FitSVG, GroupSVG, MapPinSVG, PanSVG, ZoomInSVG, ZoomOutSVG } from "~/li
 import { range } from "~/lib/utils/ranges"
 import { DebouncedInputNumber } from "~/lib/components/elements/debounced-input"
 import { useUsers } from "~/lib/components/contexts/UsersContext"
+import { User } from "~/lib/types/user"
+import { useSettings } from "~/lib/components/contexts/SettingsContext"
 
 export function TournamentViewer() {
     const tournament = useTournament()
@@ -101,23 +103,24 @@ export function TournamentViewer() {
                     </TransformComponent>
                 </TransformWrapper>
             </div>
-            {tournament.settings.useTeams ? (tournament.teams &&
-                tournament.teams.map(team => team?.name).includes(hightlightOpponent) &&
-                <div id='OpponentInfosContainer' className="OpponentInfosContainer has-background-primary-level">
-                    <div id='OpponentInfos' className='is-flex-col p-4 gap-4 is-relative'>
-                        <div className='is-title medium has-text-primary-accent'>Équipe {hightlightOpponent}</div>
-                        <div className='pl-2 is-flex-col gap-1'>
-                            {tournament.teams.find(team => team?.name == hightlightOpponent)?.members.map((player, index) =>
-                                <UserTileRectangle key={player} isShiny={index == 0} userId={player} maxLength={245} showTeam={false} isForfeit={tournament.players.find(p => p.userId == player)?.isForfeit} />
-                            )}
+            {tournament.settings.useTeams ?
+                (tournament.teams && tournament.teams.map(team => team?.name).includes(hightlightOpponent) &&
+                    <div id='OpponentInfosContainer' className="OpponentInfosContainer has-background-primary-level">
+                        <div id='OpponentInfos' className='is-flex-col p-4 gap-4 is-relative'>
+                            <div className='is-title medium has-text-primary-accent'>Équipe {hightlightOpponent}</div>
+                            <div className='pl-2 is-flex-col gap-1'>
+                                {tournament.teams.find(team => team?.name == hightlightOpponent)?.members.map((player, index) =>
+                                    <UserTileRectangle key={player} isShiny={index == 0} userId={player} maxLength={245} showTeam={false} isForfeit={tournament.players.find(p => p.userId == player)?.isForfeit} />
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>)
+                )
                 :
-                ( hightlightOpponent && tournament.players.filter(player => player?.userId == hightlightOpponent).map(player => {
+                (hightlightOpponent && tournament.players.filter(player => player?.userId == hightlightOpponent).map(player => {
                     const user = useUsers().find(user => user.id == player.userId)
                     if (!user) return null
-                    return <div id='OpponentInfosContainer' className="OpponentInfosContainer has-background-primary-level">
+                    return <div key={user.id} id='OpponentInfosContainer' className="OpponentInfosContainer has-background-primary-level">
                         <div id='OpponentInfos' className='is-flex-col p-4 gap-4 is-relative'>
                             <div className='is-title medium has-text-primary-accent'>{user.username}</div>
                             <div className='pl-2 is-flex-col gap-1'>
@@ -126,7 +129,8 @@ export function TournamentViewer() {
                             </div>
                         </div>
                     </div>
-                }))}
+                }))
+            }
         </HightlightOpponentContext.Provider>
         <div
             style={{ position: "absolute", bottom: 0, left: 0, zIndex: 2 }}
@@ -349,14 +353,14 @@ function MatchTile({ matchId }: { matchId: Id }) {
         return qPlayers
     }()
 
-    const score = (mId: Id, opponent: string, score: number) => {
+    const score = (mId: Id, opponent: string, score: number | undefined) => {
         fetcher.submit(
             {
                 intent: MatchesIntents.SCORE,
                 tournamentId: tournament?.id || "",
                 matchID: IdToString(mId),
                 opponent: opponent,
-                score: score
+                score: score === undefined ? null : score
             },
             { method: "POST", encType: "application/json", action: "/tournaments/" + tournament.id }
         )
@@ -390,12 +394,6 @@ function MatchTile({ matchId }: { matchId: Id }) {
                 }
                 {matchOpponents.map(({ opponentId, opponentScore }, index) => {
 
-                    const canEditScore = match.scorable &&
-                        (
-                            (tournament.status == TournamentStatus.Running && (user.id == opponentId || (userTeam && (user.id == userTeam.members[0]) && (userTeam.name == opponentId))))
-                            || (tournament.status != TournamentStatus.Done && user.isAdmin && !(tournament.bracketsCount == 2 && tournament.currentBracket == 1 && match.bracket == 0))
-                        )
-
                     return <div key={IdToString(matchId) + '-' + opponentId + '-' + String(index)} className="is-flex-row align-end justify-space-between gap-2" onMouseEnter={() => setHightlightOpponent(opponentId || "")} onMouseLeave={() => setHightlightOpponent("")}>
                         {opponentId != undefined ?
                             tournament.settings.useTeams ?
@@ -405,11 +403,11 @@ function MatchTile({ matchId }: { matchId: Id }) {
                             :
                             <FakeUserTileRectangle userName="Unknown" initial="?" maxLength={245} />
                         }
-                        {canEditScore && !ffOpponentsIds.includes(opponentId!) ?
+                        {canEditScore(match, opponentId, tournament, user) && !ffOpponentsIds.includes(opponentId!) ?
                             <DebouncedInputNumber name="score"
                                 className="threeDigitsWidth has-text-centered"
                                 defaultValue={opponentScore}
-                                setter={(v: number) => { score(matchId, opponentId || "", v) }}
+                                setter={(v: number | undefined) => { score(matchId, opponentId || "", v) }}
                                 debounceTimeout={3000}
                             />
                             :
@@ -433,14 +431,14 @@ function GroupStageMatchTile({ matchIds }: { matchIds: Id[] }) {
     const fetcher = useFetcher()
     const { hightlightOpponent, setHightlightOpponent } = useContext(HightlightOpponentContext)
 
-    const score = (mId: Id, opponent: string, score: number) => {
+    const score = (mId: Id, opponent: string, score: number | undefined) => {
         fetcher.submit(
             {
                 intent: MatchesIntents.SCORE,
                 tournamentId: tournament?.id || "",
                 matchID: IdToString(mId),
                 opponent: opponent,
-                score: score
+                score: score === undefined ? null : score
             },
             { method: "POST", encType: "application/json", action: "/tournaments/" + tournament.id }
         )
@@ -483,18 +481,13 @@ function GroupStageMatchTile({ matchIds }: { matchIds: Id[] }) {
                     {mScore.map((opponentScore, index) => {
 
                         const opponentId = isReturn ? match.opponents.slice().reverse()[index] : match.opponents[index]
-                        const canEditScore = match.scorable &&
-                            (
-                                (tournament.status == TournamentStatus.Running && (user.id == opponentId || (userTeam && (user.id == userTeam.members[0]) && (userTeam.name == opponentId))))
-                                || (tournament.status != TournamentStatus.Done && user.isAdmin && !(tournament.bracketsCount == 2 && tournament.currentBracket == 1 && match.bracket == 0))
-                            )
 
                         return <div key={IdToString(match.id) + '-' + String(index)} className="is-flex-row align-end justify-space-between gap-2" onMouseEnter={() => setHightlightOpponent(opponentId || "")} onMouseLeave={() => setHightlightOpponent("")}>
-                            {canEditScore && !ffOpponentsIds.includes(opponentId!) ?
+                            {canEditScore(match, opponentId, tournament, user) && !ffOpponentsIds.includes(opponentId!) ?
                                 <DebouncedInputNumber name="score"
                                     className="threeDigitsWidth has-text-centered"
                                     defaultValue={opponentScore}
-                                    setter={(v: number) => { score(match.id, opponentId || "", v) }}
+                                    setter={(v: number | undefined) => { score(match.id, opponentId || "", v) }}
                                     debounceTimeout={3000}
                                 />
                                 :
@@ -507,4 +500,24 @@ function GroupStageMatchTile({ matchIds }: { matchIds: Id[] }) {
             })}
         </div>
     )
+}
+
+function canEditScore(match: any, opponentId: string | undefined, tournament:TournamentFullData, user: User) {
+    const settings = useSettings()
+    if (!match.scorable) return false
+    if (!opponentId) return false
+    if (user.isAdmin) return true
+
+    const userTeam = tournament.settings.useTeams ? tournament.teams.find(team => team.members.includes(user.id)) : undefined
+    if (userTeam && (user.id != userTeam.members[0])) return false
+
+    const idToUse = userTeam ? userTeam.name : user.id
+    if (idToUse == opponentId) return true
+
+    if (tournament.bracketSettings[match.bracket].type == BracketType.FFA) {
+        if ((settings.security.allOpponentsScore === true) && match.opponents.includes(idToUse)) return true
+    }
+    else if ((settings.security.allOpponentsScore != false) && match.opponents.includes(idToUse)) return true
+    
+    return false
 }

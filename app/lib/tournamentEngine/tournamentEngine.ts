@@ -341,7 +341,7 @@ export class TournamentEngine implements TournamentSpecification {
 		this.status = TournamentStatus.Open
 	}
 
-	public score(matchId: Id, opponent: string, score: number): void {
+	public score(matchId: Id, opponent: string, score: number | undefined): void {
 		this.internalScore(matchId, opponent, score)
 		this.searchForMatchToBeCompleted()
 	}
@@ -354,7 +354,7 @@ export class TournamentEngine implements TournamentSpecification {
 		return this.brackets[bracket].getOpponentSeed(opponentId) || -1
 	}
 
-	private internalScore(matchId: Id, opponent: string, score: number): void {
+	private internalScore(matchId: Id, opponent: string, score: number | undefined): void {
 		const currentBracket = this.brackets[this.activeBracket]
 		currentBracket.score(matchId, opponent, score)
 		this.resultsCache.delete(this.activeBracket)
@@ -734,7 +734,7 @@ class Bracket {
 		)
 	}
 
-	score(matchId: Id, opponent: string, score: number): void {
+	score(matchId: Id, opponent: string, score: number | undefined): void {
 		const match = this.getMatch(matchId)
 		const opponentIndex = match.opponents.findIndex(o => o == opponent)
 		if (opponentIndex == -1)

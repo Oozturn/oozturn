@@ -201,11 +201,11 @@ export function randomizePlayersOnTeams(tournamentId: string) {
     }
 }
 
-export function scoreMatch(tournamentId: string, matchID: string, opponent: string, score: number) {
+export function scoreMatch(tournamentId: string, matchID: string, opponent: string, score: number | null) {
     // Scores a 
     try {
         const tournament = getTournament(tournamentId)
-        tournament.score(StringToId(matchID), opponent, score)
+        tournament.score(StringToId(matchID), opponent, score === null ? undefined : score)
         EventUpdateTournamentBracket(tournamentId)
         updatePlayableMatches()
     } catch (error) {

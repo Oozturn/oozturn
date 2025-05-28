@@ -56,6 +56,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<{
       authentication: process.env.AUTHENTICATION === "false" ? false : true,
       securePassword: process.env.SECURE_PASSWORD === "false" ? false : true,
       useHttpOnly: process.env.USE_HTTP_ONLY === "true" ? true : false,
+      allOpponentsScore: process.env.ALL_OPPONENTS_SCORE === "duel_only" ? "duel_only" : (process.env.ALL_OPPONENTS_SCORE === "true" ? true : false)
     },
     notifications: {
       tournamentStartStop: process.env.NOTIFICATION_TOURNAMENT_CHANGE === "false" ? false : true,
