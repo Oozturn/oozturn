@@ -326,6 +326,7 @@ function MatchTile({ matchId }: { matchId: Id }) {
     const tournament = useTournament()
     const fetcher = useFetcher()
     const { hightlightOpponent, setHightlightOpponent } = useContext(HightlightOpponentContext)
+    const settings = useSettings()
 
     const ffOpponentsIds = [...tournament.players.filter(p => p.isForfeit).map(p => p.userId), ...tournament.teams.filter(t => t.isForfeit).map(t => t.name)]
     const userTeam = tournament.teams.find(team => team.members.includes(user.id))
@@ -382,10 +383,9 @@ function MatchTile({ matchId }: { matchId: Id }) {
         if (!hightlightOpponent && (user.id == opponent || userTeam?.name == opponent)) return "has-text-primary-accent"
     }
 
-    const isMatchEditable = matchOpponents.every(opponent => canEditScore(match, opponent.opponentId, tournament, user))
+    const isMatchEditable = matchOpponents.every(opponent => canEditScore(match, opponent.opponentId, tournament, user, settings.security.allOpponentsScore))
     const isMatchOver = match.score.every(score => score != undefined)
     const isMatchUnavailable = !isMatchOver && !match.scorable
-
     const matchTileAccent = (() => {
         if (tournament.status == TournamentStatus.Done) return ''
         if (isMatchOver) return 'has-background-primary-level has-borders-secondary-level'
@@ -415,7 +415,7 @@ function MatchTile({ matchId }: { matchId: Id }) {
                             :
                             <FakeUserTileRectangle userName="Unknown" initial="?" maxLength={245} />
                         }
-                        {canEditScore(match, opponentId, tournament, user) && !ffOpponentsIds.includes(opponentId!) ?
+                        {canEditScore(match, opponentId, tournament, user, settings.security.allOpponentsScore) && !ffOpponentsIds.includes(opponentId!) ?
                             <DebouncedInputNumber name="score"
                                 className={`threeDigitsWidth has-text-centered ${isMatchOver ? 'has-background-secondary-level' : ''}`}
                                 defaultValue={opponentScore}
@@ -442,6 +442,7 @@ function GroupStageMatchTile({ matchIds }: { matchIds: Id[] }) {
     const tournament = useTournament()
     const fetcher = useFetcher()
     const { hightlightOpponent, setHightlightOpponent } = useContext(HightlightOpponentContext)
+    const settings = useSettings()
 
     const score = (mId: Id, opponent: string, score: number | undefined) => {
         fetcher.submit(
@@ -495,7 +496,7 @@ function GroupStageMatchTile({ matchIds }: { matchIds: Id[] }) {
                         const opponentId = isReturn ? match.opponents.slice().reverse()[index] : match.opponents[index]
 
                         return <div key={IdToString(match.id) + '-' + String(index)} className="is-flex-row align-end justify-space-between gap-2" onMouseEnter={() => setHightlightOpponent(opponentId || "")} onMouseLeave={() => setHightlightOpponent("")}>
-                            {canEditScore(match, opponentId, tournament, user) && !ffOpponentsIds.includes(opponentId!) ?
+                            {canEditScore(match, opponentId, tournament, user, settings.security.allOpponentsScore) && !ffOpponentsIds.includes(opponentId!) ?
                                 <DebouncedInputNumber name="score"
                                     className="threeDigitsWidth has-text-centered"
                                     defaultValue={opponentScore}
@@ -514,8 +515,7 @@ function GroupStageMatchTile({ matchIds }: { matchIds: Id[] }) {
     )
 }
 
-function canEditScore(match: any, opponentId: string | undefined, tournament: TournamentFullData, user: User) {
-    const settings = useSettings()
+function canEditScore(match: any, opponentId: string | undefined, tournament: TournamentFullData, user: User, allopponentScoreSetting: boolean | "duel_only") {
     if (!match.scorable) return false
     if (!opponentId) return false
     if (user.isAdmin) return true
@@ -527,9 +527,9 @@ function canEditScore(match: any, opponentId: string | undefined, tournament: To
     if (idToUse == opponentId) return true
 
     if (tournament.bracketSettings[match.bracket].type == BracketType.FFA) {
-        if ((settings.security.allOpponentsScore === true) && match.opponents.includes(idToUse)) return true
+        if ((allopponentScoreSetting === true) && match.opponents.includes(idToUse)) return true
     }
-    else if ((settings.security.allOpponentsScore != false) && match.opponents.includes(idToUse)) return true
+    else if ((allopponentScoreSetting != false) && match.opponents.includes(idToUse)) return true
 
     return false
 }

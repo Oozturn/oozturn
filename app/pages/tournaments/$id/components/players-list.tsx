@@ -345,6 +345,8 @@ function TournamentInfoPlayersWhileRunning() {
 }
 function TournamentInfoPlayersOnceDone() {
     const tournament = useTournament()
+    useFetcher()
+    useUser()
 
     return (<div className="is-flex-col gap-2 no-basis" style={{ height: 300 }}>
         <div className="is-title medium">Résultats du tournoi</div>

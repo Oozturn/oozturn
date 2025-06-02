@@ -29,7 +29,7 @@ import { User } from "./lib/types/user"
 import { Statistics } from "./lib/types/statistics"
 import "./styles/globals.scss"
 import 'react-contexify/ReactContexify.css'
-import { Notification } from "./lib/components/notification"
+import { NotificationNode } from "./lib/components/notification"
 import { useRevalidateOnLanUpdate } from "./api/sse.hook"
 import Footer from "./lib/components/layout/footer"
 import { PlayableMatchesContext } from "./lib/components/contexts/PlayableMatchesContext"
@@ -113,7 +113,7 @@ export default function App() {
                           <Outlet />
                         </main>
                         <Footer />
-                        <Notification />
+                        <NotificationNode />
                       </StatsContext.Provider>
                     </PlayableMatchesContext.Provider>
                   </TournamentsContext.Provider>
