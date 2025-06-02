@@ -102,12 +102,12 @@ a, a:hover {
     }
 }
 
-.has-background-primary-level {
-    background-color: var(--background-primary-level) !important;
-    @include textAndFillColor(var(--text-color), var(--text-color-70))
-}
 .has-background-secondary-level {
     background-color: var(--background-secondary-level) !important;
+    @include textAndFillColor(var(--text-color), var(--text-color-70))
+}
+.has-background-primary-level {
+    background-color: var(--background-primary-level) !important;
     @include textAndFillColor(var(--text-color), var(--text-color-70))
 }
 .has-background-grey {
@@ -122,6 +122,13 @@ a, a:hover {
 .has-background-secondary-accent {
     background-color: var(--accent-secondary-color) !important;
     @include textAndFillColor(white, #FFFFFFB3)
+}
+
+.has-borders-secondary-level {
+    border: solid 2px var(--background-secondary-level);
+}
+.has-borders-primary-accent {
+    border: solid 2px var(--accent-primary-color);
 }
 
 .has-text-primary-accent {

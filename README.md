@@ -23,16 +23,17 @@ OOZTURN accepts the following settings, to set with environment variables:
 
 | Environment variables    | Usage                                                                                                                                          | Default value |
 | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
-| NEW_USERS_BY_ADMIN       | Only admins can register new users. This is ignored for the first account to be created.                                                       | true          |
-| AUTHENTICATION    | A password is needed for the users to log-in                                                                                                   | true          |
-| SECURE_PASSWORD          | Users passwords must be of at least 8 character and contain:<br />- a lowercase<br />- an uppercase<br />- a number<br />- a special character | true          |
-| USE_HTTP_ONLY            | Allow to use HTTP environment (useful for LANs for exemple)                                                                                    | false         |
-| NOTIFY_TOURNAMENT_CHANGE | Notify concerned users when a tournament gets an update                                                                                        | true          |
-| AUTO_REFRESH_TOURNAMENTS | Refresh tournaments list dynamically                                                                                                           | true          |
-| AUTO_REFRESH_USERS       | Refresh users list dynamically                                                                                                                 | true          |
-| IGDB_CLIENT_ID           | IGDB API client id to fetch games covers                                                                                                       | empty         |
-| IGDB_CLIENT_SECRET       | IGDB API client secret                                                                                                                         | empty         |
-| ADMIN_PASSWORD           | Admin password. This parameter is mandatory to enable the admin panel. Without it, admin pages can't be accessed.                              | empty         |
+| NEW_USERS_BY_ADMIN | Only admins can register new users. This is ignored for the first account to be created. | true |
+| AUTHENTICATION | A password is needed for the users to log-in | true |
+| SECURE_PASSWORD | Users passwords must be of at least 8 character and contain:<br />- a lowercase<br />- an uppercase<br />- a number<br />- a special character | true |
+| USE_HTTP_ONLY | Allow to use HTTP environment (useful for LANs for exemple) | false |
+| NOTIFY_TOURNAMENT_CHANGE | Notify concerned users when a tournament gets an update | true |
+| AUTO_REFRESH_TOURNAMENTS | Refresh tournaments list dynamically | true |
+| AUTO_REFRESH_USERS | Refresh users list dynamically | true |
+| IGDB_CLIENT_ID | IGDB API client id to fetch games covers | empty |
+| IGDB_CLIENT_SECRET | IGDB API client secret | empty |
+| ADMIN_PASSWORD | Admin password. This parameter is mandatory to enable the admin panel. Without it, admin pages can't be accessed. | empty |
+| ALL_OPPONENTS_SCORE | Allow all opponents to score. can be "false", "duel_only", "true". | false |
 
 ### Docker
 

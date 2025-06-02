@@ -382,10 +382,22 @@ function MatchTile({ matchId }: { matchId: Id }) {
         if (!hightlightOpponent && (user.id == opponent || userTeam?.name == opponent)) return "has-text-primary-accent"
     }
 
+    const isMatchEditable = matchOpponents.every(opponent => canEditScore(match, opponent.opponentId, tournament, user))
+    const isMatchOver = match.score.every(score => score != undefined)
+    const isMatchUnavailable = !isMatchOver && !match.scorable
+
+    const matchTileAccent = (() => {
+        if (tournament.status == TournamentStatus.Done) return ''
+        if (isMatchOver) return 'has-background-primary-level has-borders-secondary-level'
+        if (isMatchUnavailable) return 'fade-text'
+        if (isMatchEditable && !user.isAdmin) return 'has-borders-primary-accent'
+        return ''
+    })()
+
     return (
         <div className="is-flex-row align-center" style={{ width: isFFA ? 394 : 330 }}>
             <div className="is-vertical is-flex pt-2" style={{ transform: "rotate(-90deg)", width: "2rem", lineHeight: "1rem" }}>{IdToString(match.id)}</div>
-            <div className={`is-flex-col ${match.isFinale ? 'has-background-secondary-accent' : 'has-background-secondary-level'} grow p-1 gap-1`}>
+            <div className={`is-flex-col ${match.isFinale ? 'has-background-secondary-accent' : 'has-background-secondary-level'} ${matchTileAccent} grow p-1 gap-1`}>
                 {isFFA &&
                     <div className="is-flex gap-2 justify-end">
                         <p className="threeDigitsWidth">Pts</p>
@@ -405,7 +417,7 @@ function MatchTile({ matchId }: { matchId: Id }) {
                         }
                         {canEditScore(match, opponentId, tournament, user) && !ffOpponentsIds.includes(opponentId!) ?
                             <DebouncedInputNumber name="score"
-                                className="threeDigitsWidth has-text-centered"
+                                className={`threeDigitsWidth has-text-centered ${isMatchOver ? 'has-background-secondary-level' : ''}`}
                                 defaultValue={opponentScore}
                                 setter={(v: number | undefined) => { score(matchId, opponentId || "", v) }}
                                 debounceTimeout={3000}
@@ -502,7 +514,7 @@ function GroupStageMatchTile({ matchIds }: { matchIds: Id[] }) {
     )
 }
 
-function canEditScore(match: any, opponentId: string | undefined, tournament:TournamentFullData, user: User) {
+function canEditScore(match: any, opponentId: string | undefined, tournament: TournamentFullData, user: User) {
     const settings = useSettings()
     if (!match.scorable) return false
     if (!opponentId) return false
@@ -518,6 +530,6 @@ function canEditScore(match: any, opponentId: string | undefined, tournament:Tou
         if ((settings.security.allOpponentsScore === true) && match.opponents.includes(idToUse)) return true
     }
     else if ((settings.security.allOpponentsScore != false) && match.opponents.includes(idToUse)) return true
-    
+
     return false
 }
