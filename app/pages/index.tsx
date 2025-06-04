@@ -1,6 +1,5 @@
 import { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 import { Link } from "@remix-run/react"
-import { useGames } from "~/lib/components/contexts/GamesContext"
 import { useLan } from "~/lib/components/contexts/LanContext"
 import { useTournaments } from "~/lib/components/contexts/TournamentsContext"
 import { useUser } from "~/lib/components/contexts/UserContext"
@@ -31,7 +30,6 @@ export default function Index() {
   const me = useUser()
   const lan = useLan()
   const tournaments = useTournaments()
-  const games = useGames()
   useRevalidateOnGlobalTournamentUpdate()
 
   return (
@@ -57,7 +55,7 @@ export default function Index() {
                 </Link>
               }
               {tournaments.map(tournament =>
-                <IndexTournamentTile key={tournament.id} tournament={tournament} userId={me.id} game={games?.find(game => game.id == tournament.game)} />
+                <IndexTournamentTile key={tournament.id} tournament={tournament} userId={me.id} />
               )}
             </div>
           </div>
@@ -68,8 +66,8 @@ export default function Index() {
   )
 }
 
-function IndexTournamentTile({ tournament, userId, game }: { tournament: TournamentInfo, userId: string, game: Game | undefined }) {
-  const backgroundImage = game == undefined ? 'var(--generic-game-image) !important' : 'url(/igdb/' + game.picture + '.jpg)'
+function IndexTournamentTile({ tournament, userId }: { tournament: TournamentInfo, userId: string }) {
+  const backgroundImage = tournament.picture == undefined ? 'var(--generic-game-image) !important' : 'url(/igdb/' + tournament.picture + '.jpg)'
   return (
 
     <Link to={`/tournaments/${tournament.id}`} className="homeTournamentBox is-clickable p-0" style={{ backgroundImage: backgroundImage }}>

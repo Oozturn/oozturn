@@ -17,12 +17,12 @@ export default defineConfig({
         });
         route("logout", "pages/logout.ts", { index: true });
         route("admin", "pages/admin/admin.tsx")
-        route("admin/add-games", "pages/admin/add-games/add-games.tsx")
         route("admin/login", "pages/admin/login/admin-login.tsx")
         route("tournaments", "pages/tournaments/layout.tsx", () => {
           route("", "pages/tournaments/tournaments.tsx", { index: true })
           route("404", "pages/tournaments/404.tsx")
           route(":id", "pages/tournaments/$id/tournament.tsx")
+          route("api", "pages/tournaments/api.ts")
         })
         route("tournaments/new", "pages/tournaments/new/new.tsx")
         route("tournaments/edit/:id", "pages/tournaments/edit/edit.tsx")

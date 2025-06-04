@@ -7,7 +7,6 @@ import {
   ScrollRestoration,
   useLoaderData
 } from "@remix-run/react"
-import { GamesContext } from "./lib/components/contexts/GamesContext"
 import { LanContext } from "./lib/components/contexts/LanContext"
 import { TournamentsContext } from "./lib/components/contexts/TournamentsContext"
 import { UserContext } from "./lib/components/contexts/UserContext"
@@ -15,7 +14,6 @@ import { UsersContext } from "./lib/components/contexts/UsersContext"
 import { StatsContext } from "./lib/components/contexts/StatsContext"
 import Navbar from "./lib/components/layout/navbar"
 import { GetUserTheme, useIconUrl } from "./lib/components/tools/user-theme"
-import { getGames } from "./lib/persistence/games.server"
 import { getLan } from "./lib/persistence/lan.server"
 import { getTournaments } from "./lib/persistence/tournaments.server"
 import { getUsers } from "./lib/persistence/users.server"
@@ -42,7 +40,6 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<{
   user?: User
   users: User[]
   tournaments: TournamentInfo[]
-  games?: Game[]
   stats?: Statistics
   playableMatches: PlayableMatch[]
 }> {
@@ -70,7 +67,6 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<{
       user: user,
       users: getUsers(),
       tournaments: getTournaments(),
-      games: getGames(),
       stats: getStats(),
       playableMatches: getPlayableMatches(user.id)
     }
@@ -86,7 +82,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<{
 }
 
 export default function App() {
-  const { settings, lan, user, users, tournaments, games, stats, playableMatches } = useLoaderData<typeof loader>()
+  const { settings, lan, user, users, tournaments, stats, playableMatches } = useLoaderData<typeof loader>()
   const iconUrl = useIconUrl()
   useRevalidateOnLanUpdate()
   return (
@@ -101,25 +97,23 @@ export default function App() {
             <Links />
           </head>
           <body>
-            <GamesContext.Provider value={games}>
-              <UsersContext.Provider value={users}>
-                <UserContext.Provider value={user}>
-                  <TournamentsContext.Provider value={tournaments}>
-                    <PlayableMatchesContext.Provider value={playableMatches}>
-                      <StatsContext.Provider value={stats}>
-                        <GetUserTheme />
-                        <Navbar />
-                        <main className="main is-clipped">
-                          <Outlet />
-                        </main>
-                        <Footer />
-                        <NotificationNode />
-                      </StatsContext.Provider>
-                    </PlayableMatchesContext.Provider>
-                  </TournamentsContext.Provider>
-                </UserContext.Provider>
-              </UsersContext.Provider>
-            </GamesContext.Provider>
+            <UsersContext.Provider value={users}>
+              <UserContext.Provider value={user}>
+                <TournamentsContext.Provider value={tournaments}>
+                  <PlayableMatchesContext.Provider value={playableMatches}>
+                    <StatsContext.Provider value={stats}>
+                      <GetUserTheme />
+                      <Navbar />
+                      <main className="main is-clipped">
+                        <Outlet />
+                      </main>
+                      <Footer />
+                      <NotificationNode />
+                    </StatsContext.Provider>
+                  </PlayableMatchesContext.Provider>
+                </TournamentsContext.Provider>
+              </UserContext.Provider>
+            </UsersContext.Provider>
             <ScrollRestoration />
             <Scripts />
           </body>

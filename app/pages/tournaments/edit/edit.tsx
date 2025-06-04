@@ -3,9 +3,10 @@ import { useLoaderData } from "@remix-run/react"
 import TournamentEdit from "./components/edit"
 import { getLan } from "~/lib/persistence/lan.server"
 import { getTournament, updateTournamentProperties, updateTournamentSettings, updateTournamentBracketSettings } from "~/lib/persistence/tournaments.server"
-import { getUserId, requireUserLoggedIn } from "~/lib/session.server"
+import { getUserId, requireUserAdmin } from "~/lib/session.server"
 import { BracketSettings, TournamentFullData, TournamentProperties, TournamentSettings, TournamentStatus } from "~/lib/tournamentEngine/types"
 import { EventServerError } from "~/lib/emitter.server"
+import { validateIgdbCredentials } from "~/pages/admin/igdb-games.queries.server"
 
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -17,17 +18,19 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 export async function loader({ params, request }: LoaderFunctionArgs): Promise<{
     tournament: TournamentFullData
     lanName: string
+    igdbTokens: boolean
 }> {
-    requireUserLoggedIn(request)
+    requireUserAdmin(request)
     let tournament: TournamentFullData | undefined = undefined
+    let igdbTokens = await validateIgdbCredentials()
     try {
         tournament = getTournament(params.id || "").getFullData()
     } catch { throw redirect('/tournaments/404') }
-    return { tournament: tournament, lanName: getLan().name }
+    return { tournament: tournament, lanName: getLan().name, igdbTokens: igdbTokens }
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-    requireUserLoggedIn(request)
+    requireUserAdmin(request)
     const jsonData = await request.json()
     const tournamentId = jsonData.tournamentId as string
     const partialTournamentSettings = JSON.parse(jsonData.tournamentSettings) as Partial<TournamentSettings>

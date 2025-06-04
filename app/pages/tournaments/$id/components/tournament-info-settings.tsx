@@ -4,23 +4,15 @@ import { BracketType } from "~/lib/tournamentEngine/types"
 import { ShowGlobalTournamentPoints } from "~/lib/components/elements/global-tournament-points"
 import { FormattedTextWithUrls } from "~/lib/components/elements/formatted-text-url"
 import { useTournament } from "~/lib/components/contexts/TournamentsContext"
-import { useGames } from "~/lib/components/contexts/GamesContext"
 
 
 export default function TournamentInfoSettings() {
   const tournament = useTournament()
-  const game = useGames().find(game => game.id == tournament.properties.game)
 
   return (
     <div className='is-flex-col gap-4 grow no-basis is-scrollable'>
       <div className='is-title medium is-uppercase'>Informations sur le tournoi</div>
       <div className='is-flex-col grow gap-2'>
-
-        {/* Game */}
-        {game != undefined && <div className="is-flex gap-3 wrap">
-          <div className='has-text-right is-one-quarter'>Jeu :</div>
-          <div>{game.name}</div>
-        </div>}
 
         {/* Brackets and Teams */}
         {tournament.bracketsCount == 1 ?

@@ -1,7 +1,6 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 import { Link, useFetcher, useLoaderData, useNavigate } from "@remix-run/react"
 import useLocalStorageState from "use-local-storage-state"
-import { useGames } from "~/lib/components/contexts/GamesContext"
 import { useLan } from "~/lib/components/contexts/LanContext"
 import { useTournaments } from "~/lib/components/contexts/TournamentsContext"
 import { CustomButton } from "~/lib/components/elements/custom-button"
@@ -253,26 +252,12 @@ export function SectionTournamentsSettings({ isActive }: { isActive: boolean }) 
     const { setActiveSection } = useAdminSection()
     const navigate = useNavigate()
     const tournaments = useTournaments()
-    const games = useGames()
 
     return <div className={`is-clipped has-background-secondary-level px-4 is-flex-col ${isActive ? "grow no-basis" : ""}`}>
         <div className="is-title medium is-uppercase py-2 px-1 is-clickable" {...clickorkey(() => setActiveSection("tournamentsSettings"))} style={{ flex: "none" }}>
-            Jeux et tournois
+            Tournois
         </div>
         <div className="is-flex-col gap-4 is-scrollable" style={isActive ? { marginBottom: "1rem" } : { maxHeight: 0 }}>
-            {/* LAN games */}
-            <div className="is-flex gap-3 ">
-                <div className="has-text-right is-one-fifth mt-4">Jeux de la LAN :</div>
-                <div id="tournamentsList" className="is-flex wrap grow gap-1 p-2 has-background-primary-level is-scrollable">
-                    <div className="is-flex">
-                        <CustomButton customClasses="grow" contentItems={["New Game"]} colorClass="has-background-secondary-accent" callback={() => { navigate("/admin/add-games") }} />
-                    </div>
-                    {games.map(game =>
-                        <CustomButton key={game.id} customClasses="grow" contentItems={[game.name]} colorClass="has-background-secondary-level" callback={() => { navigate("/admin/add-games?query=" + game.name) }} />
-                    )}
-                    <div className="growmax" style={{ width: 0, margin: "-.5rem" }}></div>
-                </div>
-            </div>
             {/* LAN tournaments */}
             <div className="is-flex gap-3 ">
                 <div className="has-text-right is-one-fifth mt-4">Tournois de la LAN :</div>
@@ -370,11 +355,11 @@ export function SectionOnGoingMatches({ isActive }: { isActive: boolean }) {
                 <div className="has-text-right is-one-fifth mt-4">Matchs en cours :</div>
                 <div className="is-flex-col grow gap-2 p-2 has-background-primary-level is-scrollable align-stretch">
                     {playableTournaments.map(tournament =>
-                        <div className="is-flex-col gap-1">
+                        <div key={tournament.id} className="is-flex-col gap-1">
                             <Link to={"/tournaments/" + tournament.id} className="is-uppercase has-background-secondary-level p-1 has-text-weight-semibold fade-on-mouse-out">{tournament.name}</Link>
                             <div className="is-flex wrap grow gap-1">
                                 {playableMatches.filter(pm => pm.tournamentId == tournament.id).map(pMatch => {
-                                    return <Link to={"/tournaments/" + tournament.id} className="is-flex-col align-center customButton gap-1 fade-on-mouse-out is-unselectable has-background-secondary-level" style={{height:"80px"}}>
+                                    return <Link key={IdToString(pMatch.matchId)} to={"/tournaments/" + tournament.id} className="is-flex-col align-center customButton gap-1 fade-on-mouse-out is-unselectable has-background-secondary-level" style={{height:"80px"}}>
                                         <div>Match {IdToString(pMatch.matchId)}</div>
                                         {pMatch.opponents.length == 2 ?
                                             <div className="is-flex gap-2"><span className="has-text-primary-accent">{pMatch.opponents[0]}</span> VS <span className="has-text-secondary-accent">{pMatch.opponents[1]}</span></div>

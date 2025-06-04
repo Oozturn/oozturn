@@ -5,6 +5,7 @@ import { getUserId, requireUserAdmin } from "~/lib/session.server"
 import { BracketSettings, TournamentProperties, TournamentSettings } from "~/lib/tournamentEngine/types"
 import TournamentEdit from "../edit/components/edit"
 import { EventServerError } from "~/lib/emitter.server"
+import { validateIgdbCredentials } from "~/pages/admin/igdb-games.queries.server"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -14,9 +15,11 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 
 export async function loader({ request }: LoaderFunctionArgs): Promise<{
   lanName: string
+  igdbTokens: boolean
 }> {
   await requireUserAdmin(request)
-  return { lanName: getLan().name }
+  let igdbTokens = await validateIgdbCredentials()
+  return { lanName: getLan().name, igdbTokens: igdbTokens }
 }
 
 export async function action({ request }: ActionFunctionArgs) {

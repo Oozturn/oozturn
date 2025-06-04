@@ -1,9 +1,8 @@
-import { useState } from "react"
+import { ChangeEvent, useRef, useState } from "react"
 import { Days, range } from "~/lib/utils/ranges"
 import { BracketSettings, BracketType, TournamentFullData, TournamentProperties, TournamentSettings, TournamentStatus } from "~/lib/tournamentEngine/types"
 import { clickorkey } from "~/lib/utils/clickorkey"
 import { useLan } from "~/lib/components/contexts/LanContext"
-import { useGames } from "~/lib/components/contexts/GamesContext"
 import { CustomSelect } from "~/lib/components/elements/custom-select"
 import { EditGlobalTournamentPoints } from "~/lib/components/elements/global-tournament-points"
 import { CustomButton } from "~/lib/components/elements/custom-button"
@@ -11,7 +10,10 @@ import { DuelSVG, FFASVG, GroupStageSVG, OnlyFinalSVG, QualifAndFinalSVG, SoloSV
 import { CustomRadio } from "~/lib/components/elements/custom-radio"
 import { Duel } from "~/lib/tournamentEngine/tournament/duel"
 import { GetFFAMaxPlayers } from "~/lib/utils/tournaments"
-import { useFetcher } from "@remix-run/react"
+import { useActionData, useFetcher } from "@remix-run/react"
+import IgdbGamePictureModal from "~/lib/components/modals/igdb-game-picture-modal"
+import { action, Intents } from "../../api"
+import { notifyError } from "~/lib/components/notification"
 
 const enum tournamentEditSteps {
     PROPERTIES,
@@ -26,15 +28,30 @@ interface TournamentEditProps {
 export default function TournamentEdit({ existingTournament }: TournamentEditProps) {
 
     const lan = useLan()
-    const games = useGames()
 
     const [editStep, set_editStep] = useState<tournamentEditSteps>(tournamentEditSteps.PROPERTIES)
+
+    const [showIgdb, setShowIgdb] = useState(false)
+    const fetcherRemovePicture = useFetcher()
+    const fetcherUploadPicture = useFetcher()
+    const fetcherDownloadPicture = useFetcher()
+    const fileInputRef = useRef<HTMLInputElement>(null)
+
+    //////////////////
+    // TO FIX
+    const actionData = useActionData<typeof action>()
+    const picture = actionData?.picture
+    console.log("actionData: " + actionData)
+    console.log("picture: " + picture)
+    //////////////////
 
     const tId = existingTournament ? existingTournament.id : Date.now().toString()
 
     const [tTournamentProperties, set_tTournamentProperties] = useState<Partial<TournamentProperties>>(existingTournament ? existingTournament.properties : {
         globalTournamentPoints: { leaders: lan.globalTournamentDefaultPoints.leaders.slice(), default: lan.globalTournamentDefaultPoints.default },
-        startTime: { day: lan.startDate.day, hour: lan.startDate.hour, min: lan.startDate.min }
+        startTime: { day: lan.startDate.day, hour: lan.startDate.hour, min: lan.startDate.min },
+        picture: picture,
+        name: ""
     })
     const handlePropertiesChange = (properties: Partial<TournamentProperties>) => { set_tTournamentProperties({ ...tTournamentProperties, ...properties }) }
 
@@ -42,7 +59,7 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
         teamsMaxSize: 4
     })
     const handleTournamentSettingsChange = (settings: Partial<TournamentSettings>) => { set_tTournamentSettings({ ...tTournamentSettings, ...settings }) }
-    
+
     const [hasTwoPhases, set_HasTwoPhases] = useState<boolean | undefined>(existingTournament ? existingTournament.bracketsCount == 2 ? true : false : undefined)
     const [tFinaleSettings, set_tFinaleSettings] = useState<Partial<BracketSettings>>(existingTournament ? existingTournament.bracketSettings[existingTournament.bracketsCount == 2 ? 1 : 0] : {
         sizes: [6, 6],
@@ -51,7 +68,7 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
     const handleFinaleSettingsChange = (settings: Partial<BracketSettings>) => { set_tFinaleSettings({ ...tFinaleSettings, ...settings }) }
     const [tQualifSettings, set_tQualifSettings] = useState<Partial<BracketSettings>>(existingTournament ? existingTournament.bracketsCount == 2 ? existingTournament.bracketSettings[0] : {} : {})
     const handleQualifSettingsChange = (settings: Partial<BracketSettings>) => { set_tQualifSettings({ ...tQualifSettings, ...settings }) }
-    
+
     const [tLowerScoreIsBetter, set_tLowerScoreIsBetter] = useState(existingTournament ? existingTournament.bracketSettings[0].lowerScoreIsBetter : undefined)
 
     // FFA options
@@ -60,7 +77,7 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
     const finaleAdvancers = () => { return tFinaleSettings.advancers || [3] }
 
     const runningTournament = existingTournament && ![TournamentStatus.Open, TournamentStatus.Balancing].includes(existingTournament.status)
-    
+
 
     const fetcher = useFetcher()
     function PublishTournament() {
@@ -118,6 +135,24 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
         )
     }
 
+
+    async function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
+        if (e.target.files) {
+            if (e.target.files[0].size > 3 * 1024 * 1024) {
+                notifyError("Avatar is too big (3MB max.)")
+                return
+            }
+            fetcherUploadPicture.submit(
+                e.currentTarget.form,
+                {
+                    method: "POST",
+                    encType: "multipart/form-data",
+                    action: "/tournaments/api"
+                }
+            )
+        }
+    }
+
     return (
         <div className="is-flex-col grow gap-2 p-0 is-full-height">
             <div className="is-title big is-uppercase has-background-secondary-level p-2 px-4" {...clickorkey(() => set_editStep(tournamentEditSteps.PROPERTIES))}>
@@ -157,15 +192,45 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                         <div className='has-text-right is-one-fifth'>Nom du tournoi :</div>
                         <input className='input is-one-third' type="text" placeholder="Nom du tournoi" value={tTournamentProperties.name} onChange={(e) => { handlePropertiesChange({ name: e.target.value }); }} />
                     </div>
-                    <div className='is-flex align-center gap-5'>
-                        <div className='has-text-right is-one-fifth'>Jeu :</div>
-                        <CustomSelect
-                            variable={tTournamentProperties.game}
-                            setter={(v: string) => handlePropertiesChange({ game: Number(v) })}
-                            items={games.sort((a, b) => a.id == -1 ? -1 : b.id == -1 ? 1 : a.name < b.name ? -1 : a.name == b.name ? 0 : 1).map(game => { return { label: game.name, value: game.id } })}
-                            itemsToShow={20}
-                            customClass="is-one-third"
-                        />
+                    <div className='is-flex gap-5'>
+                        <div className='has-text-right is-one-fifth'>Image :</div>
+                        <div className="is-flex align-end gap-5">
+                            <img className="has-background-primary-level" src={tTournamentProperties.picture ? `/igdb/${tTournamentProperties.picture}` : ''} alt="" width={228} height={128} />
+                            <div className="is-flex-col gap-1">
+                                <IgdbGamePictureModal currentPicture={tTournamentProperties.picture} show={showIgdb} onHide={() => setShowIgdb(false)} />
+                                {/* Remove existing image */}
+                                {tTournamentProperties.picture &&
+                                    <fetcherRemovePicture.Form method="POST" action="/tournaments/api">
+                                        <input type="hidden" name="intent" value={Intents.REMOVE_TOURNAMENT_PIC} />
+                                        <input type="hidden" name="picture" value={tTournamentProperties.picture} />
+                                        <button type="submit"
+                                            className="customButton fade-on-mouse-out is-unselectable has-background-primary-accent is-clickable">
+                                            Supprimer l&apos;image
+                                        </button>
+                                    </fetcherRemovePicture.Form>
+                                }
+                                {/* Choose a local image */}
+                                <fetcherUploadPicture.Form method="POST" action="/tournaments/api">
+                                    <input name="intent" type="hidden" hidden value={Intents.LOCAL_TOURNAMENT_PIC} />
+                                    <input name="localFile" type="file" hidden ref={fileInputRef} id="selectAvatarInput" accept="image/jpeg,image/png,image/webp,image/gif"
+                                        onChange={handleFileChange} />
+                                    <button
+                                        onClick={event => { event.preventDefault(); fileInputRef.current?.click() }}
+                                        className="customButton fade-on-mouse-out is-unselectable has-background-secondary-accent is-clickable">
+                                        Image locale
+                                    </button>
+                                </fetcherUploadPicture.Form>
+                                {/* Choose an image from IGDB */}
+                                {<fetcherDownloadPicture.Form method="POST" action="/tournaments/api">
+                                    <input type="hidden" name="intent" value={Intents.IGDB_TOURNAMENT_PIC} />
+                                    <button
+                                        onClick={event => { event.preventDefault(); setShowIgdb(true) }}
+                                        className="customButton fade-on-mouse-out is-unselectable has-background-secondary-accent is-clickable">
+                                        Image from IGDB
+                                    </button>
+                                </fetcherDownloadPicture.Form>}
+                            </div>
+                        </div>
                     </div>
                     <div className="is-flex gap-5">
                         <div className='has-text-right is-one-fifth'>Points au classement global :</div>

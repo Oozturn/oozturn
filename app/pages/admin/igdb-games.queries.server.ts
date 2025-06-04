@@ -1,4 +1,3 @@
-import { updateGame } from "~/lib/persistence/games.server"
 import { Game } from "~/lib/types/games"
 import { mkdir } from "fs/promises"
 import { logger } from "~/lib/logging/logging"
@@ -21,9 +20,14 @@ export type AddOrUpdateGameRepresentation = Partial<Game>
 const IGDB_IMAGES_FOLDER = "uploads/igdb"
 let IGDB_TOKEN: string
 
+export async function validateIgdbCredentials() {
+    if (!process.env.IGDB_CLIENT_ID || !process.env.IGDB_CLIENT_SECRET) return false
+    return !!getIGDBToken()
+}
+
 export async function addOrUpdateGame(game: AddOrUpdateGameRepresentation) {
     if (!game.id) return
-    updateGame(game.id, game)
+    //updateGame(game.id, game)
 
     if (!game.picture) return
     await downloadPicture(game.picture)
