@@ -38,7 +38,7 @@ export interface BracketSettings extends DuelOpts, FFAOpts, GroupStageOpts {
 /** Tournament not critical properties. These can be edited at any time before the tournament ends */
 export interface TournamentProperties {
 	name: string
-	game?: number
+	picture?: string
 	startTime: DateType
 	globalTournamentPoints: globalTournamentPoints
 	comments: string

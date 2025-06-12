@@ -30,8 +30,6 @@ OOZTURN accepts the following settings, to set with environment variables:
 | NOTIFY_TOURNAMENT_CHANGE | Notify concerned users when a tournament gets an update | true |
 | AUTO_REFRESH_TOURNAMENTS | Refresh tournaments list dynamically | true |
 | AUTO_REFRESH_USERS | Refresh users list dynamically | true |
-| IGDB_CLIENT_ID | IGDB API client id to fetch games covers | empty |
-| IGDB_CLIENT_SECRET | IGDB API client secret | empty |
 | ADMIN_PASSWORD | Admin password. This parameter is mandatory to enable the admin panel. Without it, admin pages can't be accessed. | empty |
 | ALL_OPPONENTS_SCORE | Allow all opponents to score. can be "false", "duel_only", "true". | false |
 
@@ -45,7 +43,7 @@ Docker run -p <PORT>:3000 -e ADMIN_PASSWORD=<PASSWORD> bug38/oozturn
 
 If you want to access your DB from the host, or reuse an existing one, you can mount `/app/db`.
 
-To access uploads (users avatars, igdb covers, lan Map) you can mount `/app/uploads`.
+To access uploads (users avatars, tournament images, lan Map) you can mount `/app/uploads`.
 
 ### Manually
 

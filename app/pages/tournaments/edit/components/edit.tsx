@@ -1,9 +1,8 @@
-import { useState } from "react"
+import { ChangeEvent, useRef, useState } from "react"
 import { Days, range } from "~/lib/utils/ranges"
 import { BracketSettings, BracketType, TournamentFullData, TournamentProperties, TournamentSettings, TournamentStatus } from "~/lib/tournamentEngine/types"
 import { clickorkey } from "~/lib/utils/clickorkey"
 import { useLan } from "~/lib/components/contexts/LanContext"
-import { useGames } from "~/lib/components/contexts/GamesContext"
 import { CustomSelect } from "~/lib/components/elements/custom-select"
 import { EditGlobalTournamentPoints } from "~/lib/components/elements/global-tournament-points"
 import { CustomButton } from "~/lib/components/elements/custom-button"
@@ -12,6 +11,7 @@ import { CustomRadio } from "~/lib/components/elements/custom-radio"
 import { Duel } from "~/lib/tournamentEngine/tournament/duel"
 import { GetFFAMaxPlayers } from "~/lib/utils/tournaments"
 import { useFetcher } from "@remix-run/react"
+import { notifyError } from "~/lib/components/notification"
 
 const enum tournamentEditSteps {
     PROPERTIES,
@@ -26,23 +26,27 @@ interface TournamentEditProps {
 export default function TournamentEdit({ existingTournament }: TournamentEditProps) {
 
     const lan = useLan()
-    const games = useGames()
 
     const [editStep, set_editStep] = useState<tournamentEditSteps>(tournamentEditSteps.PROPERTIES)
+
+    const [tournamentImageFile, setTournamentImageFile] = useState<File>()
+    const fileInputRef = useRef<HTMLInputElement>(null)
 
     const tId = existingTournament ? existingTournament.id : Date.now().toString()
 
     const [tTournamentProperties, set_tTournamentProperties] = useState<Partial<TournamentProperties>>(existingTournament ? existingTournament.properties : {
         globalTournamentPoints: { leaders: lan.globalTournamentDefaultPoints.leaders.slice(), default: lan.globalTournamentDefaultPoints.default },
-        startTime: { day: lan.startDate.day, hour: lan.startDate.hour, min: lan.startDate.min }
+        startTime: { day: lan.startDate.day, hour: lan.startDate.hour, min: lan.startDate.min },
+        name: ""
     })
+    const [tournamentImageSrc, setTournamentImageSrc] = useState(tTournamentProperties.picture ? '/tournaments/' + tTournamentProperties.picture : "")
     const handlePropertiesChange = (properties: Partial<TournamentProperties>) => { set_tTournamentProperties({ ...tTournamentProperties, ...properties }) }
 
     const [tTournamentSettings, set_tTournamentSettings] = useState<Partial<TournamentSettings>>(existingTournament ? existingTournament.settings : {
         teamsMaxSize: 4
     })
     const handleTournamentSettingsChange = (settings: Partial<TournamentSettings>) => { set_tTournamentSettings({ ...tTournamentSettings, ...settings }) }
-    
+
     const [hasTwoPhases, set_HasTwoPhases] = useState<boolean | undefined>(existingTournament ? existingTournament.bracketsCount == 2 ? true : false : undefined)
     const [tFinaleSettings, set_tFinaleSettings] = useState<Partial<BracketSettings>>(existingTournament ? existingTournament.bracketSettings[existingTournament.bracketsCount == 2 ? 1 : 0] : {
         sizes: [6, 6],
@@ -51,7 +55,7 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
     const handleFinaleSettingsChange = (settings: Partial<BracketSettings>) => { set_tFinaleSettings({ ...tFinaleSettings, ...settings }) }
     const [tQualifSettings, set_tQualifSettings] = useState<Partial<BracketSettings>>(existingTournament ? existingTournament.bracketsCount == 2 ? existingTournament.bracketSettings[0] : {} : {})
     const handleQualifSettingsChange = (settings: Partial<BracketSettings>) => { set_tQualifSettings({ ...tQualifSettings, ...settings }) }
-    
+
     const [tLowerScoreIsBetter, set_tLowerScoreIsBetter] = useState(existingTournament ? existingTournament.bracketSettings[0].lowerScoreIsBetter : undefined)
 
     // FFA options
@@ -60,7 +64,7 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
     const finaleAdvancers = () => { return tFinaleSettings.advancers || [3] }
 
     const runningTournament = existingTournament && ![TournamentStatus.Open, TournamentStatus.Balancing].includes(existingTournament.status)
-    
+
 
     const fetcher = useFetcher()
     function PublishTournament() {
@@ -86,14 +90,20 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
             lowerScoreIsBetter: tLowerScoreIsBetter,
             ...tQualifSettings
         }
+
+        const formData = new FormData();
+        formData.append("intent", "createTournament")
+        formData.append("tournamentId", id)
+        if (tournamentImageFile) formData.append("tournamentImageFile", tournamentImageFile)
+        if (tournamentImageSrc) formData.append("tournamentHasImage", "true")
+        else formData.append("tournamentHasImage", "false")
+        formData.append("tournamentProperties", JSON.stringify(properties))
+        formData.append("tournamentSettings", JSON.stringify(settings))
+        formData.append("tournamentBracketSettings", JSON.stringify(hasTwoPhases ? [qualificationSettings, finaleSettings] : [finaleSettings]))
+
         fetcher.submit(
-            {
-                tournamentId: id,
-                tournamentProperties: JSON.stringify(properties),
-                tournamentSettings: JSON.stringify(settings),
-                tournamentBracketSettings: JSON.stringify(hasTwoPhases ? [qualificationSettings, finaleSettings] : [finaleSettings])
-            },
-            { method: "POST", encType: "application/json" }
+            formData,
+            { method: "POST", encType: "multipart/form-data", action: "/tournaments/api" }
         )
     }
     function UpdateTournament() {
@@ -107,15 +117,39 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
             lowerScoreIsBetter: tLowerScoreIsBetter,
             ...tQualifSettings
         }
+
+        const formData = new FormData();
+        formData.append("intent", "updateTournament")
+        formData.append("tournamentId", tId)
+        if (tournamentImageFile) formData.append("tournamentImageFile", tournamentImageFile)
+        if (tournamentImageSrc) formData.append("tournamentHasImage", "true")
+        else formData.append("tournamentHasImage", "false")
+        formData.append("tournamentProperties", JSON.stringify(tTournamentProperties))
+        formData.append("tournamentSettings", JSON.stringify(tTournamentSettings))
+        formData.append("tournamentBracketSettings", JSON.stringify(hasTwoPhases ? [qualificationSettings, finaleSettings] : [finaleSettings]))
+
         fetcher.submit(
-            {
-                tournamentId: tId,
-                tournamentProperties: JSON.stringify(tTournamentProperties),
-                tournamentSettings: JSON.stringify(tTournamentSettings),
-                tournamentBracketSettings: JSON.stringify(hasTwoPhases ? [qualificationSettings, finaleSettings] : [finaleSettings])
-            },
-            { method: "POST", encType: "application/json" }
+            formData,
+            { method: "POST", encType: "multipart/form-data", action: "/tournaments/api" }
         )
+    }
+
+    async function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
+        if (e.target.files) {
+            if (e.target.files[0].size > 6 * 1024 * 1024) {
+                notifyError("Image is too big (6MB max.)")
+                return
+            }
+            const reader = new FileReader()
+            reader.readAsDataURL(e.target.files[0])
+            reader.onload = () => {
+                console.log('called: ', reader)
+                if (reader.result) {
+                    setTournamentImageSrc(reader.result as string)
+                    setTournamentImageFile(e.target.files![0])
+                }
+            }
+        }
     }
 
     return (
@@ -157,15 +191,45 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                         <div className='has-text-right is-one-fifth'>Nom du tournoi :</div>
                         <input className='input is-one-third' type="text" placeholder="Nom du tournoi" value={tTournamentProperties.name} onChange={(e) => { handlePropertiesChange({ name: e.target.value }); }} />
                     </div>
-                    <div className='is-flex align-center gap-5'>
-                        <div className='has-text-right is-one-fifth'>Jeu :</div>
-                        <CustomSelect
-                            variable={tTournamentProperties.game}
-                            setter={(v: string) => handlePropertiesChange({ game: Number(v) })}
-                            items={games.sort((a, b) => a.id == -1 ? -1 : b.id == -1 ? 1 : a.name < b.name ? -1 : a.name == b.name ? 0 : 1).map(game => { return { label: game.name, value: game.id } })}
-                            itemsToShow={20}
-                            customClass="is-one-third"
-                        />
+                    <div className='is-flex gap-5'>
+                        <div className='has-text-right is-one-fifth'>Image :</div>
+                        <div className="is-flex align-end gap-5">
+                            <img
+                                {...clickorkey(() => fileInputRef.current?.click())}
+                                src={tournamentImageSrc || "/none.webp"}
+                                className="is-clickable"
+                                title="Changer d'image"
+                                style={{
+                                    objectFit: "cover",
+                                    width: '275px',
+                                    height: '150px',
+                                    backgroundImage: "var(--generic-game-image)",
+                                    backgroundSize: "cover",
+                                    backgroundPosition: "center"
+                                }}
+                            />
+                            <div className="is-flex-col gap-1">
+                                <input
+                                    id="selectAvatarInput"
+                                    name="tournamentImage"
+                                    ref={fileInputRef}
+                                    hidden
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/webp,image/gif"
+                                    onChange={handleFileChange}
+                                />
+                                {tTournamentProperties.picture &&
+                                    <CustomButton
+                                        callback={() => { setTournamentImageSrc(""); setTournamentImageFile(undefined) }}
+                                        contentItems={["Retirer l'image"]}
+                                    />
+                                }
+                                <CustomButton
+                                    callback={() => fileInputRef.current?.click()}
+                                    contentItems={["Changer d'image"]}
+                                />
+                            </div>
+                        </div>
                     </div>
                     <div className="is-flex gap-5">
                         <div className='has-text-right is-one-fifth'>Points au classement global :</div>
