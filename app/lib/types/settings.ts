@@ -24,7 +24,5 @@ export interface Settings {
 }
 
 export interface CredentialsSettings {
-	igdbClientId: string
-	igdbClientSecret: string
 	adminPasswordHash: string
 }

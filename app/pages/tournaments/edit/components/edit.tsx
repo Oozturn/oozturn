@@ -10,9 +10,7 @@ import { DuelSVG, FFASVG, GroupStageSVG, OnlyFinalSVG, QualifAndFinalSVG, SoloSV
 import { CustomRadio } from "~/lib/components/elements/custom-radio"
 import { Duel } from "~/lib/tournamentEngine/tournament/duel"
 import { GetFFAMaxPlayers } from "~/lib/utils/tournaments"
-import { useActionData, useFetcher } from "@remix-run/react"
-import IgdbGamePictureModal from "~/lib/components/modals/igdb-game-picture-modal"
-import { action, Intents } from "../../api"
+import { useFetcher } from "@remix-run/react"
 import { notifyError } from "~/lib/components/notification"
 
 const enum tournamentEditSteps {
@@ -31,28 +29,17 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
 
     const [editStep, set_editStep] = useState<tournamentEditSteps>(tournamentEditSteps.PROPERTIES)
 
-    const [showIgdb, setShowIgdb] = useState(false)
-    const fetcherRemovePicture = useFetcher()
-    const fetcherUploadPicture = useFetcher()
-    const fetcherDownloadPicture = useFetcher()
+    const [tournamentImageFile, setTournamentImageFile] = useState<File>()
     const fileInputRef = useRef<HTMLInputElement>(null)
-
-    //////////////////
-    // TO FIX
-    const actionData = useActionData<typeof action>()
-    const picture = actionData?.picture
-    console.log("actionData: " + actionData)
-    console.log("picture: " + picture)
-    //////////////////
 
     const tId = existingTournament ? existingTournament.id : Date.now().toString()
 
     const [tTournamentProperties, set_tTournamentProperties] = useState<Partial<TournamentProperties>>(existingTournament ? existingTournament.properties : {
         globalTournamentPoints: { leaders: lan.globalTournamentDefaultPoints.leaders.slice(), default: lan.globalTournamentDefaultPoints.default },
         startTime: { day: lan.startDate.day, hour: lan.startDate.hour, min: lan.startDate.min },
-        picture: picture,
         name: ""
     })
+    const [ tournamentImageSrc, setTournamentImageSrc ] = useState(tTournamentProperties.picture ? '/tournaments/' + tTournamentProperties.picture : "")
     const handlePropertiesChange = (properties: Partial<TournamentProperties>) => { set_tTournamentProperties({ ...tTournamentProperties, ...properties }) }
 
     const [tTournamentSettings, set_tTournamentSettings] = useState<Partial<TournamentSettings>>(existingTournament ? existingTournament.settings : {
@@ -103,14 +90,20 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
             lowerScoreIsBetter: tLowerScoreIsBetter,
             ...tQualifSettings
         }
+
+        const formData = new FormData();
+        formData.append("intent", "createTournament")
+        formData.append("tournamentId", id)
+        if(tournamentImageFile) formData.append("tournamentImageFile", tournamentImageFile)
+        if (tournamentImageSrc) formData.append("tournamentHasImage", "true")
+        else formData.append("tournamentHasImage", "false")
+        formData.append("tournamentProperties", JSON.stringify(properties))
+        formData.append("tournamentSettings", JSON.stringify(settings))
+        formData.append("tournamentBracketSettings", JSON.stringify(hasTwoPhases ? [qualificationSettings, finaleSettings] : [finaleSettings]))
+
         fetcher.submit(
-            {
-                tournamentId: id,
-                tournamentProperties: JSON.stringify(properties),
-                tournamentSettings: JSON.stringify(settings),
-                tournamentBracketSettings: JSON.stringify(hasTwoPhases ? [qualificationSettings, finaleSettings] : [finaleSettings])
-            },
-            { method: "POST", encType: "application/json" }
+            formData,
+            { method: "POST", encType: "multipart/form-data", action: "/tournaments/api" }
         )
     }
     function UpdateTournament() {
@@ -124,32 +117,38 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
             lowerScoreIsBetter: tLowerScoreIsBetter,
             ...tQualifSettings
         }
+        
+        const formData = new FormData();
+        formData.append("intent", "updateTournament")
+        formData.append("tournamentId", tId)
+        if(tournamentImageFile) formData.append("tournamentImageFile", tournamentImageFile)
+        if (tournamentImageSrc) formData.append("tournamentHasImage", "true")
+        else formData.append("tournamentHasImage", "false")
+        formData.append("tournamentProperties", JSON.stringify(tTournamentProperties))
+        formData.append("tournamentSettings", JSON.stringify(tTournamentSettings))
+        formData.append("tournamentBracketSettings", JSON.stringify(hasTwoPhases ? [qualificationSettings, finaleSettings] : [finaleSettings]))
+
         fetcher.submit(
-            {
-                tournamentId: tId,
-                tournamentProperties: JSON.stringify(tTournamentProperties),
-                tournamentSettings: JSON.stringify(tTournamentSettings),
-                tournamentBracketSettings: JSON.stringify(hasTwoPhases ? [qualificationSettings, finaleSettings] : [finaleSettings])
-            },
-            { method: "POST", encType: "application/json" }
+            formData,
+            { method: "POST", encType: "multipart/form-data", action: "/tournaments/api" }
         )
     }
 
-
     async function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
         if (e.target.files) {
-            if (e.target.files[0].size > 3 * 1024 * 1024) {
-                notifyError("Avatar is too big (3MB max.)")
+            if (e.target.files[0].size > 6 * 1024 * 1024) {
+                notifyError("Image is too big (6MB max.)")
                 return
             }
-            fetcherUploadPicture.submit(
-                e.currentTarget.form,
-                {
-                    method: "POST",
-                    encType: "multipart/form-data",
-                    action: "/tournaments/api"
+            const reader = new FileReader()
+            reader.readAsDataURL(e.target.files[0])
+            reader.onload = () => {
+                console.log('called: ', reader)
+                if (reader.result) {
+                    setTournamentImageSrc(reader.result as string)
+                    setTournamentImageFile(e.target.files![0])
                 }
-            )
+            }
         }
     }
 
@@ -195,40 +194,40 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                     <div className='is-flex gap-5'>
                         <div className='has-text-right is-one-fifth'>Image :</div>
                         <div className="is-flex align-end gap-5">
-                            <img className="has-background-primary-level" src={tTournamentProperties.picture ? `/igdb/${tTournamentProperties.picture}` : ''} alt="" width={228} height={128} />
+                            <img
+                                {...clickorkey(() => fileInputRef.current?.click())}
+                                src={tournamentImageSrc}
+                                className="is-clickable"
+                                title="Changer d'image"
+                                style={{
+                                    objectFit: "cover",
+                                    width: '275px',
+                                    height: '150px',
+                                    backgroundImage: "var(--generic-game-image)",
+                                    backgroundSize: "cover",
+                                    backgroundPosition: "center"
+                                }}
+                            />
                             <div className="is-flex-col gap-1">
-                                <IgdbGamePictureModal currentPicture={tTournamentProperties.picture} show={showIgdb} onHide={() => setShowIgdb(false)} />
-                                {/* Remove existing image */}
+                                <input
+                                    id="selectAvatarInput"
+                                    name="tournamentImage"
+                                    ref={fileInputRef}
+                                    hidden
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/webp,image/gif"
+                                    onChange={handleFileChange}
+                                />
                                 {tTournamentProperties.picture &&
-                                    <fetcherRemovePicture.Form method="POST" action="/tournaments/api">
-                                        <input type="hidden" name="intent" value={Intents.REMOVE_TOURNAMENT_PIC} />
-                                        <input type="hidden" name="picture" value={tTournamentProperties.picture} />
-                                        <button type="submit"
-                                            className="customButton fade-on-mouse-out is-unselectable has-background-primary-accent is-clickable">
-                                            Supprimer l&apos;image
-                                        </button>
-                                    </fetcherRemovePicture.Form>
+                                    <CustomButton
+                                        callback={() => {setTournamentImageSrc(""); setTournamentImageFile(undefined)}}
+                                        contentItems={["Retirer l'image"]}
+                                    />
                                 }
-                                {/* Choose a local image */}
-                                <fetcherUploadPicture.Form method="POST" action="/tournaments/api">
-                                    <input name="intent" type="hidden" hidden value={Intents.LOCAL_TOURNAMENT_PIC} />
-                                    <input name="localFile" type="file" hidden ref={fileInputRef} id="selectAvatarInput" accept="image/jpeg,image/png,image/webp,image/gif"
-                                        onChange={handleFileChange} />
-                                    <button
-                                        onClick={event => { event.preventDefault(); fileInputRef.current?.click() }}
-                                        className="customButton fade-on-mouse-out is-unselectable has-background-secondary-accent is-clickable">
-                                        Image locale
-                                    </button>
-                                </fetcherUploadPicture.Form>
-                                {/* Choose an image from IGDB */}
-                                {<fetcherDownloadPicture.Form method="POST" action="/tournaments/api">
-                                    <input type="hidden" name="intent" value={Intents.IGDB_TOURNAMENT_PIC} />
-                                    <button
-                                        onClick={event => { event.preventDefault(); setShowIgdb(true) }}
-                                        className="customButton fade-on-mouse-out is-unselectable has-background-secondary-accent is-clickable">
-                                        Image from IGDB
-                                    </button>
-                                </fetcherDownloadPicture.Form>}
+                                <CustomButton
+                                    callback={() => fileInputRef.current?.click()}
+                                    contentItems={["Changer d'image"]}
+                                />
                             </div>
                         </div>
                     </div>

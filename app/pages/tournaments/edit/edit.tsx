@@ -6,7 +6,6 @@ import { getTournament, updateTournamentProperties, updateTournamentSettings, up
 import { getUserId, requireUserAdmin } from "~/lib/session.server"
 import { BracketSettings, TournamentFullData, TournamentProperties, TournamentSettings, TournamentStatus } from "~/lib/tournamentEngine/types"
 import { EventServerError } from "~/lib/emitter.server"
-import { validateIgdbCredentials } from "~/pages/admin/igdb-games.queries.server"
 
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -18,24 +17,23 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 export async function loader({ params, request }: LoaderFunctionArgs): Promise<{
     tournament: TournamentFullData
     lanName: string
-    igdbTokens: boolean
 }> {
     requireUserAdmin(request)
     let tournament: TournamentFullData | undefined = undefined
-    let igdbTokens = await validateIgdbCredentials()
     try {
         tournament = getTournament(params.id || "").getFullData()
     } catch { throw redirect('/tournaments/404') }
-    return { tournament: tournament, lanName: getLan().name, igdbTokens: igdbTokens }
+    return { tournament: tournament, lanName: getLan().name }
 }
 
 export async function action({ request }: ActionFunctionArgs) {
     requireUserAdmin(request)
-    const jsonData = await request.json()
-    const tournamentId = jsonData.tournamentId as string
-    const partialTournamentSettings = JSON.parse(jsonData.tournamentSettings) as Partial<TournamentSettings>
-    const tournamentBracketSettings = JSON.parse(jsonData.tournamentBracketSettings) as BracketSettings[]
-    const partialTournamentProperties = JSON.parse(jsonData.tournamentProperties) as Partial<TournamentProperties>
+    const formData = await request.formData()
+    const tournamentId = String(formData.get("tournamentId"))
+    const tournamentImageFile = formData.get("tournamentImageFile") as File | null
+    const partialTournamentSettings = JSON.parse(String(formData.get("tournamentSettings"))) as Partial<TournamentSettings>
+    const tournamentBracketSettings = JSON.parse(String(formData.get("tournamentBracketSettings"))) as BracketSettings[]
+    const partialTournamentProperties = JSON.parse(String(formData.get("tournamentProperties"))) as Partial<TournamentProperties>
     try {
         if ([TournamentStatus.Open, TournamentStatus.Balancing].includes(getTournament(tournamentId).getStatus())) {
             updateTournamentBracketSettings(tournamentId, tournamentBracketSettings)

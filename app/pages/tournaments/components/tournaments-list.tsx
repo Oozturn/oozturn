@@ -24,7 +24,7 @@ export default function TournamentsList() {
                     to={`/tournaments/${tournament.id}`}
                     key={tournament.id}
                     className={({ isActive }) => `tournamentTile has-background-secondary-level is-clickable ${isActive ? 'is-active' : ''}`}
-                    style={{ backgroundImage: tournament.picture == undefined ? "var(--generic-game-image) !important" : 'url(/igdb/' + tournament.picture + '.jpg)' }}
+                    style={{ backgroundImage: tournament.picture == undefined ? "var(--generic-game-image) !important" : 'url(/tournaments/' + tournament.picture + ')' }}
                 >
                     <div className='tournamentName'>{tournament.name}</div>
                     {tournament.players.find(p => p.userId == user.id) && <div className='subscribedIndicator' title='inscrit'></div>}

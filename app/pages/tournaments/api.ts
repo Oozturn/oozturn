@@ -1,21 +1,15 @@
 import { ActionFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/react";
+import { json, redirect } from "@remix-run/react";
 import { createWriteStream } from "fs";
 import { mkdir } from "fs/promises";
 import { get } from "https"
 import { logger } from "~/lib/logging/logging";
-import { requireUserAdmin } from "~/lib/session.server";
+import { getUserId, requireUserAdmin } from "~/lib/session.server";
 import crypto from 'crypto'
 import sharp from "sharp";
-
-
-
-export enum Intents {
-    LOCAL_TOURNAMENT_PIC = 'local_tournament_pic',
-    IGDB_TOURNAMENT_PIC = 'igdb_tournament_pic',
-    REMOVE_TOURNAMENT_PIC = 'remove_tournament_pic',
-    SEARCH_GAMES = 'search_games',
-}
+import { BracketSettings, TournamentProperties, TournamentSettings, TournamentStatus } from "~/lib/tournamentEngine/types";
+import { getTournament, newTournament, updateTournamentBracketSettings, updateTournamentProperties, updateTournamentSettings } from "~/lib/persistence/tournaments.server";
+import { EventServerError } from "~/lib/emitter.server";
 
 export interface gameInfo {
     name: string
@@ -28,68 +22,46 @@ export async function action({ request }: ActionFunctionArgs) {
     const formData = await request.formData()
     const intent = formData.get("intent")
 
+    const tournamentId = String(formData.get("tournamentId"))
+    const tournamentImageFile = formData.get("tournamentImageFile") as File | null
+    const tournamentBracketSettings = JSON.parse(String(formData.get("tournamentBracketSettings"))) as BracketSettings[]
+    const tournamentHasImage = formData.get("tournamentHasImage") === "true"
+
     switch (intent) {
-        case Intents.LOCAL_TOURNAMENT_PIC:
-            const file = formData.get("localFile") as File
-            if (file) {
-                const filename = await storePicture(file)
-                console.log("stored " + filename)
-                return json({ picture: filename, games: [] as gameInfo[] })
+        case "createTournament":
+            const tournamentSettings = JSON.parse(String(formData.get("tournamentSettings"))) as TournamentSettings
+            const tournamentProperties = JSON.parse(String(formData.get("tournamentProperties"))) as TournamentProperties
+            if (tournamentImageFile) {
+                const filename = await storePicture(tournamentImageFile)
+                tournamentProperties.picture = filename
             }
-            break
-        case Intents.IGDB_TOURNAMENT_PIC:
-            const pictureRef = String(formData.get("picture"))
-            if (pictureRef) {
-                await downloadPicture(pictureRef)
-                return json({ picture: pictureRef, games: [] as gameInfo[] })
+            if (!tournamentHasImage) tournamentProperties.picture = undefined
+            newTournament(tournamentId, tournamentProperties, tournamentSettings, tournamentBracketSettings)
+            return redirect("/tournaments/" + tournamentId)
+        case "updateTournament":
+            const partialTournamentSettings = JSON.parse(String(formData.get("tournamentSettings"))) as Partial<TournamentSettings>
+            const partialTournamentProperties = JSON.parse(String(formData.get("tournamentProperties"))) as Partial<TournamentProperties>
+            if (tournamentImageFile) {
+                const filename = await storePicture(tournamentImageFile)
+                partialTournamentProperties.picture = filename
             }
-            break
-        case Intents.REMOVE_TOURNAMENT_PIC:
-            // upload picture and send back its ID / url
-            return json({ picture: "tutu", games: [] as gameInfo[] })
-            break
-        case Intents.SEARCH_GAMES:
-            // search data on IGDB and send back a list of pictures
-            return json({ picture: "titi", games: [] as gameInfo[] })
+            if (!tournamentHasImage) partialTournamentProperties.picture = undefined
+            try {
+                if ([TournamentStatus.Open, TournamentStatus.Balancing].includes(getTournament(tournamentId).getStatus())) {
+                    updateTournamentBracketSettings(tournamentId, tournamentBracketSettings)
+                    updateTournamentSettings(tournamentId, partialTournamentSettings)
+                }
+                updateTournamentProperties(tournamentId, partialTournamentProperties)
+                return redirect("/tournaments/" + tournamentId)
+            } catch (error) {
+                const userId = await getUserId(request) as string
+                EventServerError(userId, "Erreur lors de la mise à jour du tournoi : " + error as string)
+            }
             break
     }
-    return json({ picture: "toto", games: [] as gameInfo[] })
 }
 
-const IGDB_IMAGES_FOLDER = "uploads/igdb"
-
-async function downloadPicture(pictureId: string) {
-    await mkdir(IGDB_IMAGES_FOLDER, { recursive: true })
-    logger.info(`Downloading https://images.igdb.com/igdb/image/upload/t_screenshot_big/${pictureId}.jpg`)
-    await (downloadFile(`https://images.igdb.com/igdb/image/upload/t_screenshot_big/${pictureId}.jpg`, `${IGDB_IMAGES_FOLDER}/${pictureId}.jpg`))
-}
-async function downloadFile(url: string, targetFile: string) {
-    return await new Promise((resolve, reject) => {
-        get(url, response => {
-            const code = response.statusCode ?? 0
-
-            if (code >= 400) {
-                return reject(new Error(response.statusMessage))
-            }
-
-            // handle redirects
-            if (code > 300 && code < 400 && !!response.headers.location) {
-                return resolve(
-                    downloadFile(response.headers.location, targetFile)
-                )
-            }
-
-            // save the file to disk
-            const fileWriter = createWriteStream(targetFile)
-                .on('finish', () => {
-                    resolve({})
-                })
-            response.pipe(fileWriter)
-        }).on('error', error => {
-            reject(error)
-        })
-    })
-}
+const TOURNAMENT_IMAGES_FOLDER = "uploads/tournaments"
 
 async function storePicture(file: File): Promise<string> {
     console.log("storing picture " + file.name)
@@ -97,12 +69,12 @@ async function storePicture(file: File): Promise<string> {
     const hashSum = crypto.createHash('md5')
     hashSum.update(inputBuffer)
     const hex = hashSum.digest('hex')
-    const filename = `${hex}.jpg`
-    await mkdir(IGDB_IMAGES_FOLDER, { recursive: true })
+    const filename = `${hex}.webp`
+    await mkdir(TOURNAMENT_IMAGES_FOLDER, { recursive: true })
     try {
         await sharp(inputBuffer, { animated: true, pages: -1 })
             .resize(256, 256, { fit: 'inside', background: { r: 0, g: 0, b: 0, alpha: 0 } })
-            .toFile(`${IGDB_IMAGES_FOLDER}/${filename}`)
+            .toFile(`${TOURNAMENT_IMAGES_FOLDER}/${filename}`)
     } catch (e) {
         console.error(e)
         throw e
