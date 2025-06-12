@@ -39,7 +39,7 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
         startTime: { day: lan.startDate.day, hour: lan.startDate.hour, min: lan.startDate.min },
         name: ""
     })
-    const [ tournamentImageSrc, setTournamentImageSrc ] = useState(tTournamentProperties.picture ? '/tournaments/' + tTournamentProperties.picture : "")
+    const [tournamentImageSrc, setTournamentImageSrc] = useState(tTournamentProperties.picture ? '/tournaments/' + tTournamentProperties.picture : "")
     const handlePropertiesChange = (properties: Partial<TournamentProperties>) => { set_tTournamentProperties({ ...tTournamentProperties, ...properties }) }
 
     const [tTournamentSettings, set_tTournamentSettings] = useState<Partial<TournamentSettings>>(existingTournament ? existingTournament.settings : {
@@ -94,7 +94,7 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
         const formData = new FormData();
         formData.append("intent", "createTournament")
         formData.append("tournamentId", id)
-        if(tournamentImageFile) formData.append("tournamentImageFile", tournamentImageFile)
+        if (tournamentImageFile) formData.append("tournamentImageFile", tournamentImageFile)
         if (tournamentImageSrc) formData.append("tournamentHasImage", "true")
         else formData.append("tournamentHasImage", "false")
         formData.append("tournamentProperties", JSON.stringify(properties))
@@ -117,11 +117,11 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
             lowerScoreIsBetter: tLowerScoreIsBetter,
             ...tQualifSettings
         }
-        
+
         const formData = new FormData();
         formData.append("intent", "updateTournament")
         formData.append("tournamentId", tId)
-        if(tournamentImageFile) formData.append("tournamentImageFile", tournamentImageFile)
+        if (tournamentImageFile) formData.append("tournamentImageFile", tournamentImageFile)
         if (tournamentImageSrc) formData.append("tournamentHasImage", "true")
         else formData.append("tournamentHasImage", "false")
         formData.append("tournamentProperties", JSON.stringify(tTournamentProperties))
@@ -196,7 +196,7 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                         <div className="is-flex align-end gap-5">
                             <img
                                 {...clickorkey(() => fileInputRef.current?.click())}
-                                src={tournamentImageSrc}
+                                src={tournamentImageSrc || "/none.webp"}
                                 className="is-clickable"
                                 title="Changer d'image"
                                 style={{
@@ -220,7 +220,7 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                                 />
                                 {tTournamentProperties.picture &&
                                     <CustomButton
-                                        callback={() => {setTournamentImageSrc(""); setTournamentImageFile(undefined)}}
+                                        callback={() => { setTournamentImageSrc(""); setTournamentImageFile(undefined) }}
                                         contentItems={["Retirer l'image"]}
                                     />
                                 }

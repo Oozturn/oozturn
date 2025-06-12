@@ -73,7 +73,6 @@ async function storePicture(file: File): Promise<string> {
     await mkdir(TOURNAMENT_IMAGES_FOLDER, { recursive: true })
     try {
         await sharp(inputBuffer, { animated: true, pages: -1 })
-            .resize(256, 256, { fit: 'inside', background: { r: 0, g: 0, b: 0, alpha: 0 } })
             .toFile(`${TOURNAMENT_IMAGES_FOLDER}/${filename}`)
     } catch (e) {
         console.error(e)

@@ -24,8 +24,10 @@ export default function TournamentsList() {
                     to={`/tournaments/${tournament.id}`}
                     key={tournament.id}
                     className={({ isActive }) => `tournamentTile has-background-secondary-level is-clickable ${isActive ? 'is-active' : ''}`}
-                    style={{ backgroundImage: tournament.picture == undefined ? "var(--generic-game-image) !important" : 'url(/tournaments/' + tournament.picture + ')' }}
                 >
+                    <img className='is-full-height is-full-width' src={tournament.picture ? `/tournaments/${tournament.picture}` : "/none.webp"}
+                        style={{ position: "absolute", objectFit: "cover", backgroundImage: "var(--generic-game-image)", backgroundSize: "cover", backgroundPosition: "center" }}
+                    />
                     <div className='tournamentName'>{tournament.name}</div>
                     {tournament.players.find(p => p.userId == user.id) && <div className='subscribedIndicator' title='inscrit'></div>}
                     {tournament.status == TournamentStatus.Balancing && <div className='tournamentState'>En préparation</div>}
