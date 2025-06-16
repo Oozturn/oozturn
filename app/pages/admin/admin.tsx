@@ -286,9 +286,11 @@ export function SectionGlobalTournamentSettings({ isActive }: { isActive: boolea
         <div className="is-flex-col gap-4" style={{ maxHeight: isActive ? undefined : 0 }}>
             <div className="is-flex gap-3">
                 <div className="has-text-right is-one-fifth">Points par défaut :</div>
-                <EditGlobalTournamentPoints points={lan.globalTournamentDefaultPoints} updatePoints={(pts) => updateLan("lan_globalTournamentDefaultPoints", JSON.stringify(pts))
-                } />
-                <div className='is-size-7 pb-3 pl-3 no-basis grow is-align-self-flex-end'>Dans ce tableau, indique le nombre de points que les joueurs recevront à chaque tournoi en fonction de leur classement.</div>
+                <div className="is-flex-col gap-2">
+                    <EditGlobalTournamentPoints points={lan.globalTournamentDefaultPoints} updatePoints={(pts) => updateLan("lan_globalTournamentDefaultPoints", JSON.stringify(pts))
+                    } />
+                    <div className='is-size-7 no-basis grow'>Dans ce tableau, indique le nombre de points que les joueurs recevront à chaque tournoi en fonction de leur classement.</div>
+                </div>
             </div>
             <div></div>  {/* Spacer */}
             <div className='is-flex gap-3'>
@@ -300,16 +302,13 @@ export function SectionGlobalTournamentSettings({ isActive }: { isActive: boolea
             </div>
             <div className='is-flex gap-3'>
                 <CustomCheckbox variable={lan.showTeamsResults} customClass='mt-2 justify-flex-end is-one-fifth' setter={(value: boolean) => updateLan("lan_showTeamsResults", JSON.stringify(value))} />
-                <div className='is-flex-col'>
-                    <div>Afficher le classement par équipes</div>
-                    <div className='is-size-7'>Sélectionne <i>oui</i> pour pondérer les scores d&apos;équipe en fonction du nombre de joueurs qui la composent. Dans le cas contraire, bien sûr, sélectionne <i>non</i>.</div>
-                </div>
+                <div>Afficher le classement par équipes</div>
             </div>
             <div className='is-flex gap-3'>
                 <CustomCheckbox variable={lan.weightTeamsResults} customClass='mt-2 justify-flex-end is-one-fifth' setter={(value: boolean) => updateLan("lan_weightTeamsResults", JSON.stringify(value))} />
                 <div className='is-flex-col'>
                     <div>Classement d&apos;équipe pondéré</div>
-                    <div className='is-size-7'>Sélectionne <i>oui</i> pour pondérer les scores d&apos;équipe en fonction du nombre de joueurs qui la composent. Dans le cas contraire, bien sûr, sélectionne <i>non</i>.</div>
+                    <div className='is-size-7 no-basis grow'>Sélectionne <i>oui</i> pour pondérer les scores d&apos;équipe en fonction du nombre de joueurs qui la composent. Dans le cas contraire, bien sûr, sélectionne <i>non</i>.</div>
                 </div>
             </div>
             <div className='is-flex gap-3 align-center'>
@@ -359,7 +358,7 @@ export function SectionOnGoingMatches({ isActive }: { isActive: boolean }) {
                             <Link to={"/tournaments/" + tournament.id} className="is-uppercase has-background-secondary-level p-1 has-text-weight-semibold fade-on-mouse-out">{tournament.name}</Link>
                             <div className="is-flex wrap grow gap-1">
                                 {playableMatches.filter(pm => pm.tournamentId == tournament.id).map(pMatch => {
-                                    return <Link key={IdToString(pMatch.matchId)} to={"/tournaments/" + tournament.id} className="is-flex-col align-center customButton gap-1 fade-on-mouse-out is-unselectable has-background-secondary-level" style={{height:"80px"}}>
+                                    return <Link key={IdToString(pMatch.matchId)} to={"/tournaments/" + tournament.id} className="is-flex-col align-center customButton gap-1 fade-on-mouse-out is-unselectable has-background-secondary-level" style={{ height: "80px" }}>
                                         <div>Match {IdToString(pMatch.matchId)}</div>
                                         {pMatch.opponents.length == 2 ?
                                             <div className="is-flex gap-2"><span className="has-text-primary-accent">{pMatch.opponents[0]}</span> VS <span className="has-text-secondary-accent">{pMatch.opponents[1]}</span></div>

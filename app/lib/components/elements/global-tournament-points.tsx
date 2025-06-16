@@ -4,19 +4,23 @@ interface ShowGlobalTournamentPointsProps {
     points: globalTournamentPoints
 }
 export function ShowGlobalTournamentPoints({ points }: ShowGlobalTournamentPointsProps) {
+
+    const leadersMap = getLeadersMap(points);
+    const defaultPointRange = `${points.leaders.length <= 4 ? points.leaders.length + 1 : Math.pow(2, points.leaders.length - 2) + 1} et +`
+
     return <div className='globalTournamentOptions is-flex-row gap-1'>
         <div className='is-flex-col'>
             <div className='is-flex justify-end align-center'>Place :</div>
             <div className='is-flex justify-end align-center'>Points :</div>
         </div>
-        {points.leaders.map((points, index) =>
+        {Array.from(leadersMap.entries()).map(([key, pts], index) =>
             <div key={index} className="rankPoints is-flex-col">
-                <div className="has-text-weight-semibold is-flex justify-center align-center">{index + 1}</div>
-                <div className="is-flex justify-center align-center" style={{ minWidth: "2rem" }}>{points}</div>
+                <div className="has-text-weight-semibold is-flex justify-center align-center">{key}</div>
+                <div className="is-flex justify-center align-center" style={{ minWidth: "2rem" }}>{pts}</div>
             </div>
         )}
         <div className="rankPoints is-flex-col">
-            <div className="has-text-weight-semibold is-flex justify-center align-center">5 et +</div>
+            <div className="has-text-weight-semibold is-flex justify-center align-center">{defaultPointRange}</div>
             <div className="is-flex justify-center align-center" style={{ minWidth: "2rem" }}>{points.default}</div>
         </div>
     </div>
@@ -27,14 +31,18 @@ interface EditGlobalTournamentPointsProps {
     updatePoints: (points: globalTournamentPoints) => void
 }
 export function EditGlobalTournamentPoints({ points, updatePoints }: EditGlobalTournamentPointsProps) {
+
+    const leadersMap = getLeadersMap(points);
+    const defaultPointRange = `${points.leaders.length <= 4 ? points.leaders.length + 1 : Math.pow(2, points.leaders.length - 2) + 1} et +`
+
     return <div className='globalTournamentOptions editing is-flex-row gap-1'>
         <div className='is-flex-col'>
             <div className='is-flex justify-end align-center'>Place :</div>
             <div className='is-flex justify-end align-center'>Points :</div>
         </div>
-        {points.leaders.map((pts, index) =>
+        {Array.from(leadersMap.entries()).map(([key, pts], index) =>
             <div key={index} className="rankPoints is-flex-col">
-                <div className="has-text-weight-semibold is-flex justify-center align-center">{index + 1}</div>
+                <div className="has-text-weight-semibold is-flex justify-center align-center">{key}</div>
                 <input
                     className="is-flex has-text-centered"
                     style={{ width: "3.5rem" }}
@@ -50,7 +58,7 @@ export function EditGlobalTournamentPoints({ points, updatePoints }: EditGlobalT
             </div>
         )}
         <div className="rankPoints is-flex-col">
-            <div className="has-text-weight-semibold is-flex justify-center align-center">5 et +</div>
+            <div className="has-text-weight-semibold is-flex justify-center align-center">{defaultPointRange}</div>
             <input className="is-flex has-text-centered"
                 style={{ width: "3.5rem" }}
                 type="text"
@@ -63,5 +71,54 @@ export function EditGlobalTournamentPoints({ points, updatePoints }: EditGlobalT
                 }}
             />
         </div>
+        <div className="is-flex-col">
+            <button
+                className="button is-small is-primary"
+                onClick={() => {
+                    addGlobalTournamentPointsRanks(points)
+                    updatePoints(points)
+                }}
+            >
+                +
+            </button>
+            {points.leaders.length > 1 && <button
+                className="button is-small is-danger"
+                onClick={() => {
+                    removeGlobalTournamentPointsRanks(points)
+                    updatePoints(points)
+                }}
+            >
+                -
+            </button>}
+        </div>
     </div>
+}
+
+function getLeadersMap(points: globalTournamentPoints) {
+    // Create a map of levels or ranges to show based on the point.leaders array
+    const map = new Map<string, number>();
+    points.leaders.forEach((pts, index) => {
+        if (index < 4) {
+            map.set((index + 1).toString(), pts);
+        } else {
+            // Calculate the start and end for each range based on index
+            const rangeSize = Math.pow(2, index - 2);
+            const start = rangeSize + 1;
+            const end = rangeSize * 2;
+            const key = `${start}-${end}`;
+            map.set(key, pts);
+        }
+    });
+    return map;
+}
+
+function addGlobalTournamentPointsRanks(points: globalTournamentPoints) {
+    // add one level to globalTournamentPoints leaders.
+    points.leaders.push(points.default)
+}
+
+function removeGlobalTournamentPointsRanks(points: globalTournamentPoints) {
+    // remove one level to globalTournamentPoints leaders.
+    if (points.leaders.length <= 1) return // Ensure at least one rank remains
+    points.leaders.pop()
 }

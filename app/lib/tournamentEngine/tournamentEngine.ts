@@ -561,6 +561,18 @@ export class TournamentEngine implements TournamentSpecification {
 		}
 
 		const retResults: Result[] = []
+		const leadersPointsArray = this.properties.globalTournamentPoints.leaders.slice(0, 4)
+		// 1, 2, 3, 4, 5-8, 9-16, 17-32, 33-64, etc.
+		if (this.properties.globalTournamentPoints.leaders.length > 4) {
+			for (let i = 4; i < this.properties.globalTournamentPoints.leaders.length; i++) {
+				const start = Math.pow(2, i - 2);	// 4, 8, 16, 32, etc.
+				const end = Math.pow(2, i - 1) - 1; // 7, 15, 31, 63, etc.
+				for (let pos = start; pos <= end; pos++) {
+					leadersPointsArray.push(this.properties.globalTournamentPoints.leaders[i])
+				}
+			}
+		}
+		
 		range(this.brackets.length - 1, 0, -1).forEach(bracket => {
 			const bracketResults = this.brackets[bracket].results().sort((a, b) => resultsSorter(a, b, this.brackets[bracket].settings))
 			const positions = getPositions(bracketResults)
@@ -581,7 +593,7 @@ export class TournamentEngine implements TournamentSpecification {
 						retResults.push({
 							userId: userId,
 							position: userPos,
-							globalTournamentPoints: (userPos - 1 in this.properties.globalTournamentPoints.leaders ? this.properties.globalTournamentPoints.leaders[userPos - 1] : this.properties.globalTournamentPoints.default) - (forfeitedPlayer ? this.properties.globalTournamentPoints.default : 0),
+							globalTournamentPoints: (userPos - 1 in leadersPointsArray ? leadersPointsArray[userPos - 1] : this.properties.globalTournamentPoints.default) - (forfeitedPlayer ? this.properties.globalTournamentPoints.default : 0),
 							wins: res.wins,
 							for: res.for,
 							against: res.against
