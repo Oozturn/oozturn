@@ -14,7 +14,7 @@ export function DebouncedInputNumber({ name, defaultValue, setter, className, de
 			setter(value)
 		}, debounceTimeout)
 	}
-	const applyNow = (e: React.FocusEvent<HTMLInputElement>) => {
+	const applyNow = (e: React.FocusEvent<HTMLInputElement> | React.KeyboardEvent<HTMLInputElement>) => {
 		if (timeoutRef.current) {
 			clearTimeout(timeoutRef.current)
 		}
@@ -26,5 +26,6 @@ export function DebouncedInputNumber({ name, defaultValue, setter, className, de
 		defaultValue={value}
 		onChange={valueChanged}
 		onBlur={applyNow}
+		onKeyDown={(e) => { if (e.key === 'Enter') applyNow(e) }}
 	/>
 }

@@ -397,6 +397,7 @@ function TeamTile({ team, seed, draggedPlayer, addPlayerToTeam, removePlayerFrom
             },
             { method: "POST", encType: "application/json" }
         )
+        setShowRenameTeam(false)
     }
     async function removeTeam(team: string) {
         fetcher.submit(
@@ -429,7 +430,8 @@ function TeamTile({ team, seed, draggedPlayer, addPlayerToTeam, removePlayerFrom
                                         <div className="is-flex align-center gap-3">
                                             <div>Nom de l&apos;équipe : </div>
                                             <div>
-                                                <input className='input' maxLength={30} type="text" placeholder="Nom de l'équipe" value={teamName} onChange={(e) => { setTeamName(e.target.value); }} />
+                                                {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
+                                                <input className='input' maxLength={30} autoFocus type="text" placeholder="Nom de l'équipe" value={teamName} onChange={(e) => { setTeamName(e.target.value); }} onKeyDown={(e) => { if (e.key === 'Enter') renameTeam(team.name, teamName) }} />
                                             </div>
                                         </div>
                                     </div>

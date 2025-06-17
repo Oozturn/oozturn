@@ -46,11 +46,10 @@ export function EditGlobalTournamentPoints({ points, updatePoints }: EditGlobalT
                 <input
                     className="is-flex has-text-centered"
                     style={{ width: "3.5rem" }}
-                    type="text"
+                    type="number"
                     placeholder={String(pts)}
                     value={String(pts)}
                     onChange={(e) => {
-                        if (!e.target.value) return
                         points.leaders[index] = Number(e.target.value)
                         updatePoints(points)
                     }}
@@ -61,11 +60,10 @@ export function EditGlobalTournamentPoints({ points, updatePoints }: EditGlobalT
             <div className="has-text-weight-semibold is-flex justify-center align-center">{defaultPointRange}</div>
             <input className="is-flex has-text-centered"
                 style={{ width: "3.5rem" }}
-                type="text"
+                type="number"
                 placeholder={String(points.default)}
                 value={String(points.default)}
                 onChange={(e) => {
-                    if (!e.target.value) return
                     points.default = Number(e.target.value)
                     updatePoints(points)
                 }}

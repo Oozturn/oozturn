@@ -64,6 +64,7 @@ function LoginForm() {
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Pseudo"
               required
+              readOnly={animateLogo}
               // eslint-disable-next-line jsx-a11y/no-autofocus
               autoFocus
               maxLength={15}

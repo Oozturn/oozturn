@@ -67,6 +67,7 @@ function FirstLoginForm() {
                     placeholder="Équipe"
                     required
                     title="Utilisé pour calculer le score de ton équipe à cette LAN. Te foire pas sur l&apos;orthographe."
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById("seat")?.focus() } }}
                   />
                 </div>
               </div>
@@ -84,6 +85,7 @@ function FirstLoginForm() {
                     placeholder="Place"
                     required
                     title="Utilisé pour te retrouver facilement lors des duels. Devrait être de la forme 'A12'. Demande à un admin si tu trouves pas l'info."
+                    onKeyDown={(e) => { if (e.key === 'Enter') { formRef.current && (formRef.current as HTMLFormElement).submit() } }}
                   />
                 </div>
               </div>
