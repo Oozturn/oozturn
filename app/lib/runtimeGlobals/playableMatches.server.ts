@@ -21,7 +21,7 @@ export function getPlayableMatches(userId: string) {
 export function updatePlayableMatches() {
     const tournaments = global.tournaments.filter(tournament => tournament.getStatus() == TournamentStatus.Running)
     global.playableMatches = tournaments.flatMap(tournament => tournament.getMatches()
-                                        .filter(match => match.opponents.every(o => o != undefined) && match.score.every(s => s == undefined))
+                                        .filter(match => match.opponents.every(o => o != undefined) && match.score.includes(undefined))
                                         .map(match => {
         const opponentsAreTeams = tournament.getFullData().settings.useTeams
         const tournamentForfeits = tournament.getPlayers().filter(player => player.isForfeit).map(player => player.userId)

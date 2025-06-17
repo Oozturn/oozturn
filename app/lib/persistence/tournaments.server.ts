@@ -13,6 +13,13 @@ declare global {
 
 const tournamentsFilePath = path.join(dbFolderPath, 'tournaments.json')
 
+function scoresReviver(key: string, value: any) {
+    if (key === "score" && Array.isArray(value)) {
+        return value.map((score: any) => (score === null ? undefined : score))
+    }
+    return value
+}
+
 subscribeObjectManager("tournaments", {
     onRestore: () => {
         if (global.tournaments) {
@@ -21,7 +28,7 @@ subscribeObjectManager("tournaments", {
 
         if (fs.existsSync(tournamentsFilePath)) {
             logger.info("Loading tournaments from persistence")
-            global.tournaments = (JSON.parse(fs.readFileSync(tournamentsFilePath, 'utf-8')) as TournamentStorage[]).map(ts => TournamentEngine.fromStorage(ts))
+            global.tournaments = (JSON.parse(fs.readFileSync(tournamentsFilePath, 'utf-8'), scoresReviver) as TournamentStorage[]).map(ts => TournamentEngine.fromStorage(ts))
             // start tournaments in running state
         } else {
             logger.info("Initialize tournaments")

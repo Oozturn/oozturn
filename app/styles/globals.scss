@@ -852,37 +852,51 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
     gap: 1.5rem;
 }
 
+.subscribed {
+    z-index: 2;
+    position: absolute;
+    top: 134px;
+    right:-115px;
+    transition: .2s ease-in-out;
+    width: 150px;
+    height: 37px;
+    &.mini {
+        top: 50px;
+        right: 0px;
+        width: 27px;
+        height: 20px;
+        svg {
+            width: 25px;
+            height: 18px;
+        }
+        &:before {
+            width: 15px;
+        }
+    }
+    &:before {
+        z-index: -1;
+        content:'';
+        position: absolute;
+        right: 20px;
+        width: 150px;
+        height: 100%;
+        background-color: var(--accent-primary-color);
+        -webkit-transform: skewX(-27.5deg);
+        -moz-transform: skewX(-27.5deg);
+        -ms-transform: skewX(-27.5deg);
+        transform: skewX(-27.5deg);
+    }
+    &:not(.mini):hover {
+        right: -45px;
+        transition: .2s ease-in-out;
+    }
+}
 .homeTournamentBox {
     height: 236px;
     position: relative;
     background-size: cover;
     overflow: hidden;
-    .subscribed {
-        z-index: 1;
-        position: absolute;
-        top: 134px;
-        right:-115px;
-        transition: .2s ease-in-out;
-        width: 150px;
-        height: 37px;
-        &:before {
-            z-index: -1;
-            content:'';
-            position: absolute;
-            right: 20px;
-            width: 150px;
-            height: 100%;
-            background-color: var(--accent-primary-color);
-            -webkit-transform: skewX(-27.5deg);
-            -moz-transform: skewX(-27.5deg);
-            -ms-transform: skewX(-27.5deg);
-            transform: skewX(-27.5deg);
-        }
-        &:hover {
-            right: -45px;
-            transition: .2s ease-in-out;
-        }
-    }
+    
     .tournamentName, .status-bar {
         position: absolute;
         width: 100%;
@@ -896,7 +910,7 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
         color: white;
     }
     .tournamentName {
-        z-index: 3;
+        z-index: 4;
         bottom: 0px;
         font-weight: 600;
     }
@@ -911,7 +925,7 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
     }
     .over-overlay {
         position: relative;
-        z-index: 2;
+        z-index: 3;
         text-transform: uppercase;
         width: 100%;
         height: 100%;
@@ -1026,6 +1040,7 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
     min-width: $tournament-side-list-width;
     max-width: $tournament-side-list-width;
     gap: 1rem;
+    padding: 0 2px;
     .tournamentTile {
         position: relative;
         flex: 0 0 81px;
@@ -1037,13 +1052,12 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
         background-color: var(--background-primary-level);
         overflow: hidden;
         &.is-active {
-            border: 2px solid var(--accent-primary-color);
+            outline: solid var(--accent-primary-color);
+            outline-width: 2px;
+            outline-offset: 0px;
         }
         &:hover, &.is-active {
             color: var(--accent-primary-color) !important;
-            .subscribedIndicator {
-                animation: pulse 2s infinite;
-            }
         }
         .tournamentTilebackground {
             z-index: 1;
@@ -1054,7 +1068,7 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
         }
         .tournamentName {
             font-weight: 600;
-            z-index: 2;
+            z-index: 3;
             width: 100%;
             display: flex;
             align-items: center;
@@ -1062,23 +1076,12 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
             text-transform: uppercase;
         }
         .tournamentState {
-            z-index: 2;
+            z-index: 3;
             width: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
             text-transform: uppercase;
-        }
-        .subscribedIndicator {
-            z-index: 2;
-            position: absolute;
-            top: .55rem;
-            right: .55rem;
-            height: .5rem;
-            width: .5rem;
-            border-radius: .5rem;
-            box-shadow: 0 0 0 var(--accent-primary-color);
-            background: var(--accent-primary-color);
         }
     }
 }

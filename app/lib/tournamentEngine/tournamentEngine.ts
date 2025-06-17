@@ -65,7 +65,7 @@ interface TournamentSpecification {
 	togglePauseTournament(): void
 	stopTournament(): void
 
-	score(matchId: Id, opponent: string, score: number): void
+	score(matchId: Id, opponent: string, score: number | undefined): void
 
 	getOpponentId(opponent: (Player | Team)): string
 	getOpponentSeed(opponentId: string, bracket?: number): number
