@@ -1,5 +1,5 @@
-import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction, json, redirect } from "@remix-run/node"
-import { Form, useActionData, useLoaderData, useLocation } from "@remix-run/react"
+import { MetaFunction, redirect } from "react-router"
+import { Form, useActionData, useLoaderData, useLocation } from "react-router"
 import { getLan } from "~/lib/persistence/lan.server"
 import { storePassword } from "~/lib/persistence/password.server"
 import { getUserFromRequest, getUserId, updateSessionWithPasswordAuth } from "~/lib/session.server"
@@ -10,6 +10,7 @@ import { useSettings } from "~/lib/components/contexts/SettingsContext"
 import { notifyError } from "~/lib/components/notification"
 import { EyeSVG, InfoSVG } from "~/lib/components/data/svg-container"
 import { User } from "~/lib/types/user"
+import { Route } from "./+types/step-new-password"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -17,7 +18,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   ]
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   if (process.env.AUTHENTICATION === 'false') {
     throw redirect('/login')
   }
@@ -29,14 +30,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return { ...user, lanName: getLan().name }
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const formData = await request.formData()
   const password = String(formData.get("password") || "").trim()
   const confirmPassword = String(formData.get("confirmPassword") || "").trim()
 
   const errors = await validate(password, confirmPassword)
   if (errors) {
-    return json({ ok: false, errors }, 400)
+    return { ok: false, errors }
   }
 
   const userId = await getUserId(request) as string

@@ -1,4 +1,4 @@
-import { useFetcher, useNavigate } from "@remix-run/react"
+import { useFetcher, useNavigate } from "react-router"
 import { ChangeEvent, useRef } from "react"
 import useLocalStorageState from "use-local-storage-state"
 import { autoSubmit } from "~/lib/utils/autosubmit"

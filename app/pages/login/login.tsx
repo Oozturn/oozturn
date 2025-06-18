@@ -1,11 +1,12 @@
-import { ActionFunctionArgs, MetaFunction } from "@remix-run/node"
-import { Form, useActionData } from "@remix-run/react"
+import { MetaFunction } from "react-router"
+import { Form, useActionData } from "react-router"
 import { LogoUnfolded } from "~/lib/components/data/svg-container"
 import { doLogin } from "./login.queries.server"
 import { useLan } from "~/lib/components/contexts/LanContext"
 import { getLan } from "~/lib/persistence/lan.server"
 import { useRef, useState } from "react"
 import { CustomButton } from "~/lib/components/elements/custom-button"
+import { Route } from "./+types/login"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -19,7 +20,7 @@ export async function loader(): Promise<{
   return { lanName: getLan().name }
 }
 
-export async function action({ request, }: ActionFunctionArgs) {
+export async function action({ request, }: Route.ActionArgs) {
   const body = await request.formData()
   return await doLogin(String(body.get("username")))
 }

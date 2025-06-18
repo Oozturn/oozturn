@@ -1,10 +1,11 @@
-import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction, redirect } from "@remix-run/node"
+import { MetaFunction, redirect } from "react-router"
 import { getLan } from "~/lib/persistence/lan.server"
 import { newTournament } from "~/lib/persistence/tournaments.server"
 import { getUserId, requireUserAdmin } from "~/lib/session.server"
 import { BracketSettings, TournamentProperties, TournamentSettings } from "~/lib/tournamentEngine/types"
 import TournamentEdit from "../edit/components/edit"
 import { EventServerError } from "~/lib/emitter.server"
+import { Route } from "./+types/new"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -12,14 +13,14 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   ]
 }
 
-export async function loader({ request }: LoaderFunctionArgs): Promise<{
+export async function loader({ request }: Route.LoaderArgs): Promise<{
   lanName: string
 }> {
   await requireUserAdmin(request)
   return { lanName: getLan().name }
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   requireUserAdmin(request)
   const jsonData = await request.json()
   const tournamentId = jsonData.tournamentId as string

@@ -1,11 +1,12 @@
-import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
-import { Form, redirect, useLoaderData, useNavigate } from "@remix-run/react"
+import { MetaFunction } from "react-router"
+import { Form, redirect, useLoaderData, useNavigate } from "react-router"
 import { getLan } from "~/lib/persistence/lan.server"
 import { useRef, useState } from "react"
 import { CustomButton } from "~/lib/components/elements/custom-button"
 import { requireUserLoggedIn } from "~/lib/session.server"
 import { getUserById, updateUser } from "~/lib/persistence/users.server"
 import { User } from "~/lib/types/user"
+import { Route } from "./+types/first-login"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -13,7 +14,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   ]
 }
 
-export async function loader({ request }: LoaderFunctionArgs): Promise<{
+export async function loader({ request }: Route.LoaderArgs): Promise<{
   lanName: string,
   user: User
 }> {
@@ -23,7 +24,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<{
   return { lanName: getLan().name, user: user }
 }
 
-export async function action({ request, }: ActionFunctionArgs) {
+export async function action({ request, }: Route.ActionArgs) {
   const body = await request.formData()
   updateUser(String(body.get('userId')), { team: String(body.get('team')), seat: String(body.get('seat')) })
   return redirect('/')

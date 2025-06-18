@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useRevalidator } from "@remix-run/react"
+import { useRevalidator } from "react-router"
 import { useEffect } from "react"
 import { useEventSource } from "remix-utils/sse/react"
 import { useSettings } from "~/lib/components/contexts/SettingsContext"

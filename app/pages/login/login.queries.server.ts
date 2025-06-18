@@ -1,4 +1,4 @@
-import { json, redirect } from "@remix-run/node"
+import { redirect } from "react-router"
 import { logger } from "~/lib/logging/logging"
 import { getUserByUsername, getUsers, registerNewUser, updateUser } from "~/lib/persistence/users.server"
 import { createSessionWithUser } from "~/lib/session.server"
@@ -6,11 +6,11 @@ import { createSessionWithUser } from "~/lib/session.server"
 export async function doLogin(rawUsername: string) {
     const username = rawUsername.trim()
     if (username.length == 0) {
-        return json({ error: "Nom d'utilisateur requis." })
+        return { error: "Nom d'utilisateur requis." }
     }
 
     if (username.length > 15) {
-        return json({ error: "Nom d'utilisateur trop long (15 caratères max.)" })
+        return { error: "Nom d'utilisateur trop long (15 caratères max.)" }
     }
 
     let user = getUserByUsername(username)
@@ -20,7 +20,7 @@ export async function doLogin(rawUsername: string) {
         logger.info({ username: username }, `${username} logged in`)
     }
     else if (process.env.NEW_USERS_BY_ADMIN === "true" && getUsers().length > 0) {
-        return json({ error: "Utilisateur inconnu." })
+        return { error: "Utilisateur inconnu." }
     } else {
         logger.info({ username: username }, `New user ${username} logged in`)
         user = registerNewUser(rawUsername)

@@ -1,12 +1,4 @@
-import type { LoaderFunctionArgs } from "@remix-run/node"
-import {
-  Links,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-  useLoaderData
-} from "@remix-run/react"
+import { Links, Meta, Outlet, Scripts, ScrollRestoration, useLoaderData } from "react-router"
 import { LanContext } from "./lib/components/contexts/LanContext"
 import { TournamentsContext } from "./lib/components/contexts/TournamentsContext"
 import { UserContext } from "./lib/components/contexts/UserContext"
@@ -32,8 +24,9 @@ import Footer from "./lib/components/layout/footer"
 import { PlayableMatchesContext } from "./lib/components/contexts/PlayableMatchesContext"
 import { getPlayableMatches } from "./lib/runtimeGlobals/playableMatches.server"
 import { SettingsContext } from "./lib/components/contexts/SettingsContext"
+import { Route } from "./+types/root"
 
-export async function loader({ request }: LoaderFunctionArgs): Promise<{
+export async function loader({ request }: Route.LoaderArgs): Promise<{
   settings: Settings
   lan: Lan
   user?: User

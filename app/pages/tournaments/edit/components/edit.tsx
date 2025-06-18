@@ -10,7 +10,7 @@ import { DuelSVG, FFASVG, GroupStageSVG, OnlyFinalSVG, QualifAndFinalSVG, SoloSV
 import { CustomRadio } from "~/lib/components/elements/custom-radio"
 import { Duel } from "~/lib/tournamentEngine/tournament/duel"
 import { GetFFAMaxPlayers } from "~/lib/utils/tournaments"
-import { useFetcher } from "@remix-run/react"
+import { useFetcher } from "react-router"
 import { notifyError } from "~/lib/components/notification"
 
 const enum tournamentEditSteps {

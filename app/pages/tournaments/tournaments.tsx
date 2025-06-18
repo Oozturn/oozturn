@@ -1,6 +1,7 @@
-import { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
+import { MetaFunction } from "react-router"
 import { getLan } from "~/lib/persistence/lan.server"
 import { requireUserLoggedIn } from "~/lib/session.server"
+import { Route } from "./+types/tournaments"
 
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -9,7 +10,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   ]
 }
 
-export async function loader({ request }: LoaderFunctionArgs): Promise<{
+export async function loader({ request }: Route.LoaderArgs): Promise<{
   lanName: string
 }> {
   await requireUserLoggedIn(request)

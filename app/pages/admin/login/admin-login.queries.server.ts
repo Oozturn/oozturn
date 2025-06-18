@@ -1,4 +1,4 @@
-import { json, redirect } from "@remix-run/node"
+import { redirect } from "react-router"
 import { logger } from "~/lib/logging/logging"
 import { updateUser } from "~/lib/persistence/users.server"
 import { getUserId, updateSessionWithAdminElevation } from "~/lib/session.server"
@@ -7,7 +7,7 @@ export async function adminLogin(rawPassword: string, request: Request) {
     const password = rawPassword.trim()
     if (!(password === process.env.ADMIN_PASSWORD)) {
         logger.warn(`${await getUserId(request)} tried to get admin rights with wrong password`)
-        return json({ error: "Wrong password." }, 400)
+        return { error: "Wrong password." }
     }
     updateUser(String(await getUserId(request)), { isAdmin: true })
 

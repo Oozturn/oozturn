@@ -1,4 +1,4 @@
-import { Link, useLocation, useSubmit } from "@remix-run/react"
+import { Link, useLocation, useSubmit } from "react-router"
 import { useContext, useState } from "react"
 import { useLan } from "../contexts/LanContext"
 import { UserContext } from "../contexts/UserContext"

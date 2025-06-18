@@ -1,4 +1,4 @@
-import { createCookieSessionStorage, redirect } from "@remix-run/node"
+import { createCookieSessionStorage, redirect } from "react-router"
 import { getUserById } from "./persistence/users.server"
 import { User } from "./types/user"
 import os from 'os'

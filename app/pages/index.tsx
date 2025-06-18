@@ -1,5 +1,5 @@
-import { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
-import { Link } from "@remix-run/react"
+import { MetaFunction } from "react-router"
+import { Link } from "react-router"
 import { useLan } from "~/lib/components/contexts/LanContext"
 import { useTournaments } from "~/lib/components/contexts/TournamentsContext"
 import { useUser } from "~/lib/components/contexts/UserContext"
@@ -9,6 +9,7 @@ import { requireUserLoggedIn } from "~/lib/session.server"
 import { TournamentInfo, TournamentStatus } from "~/lib/tournamentEngine/types"
 import { getLan } from "~/lib/persistence/lan.server"
 import { useRevalidateOnGlobalTournamentUpdate } from "../api/sse.hook"
+import { Route } from "./+types/index"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -18,7 +19,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 
 export async function loader({
   request
-}: LoaderFunctionArgs): Promise<{
+}: Route.LoaderArgs): Promise<{
   lanName: string
 }> {
   await requireUserLoggedIn(request)

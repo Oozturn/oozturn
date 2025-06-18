@@ -1,13 +1,13 @@
-import { LoaderFunctionArgs } from "@remix-run/node"
 import { eventStream } from "remix-utils/sse/server"
 import { emitter } from "~/lib/emitter.server"
 import { EVENT_SERVER_ERROR, EVENT_UPDATE_LAN, EVENT_UPDATE_TOURNAMENT, EVENT_UPDATE_TOURNAMENTS, EVENT_UPDATE_USERS, notificationProps, serverErrorEventProps, TOURNAMENT_UPDATE_TYPES, tournamentUpdateEventProps } from "~/lib/events/types"
 import { getTournament } from "~/lib/persistence/tournaments.server"
 import { getUserId, requireUserLoggedIn } from "~/lib/session.server"
+import { Route } from "./+types/sse"
 
 export const SSE_NOTIFICATION_MESSAGE_EVENT = "notificationMessage"
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
     await requireUserLoggedIn(request)
     const userId = await getUserId(request)
     return eventStream(request.signal, function setup(send) {

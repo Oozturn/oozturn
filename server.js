@@ -1,4 +1,4 @@
-import { createRequestHandler } from "@remix-run/express";
+import { createRequestHandler } from "@react-router/express";
 import compression from "compression";
 import express from "express";
 import morgan from "morgan";
@@ -12,9 +12,9 @@ const viteDevServer =
         })
       );
 
-const remixHandler = createRequestHandler({
+const requestHandler = createRequestHandler({
   build: viteDevServer
-    ? () => viteDevServer.ssrLoadModule("virtual:remix/server-build")
+    ? () => viteDevServer.ssrLoadModule("virtual:react-router/server-build")
     : await import("./build/server/index.js"),
 });
 
@@ -46,7 +46,7 @@ app.use(express.static('uploads', { maxAge: "1h" }))
 app.use(morgan("tiny"));
 
 // handle SSR requests
-app.all("*", remixHandler);
+app.all("*", requestHandler);
 
 const port = process.env.PORT || 3000;
 app.listen(port, () =>

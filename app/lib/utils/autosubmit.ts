@@ -1,4 +1,4 @@
-import { FetcherWithComponents } from "@remix-run/react"
+import { FetcherWithComponents } from "react-router"
 
 
 export function autoSubmit(fetcher: FetcherWithComponents<unknown>) {

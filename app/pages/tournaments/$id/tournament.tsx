@@ -1,5 +1,4 @@
-import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction, redirect } from "@remix-run/node"
-import { useFetcher, useLoaderData, useNavigate } from "@remix-run/react"
+import { useFetcher, useLoaderData, useNavigate, MetaFunction, redirect } from "react-router"
 import { getTournament } from "~/lib/persistence/tournaments.server"
 import TournamentInfoSettings from "./components/tournament-info-settings"
 import { useUser } from "~/lib/components/contexts/UserContext"
@@ -20,6 +19,7 @@ import { useRevalidateOnTournamentUpdate } from "~/api/sse.hook"
 import useLocalStorageState from "use-local-storage-state"
 import { EventServerError } from "~/lib/emitter.server"
 import { getUserId } from "~/lib/session.server"
+import { Route } from "./+types/tournament"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
@@ -29,7 +29,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 
 export async function loader({
     params,
-}: LoaderFunctionArgs): Promise<{
+}: Route.LoaderArgs): Promise<{
     tournament: TournamentFullData
     lanName: string
 }> {
@@ -40,7 +40,7 @@ export async function loader({
     return { tournament: tournament, lanName: getLan().name }
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
     const jsonData = await request.json()
     const intent = jsonData.intent as string
     try {

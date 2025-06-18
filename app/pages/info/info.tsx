@@ -1,5 +1,5 @@
-import { MetaFunction } from "@remix-run/node"
-import { useNavigate } from "@remix-run/react"
+import { MetaFunction } from "react-router"
+import { useNavigate } from "react-router"
 import { useLan } from "~/lib/components/contexts/LanContext"
 import { CustomButton } from "~/lib/components/elements/custom-button"
 import { FormattedTextWithUrls } from "~/lib/components/elements/formatted-text-url"

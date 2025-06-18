@@ -1,15 +1,12 @@
-import { ActionFunctionArgs } from "@remix-run/node";
-import { json, redirect } from "@remix-run/react";
-import { createWriteStream } from "fs";
+import { redirect } from "react-router";
 import { mkdir } from "fs/promises";
-import { get } from "https"
-import { logger } from "~/lib/logging/logging";
 import { getUserId, requireUserAdmin } from "~/lib/session.server";
 import crypto from 'crypto'
 import sharp from "sharp";
 import { BracketSettings, TournamentProperties, TournamentSettings, TournamentStatus } from "~/lib/tournamentEngine/types";
 import { getTournament, newTournament, updateTournamentBracketSettings, updateTournamentProperties, updateTournamentSettings } from "~/lib/persistence/tournaments.server";
 import { EventServerError } from "~/lib/emitter.server";
+import { Route } from "./+types/api"
 
 export interface gameInfo {
     name: string
@@ -17,7 +14,7 @@ export interface gameInfo {
     pictures: string[]
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
     await requireUserAdmin(request)
     const formData = await request.formData()
     const intent = formData.get("intent")

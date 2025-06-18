@@ -1,4 +1,4 @@
-import { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
+import { MetaFunction } from "react-router"
 import { useState } from "react"
 import { useLan } from "~/lib/components/contexts/LanContext"
 import { useStats } from "~/lib/components/contexts/StatsContext"
@@ -13,8 +13,9 @@ import { UserTileRectangle } from "~/lib/components/elements/user-tile"
 import { clickorkey } from "~/lib/utils/clickorkey"
 import { getAchievements } from "~/lib/runtimeGlobals/achievements.server"
 import { Achievement } from "~/lib/types/achievements"
-import { useLoaderData } from "@remix-run/react"
+import { useLoaderData } from "react-router"
 import { statsSorter } from "~/lib/utils/sorters"
+import { Route } from "./+types/results"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
@@ -22,7 +23,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
     ]
 }
 
-export async function loader({ request }: LoaderFunctionArgs): Promise<{
+export async function loader({ request }: Route.LoaderArgs): Promise<{
     lanName: string
     achievements: Achievement[]
 }> {

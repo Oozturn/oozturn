@@ -1,5 +1,5 @@
 import { getClientIPAddress } from "remix-utils/get-client-ip-address"
-import { ActionFunctionArgs } from "@remix-run/node"
+import { Route } from "./+types/api"
 import { updateUser } from "~/lib/persistence/users.server"
 import { requireUserLoggedIn } from "~/lib/session.server"
 import { removeAvatar, setAvatar } from "./api.queries.server"
@@ -11,7 +11,7 @@ export enum Intents {
     REMOVE_AVATAR = 'remove-avatar'
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
     const userId = await requireUserLoggedIn(request)
     const ip = getClientIPAddress(request) || getClientIPAddress(request.headers)
     const formData = await request.formData()

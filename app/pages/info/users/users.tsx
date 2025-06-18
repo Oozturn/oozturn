@@ -1,10 +1,11 @@
-import { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
+import { MetaFunction } from "react-router"
 import { useUsers } from "~/lib/components/contexts/UsersContext"
 import { UserTileUsersPage } from "~/lib/components/elements/user-tile"
 import { getLan } from "~/lib/persistence/lan.server"
 import { requireUserLoggedIn } from "~/lib/session.server"
 import { useRevalidateOnUsersUpdate } from "~/api/sse.hook"
 import { useStats } from "~/lib/components/contexts/StatsContext"
+import { Route } from "./+types/users"
 
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -13,7 +14,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   ]
 }
 
-export async function loader({ request }: LoaderFunctionArgs): Promise<{
+export async function loader({ request }: Route.LoaderArgs): Promise<{
   lanName: string
 }> {
   await requireUserLoggedIn(request)

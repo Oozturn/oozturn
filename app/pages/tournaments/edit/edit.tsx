@@ -1,11 +1,12 @@
-import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction, redirect } from "@remix-run/node"
-import { useLoaderData } from "@remix-run/react"
+import { MetaFunction, redirect } from "react-router"
+import { useLoaderData } from "react-router"
 import TournamentEdit from "./components/edit"
 import { getLan } from "~/lib/persistence/lan.server"
 import { getTournament, updateTournamentProperties, updateTournamentSettings, updateTournamentBracketSettings } from "~/lib/persistence/tournaments.server"
 import { getUserId, requireUserAdmin } from "~/lib/session.server"
 import { BracketSettings, TournamentFullData, TournamentProperties, TournamentSettings, TournamentStatus } from "~/lib/tournamentEngine/types"
 import { EventServerError } from "~/lib/emitter.server"
+import { Route } from "./+types/edit"
 
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -14,7 +15,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
     ]
 }
 
-export async function loader({ params, request }: LoaderFunctionArgs): Promise<{
+export async function loader({ params, request }: Route.LoaderArgs): Promise<{
     tournament: TournamentFullData
     lanName: string
 }> {
@@ -26,7 +27,7 @@ export async function loader({ params, request }: LoaderFunctionArgs): Promise<{
     return { tournament: tournament, lanName: getLan().name }
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
     requireUserAdmin(request)
     const formData = await request.formData()
     const tournamentId = String(formData.get("tournamentId"))

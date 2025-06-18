@@ -1,5 +1,5 @@
-import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
-import { Link, useFetcher, useLoaderData, useNavigate } from "@remix-run/react"
+import { MetaFunction } from "react-router"
+import { Link, useFetcher, useLoaderData, useNavigate } from "react-router"
 import useLocalStorageState from "use-local-storage-state"
 import { useLan } from "~/lib/components/contexts/LanContext"
 import { useTournaments } from "~/lib/components/contexts/TournamentsContext"
@@ -25,6 +25,7 @@ import { PlayableMatch, TournamentInfo, TournamentStatus } from "~/lib/tournamen
 import { getAllPlayableMatches } from "~/lib/runtimeGlobals/playableMatches.server"
 import { IdToString } from "~/lib/utils/tournaments"
 import { useRevalidateOnTournamentUpdate } from "~/api/sse.hook"
+import { Route } from "./+types/admin"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
@@ -34,7 +35,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 
 export async function loader({
     request
-}: LoaderFunctionArgs): Promise<{
+}: Route.LoaderArgs): Promise<{
     lanName: string
     achievements: Achievement[]
     playableMatches: PlayableMatch[]
@@ -66,7 +67,7 @@ export enum AdminIntents {
     // UPDATE_WEIGHT_TEAMS_RESULTS,
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
     requireUserAdmin(request)
 
     const formData = await request.formData()

@@ -1,4 +1,4 @@
-import { NavLink } from "@remix-run/react"
+import { NavLink } from "react-router"
 import { useTournaments } from "~/lib/components/contexts/TournamentsContext"
 import { useUser } from "~/lib/components/contexts/UserContext"
 import { TournamentStatus } from "~/lib/tournamentEngine/types"

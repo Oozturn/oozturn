@@ -3,7 +3,7 @@ import { cssTransition, toast, ToastContainer } from "react-toastify"
 import { useEventSource } from "remix-utils/sse/react"
 import 'react-toastify/dist/ReactToastify.css';
 import { notificationProps } from "../events/types";
-import { Link, useNavigate } from "@remix-run/react";
+import { Link, useNavigate } from "react-router";
 import { SSE_NOTIFICATION_MESSAGE_EVENT } from "~/api/sse";
 import { useLan } from "./contexts/LanContext";
 import { useIconUrl } from "./tools/user-theme";

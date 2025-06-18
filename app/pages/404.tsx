@@ -1,4 +1,4 @@
-import { MetaFunction } from "@remix-run/node"
+import { MetaFunction } from "react-router"
 import { getLan } from "~/lib/persistence/lan.server"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
