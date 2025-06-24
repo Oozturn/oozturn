@@ -12,10 +12,7 @@ import { getUsers } from "./lib/persistence/users.server"
 import { getStats } from "./lib/runtimeGlobals/statistics.server"
 import { getUserFromRequest, isUserLoggedIn } from "./lib/session.server"
 import { Settings } from "./lib/types/settings"
-import { Lan } from "./lib/types/lan"
-import { PlayableMatch, TournamentInfo } from "./lib/tournamentEngine/types"
 import { User } from "./lib/types/user"
-import { Statistics } from "./lib/types/statistics"
 import "./styles/globals.scss"
 import 'react-contexify/ReactContexify.css'
 import { NotificationNode } from "./lib/components/notification"
@@ -26,15 +23,7 @@ import { getPlayableMatches } from "./lib/runtimeGlobals/playableMatches.server"
 import { SettingsContext } from "./lib/components/contexts/SettingsContext"
 import { Route } from "./+types/root"
 
-export async function loader({ request }: Route.LoaderArgs): Promise<{
-  settings: Settings
-  lan: Lan
-  user?: User
-  users: User[]
-  tournaments: TournamentInfo[]
-  stats?: Statistics
-  playableMatches: PlayableMatch[]
-}> {
+export async function loader({ request }: Route.LoaderArgs){
   const settings: Settings = {
     autoRefresh: {
       tournaments: process.env.AUTO_REFRESH_TOURNAMENTS === "false" ? false : true,
@@ -51,30 +40,28 @@ export async function loader({ request }: Route.LoaderArgs): Promise<{
       tournamentStartStop: process.env.NOTIFICATION_TOURNAMENT_CHANGE === "false" ? false : true,
     }
   }
-  if (await isUserLoggedIn(request)) {
-    const user = await getUserFromRequest(request) as User
-    return {
-      settings: settings,
-      lan: getLan(),
-      user: user,
-      users: getUsers(),
-      tournaments: getTournaments(),
-      stats: getStats(),
-      playableMatches: getPlayableMatches(user.id)
+  const user = await getUserFromRequest(request) as User
+  const contextData = async (loggedInUser: boolean) => {
+    if (loggedInUser) {
+      return {
+        users: getUsers(),
+        tournaments: getTournaments(),
+        stats: getStats(),
+        playableMatches: getPlayableMatches(user.id)
+      }
     }
-  } else {
-    return {
-      settings: settings,
-      lan: getLan(),
-      tournaments: [],
-      users: [],
-      playableMatches: []
-    }
+    return {}
+  }
+  return {
+    user: user,
+    settings: settings,
+    lan: getLan(),
+    ... await contextData(await isUserLoggedIn(request))
   }
 }
 
 export default function App() {
-  const { settings, lan, user, users, tournaments, stats, playableMatches } = useLoaderData<typeof loader>()
+  const { settings, lan, user, users = [], tournaments = [], stats, playableMatches = [] } = useLoaderData<typeof loader>()
   const iconUrl = useIconUrl()
   useRevalidateOnLanUpdate()
   return (

@@ -1,25 +1,19 @@
-import { MetaFunction } from "react-router"
-import { getLan } from "~/lib/persistence/lan.server"
 import { requireUserLoggedIn } from "~/lib/session.server"
 import { Route } from "./+types/tournaments"
+import { useLan } from "~/lib/components/contexts/LanContext"
 
-
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  return [
-    { title: data?.lanName + " - Tournois" }
-  ]
-}
-
-export async function loader({ request }: Route.LoaderArgs): Promise<{
-  lanName: string
-}> {
+export async function loader({ request }: Route.LoaderArgs) {
   await requireUserLoggedIn(request)
-  return { lanName: getLan().name }
 }
-
 
 export default function TournamentSelection() {
-  return <div className='grow is-flex-row has-background-secondary-level justify-center align-center'>
-    Sélectionner un tournoi dans la liste
-  </div>
+  const lan = useLan()
+  return (
+    <>
+      <title>{`${lan.name} - Tournois`}</title>
+      <div className='grow is-flex-row has-background-secondary-level justify-center align-center'>
+        Sélectionner un tournoi dans la liste
+      </div>
+    </>
+  )
 }

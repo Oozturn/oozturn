@@ -1,6 +1,5 @@
-import { MetaFunction, redirect } from "react-router"
-import { Form, useActionData, useLoaderData, useLocation } from "react-router"
-import { getLan } from "~/lib/persistence/lan.server"
+import { redirect } from "react-router"
+import { Form, useActionData, useLocation } from "react-router"
 import { storePassword } from "~/lib/persistence/password.server"
 import { getUserFromRequest, getUserId, updateSessionWithPasswordAuth } from "~/lib/session.server"
 import { validate } from "./step-new-password.validate"
@@ -11,12 +10,7 @@ import { notifyError } from "~/lib/components/notification"
 import { EyeSVG, InfoSVG } from "~/lib/components/data/svg-container"
 import { User } from "~/lib/types/user"
 import { Route } from "./+types/step-new-password"
-
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  return [
-    { title: data?.lanName + " - Nouveau mot de passe" }
-  ]
-}
+import { useUser } from "~/lib/components/contexts/UserContext"
 
 export async function loader({ request }: Route.LoaderArgs) {
   if (process.env.AUTHENTICATION === 'false') {
@@ -27,7 +21,6 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (!user) {
     throw redirect('/login')
   }
-  return { ...user, lanName: getLan().name }
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -55,7 +48,7 @@ export async function action({ request }: Route.ActionArgs) {
 
 export default function LoginStepNewPassword() {
   const { state } = useLocation()
-  const { username } = useLoaderData<typeof loader>()
+  const { username } = useUser()
   const actionResult = useActionData<typeof action>()
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -72,6 +65,8 @@ export default function LoginStepNewPassword() {
   }, [actionResult])
 
   return (
+    <>
+    <title>{`${lan.name} - Nouveau mot de passe`}</title>
     <div className="is-flex-col align-center justify-center is-relative">
       <div className="is-flex-col align-center gap-5 p-4 has-background-secondary-level " style={{ maxWidth: "50vw" }}>
         <div className="has-text-centered is-size-3">{state?.edit ? "Modifie" : "Crée"} ton mot de passe, <i style={{ color: "var(--accent-primary-color)" }}>{username}</i> ! </div>
@@ -132,5 +127,6 @@ export default function LoginStepNewPassword() {
         </Form>
       </div>
     </div>
+    </>
   )
 }

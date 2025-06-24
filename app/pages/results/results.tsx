@@ -1,10 +1,9 @@
-import { MetaFunction } from "react-router"
+import { useLoaderData } from "react-router"
 import { useState } from "react"
 import { useLan } from "~/lib/components/contexts/LanContext"
 import { useStats } from "~/lib/components/contexts/StatsContext"
 import { useUsers } from "~/lib/components/contexts/UsersContext"
 import { UserAvatar } from "~/lib/components/elements/user-avatar"
-import { getLan } from "~/lib/persistence/lan.server"
 import { requireUserLoggedIn } from "~/lib/session.server"
 import { TeamStats, UserStats } from "~/lib/types/statistics"
 import { User } from "~/lib/types/user"
@@ -12,36 +11,28 @@ import { ResultSelectContext, useResultSelect } from "./components/ResultSelectC
 import { UserTileRectangle } from "~/lib/components/elements/user-tile"
 import { clickorkey } from "~/lib/utils/clickorkey"
 import { getAchievements } from "~/lib/runtimeGlobals/achievements.server"
-import { Achievement } from "~/lib/types/achievements"
-import { useLoaderData } from "react-router"
 import { statsSorter } from "~/lib/utils/sorters"
 import { Route } from "./+types/results"
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-    return [
-        { title: data?.lanName + " - Admin" }
-    ]
-}
-
-export async function loader({ request }: Route.LoaderArgs): Promise<{
-    lanName: string
-    achievements: Achievement[]
-}> {
+export async function loader({ request }: Route.LoaderArgs) {
     await requireUserLoggedIn(request)
-    return { lanName: getLan().name, achievements: getAchievements() }
+    return { achievements: getAchievements() }
 }
 
 export default function Results() {
     const lan = useLan()
 
     return (
-        <div className="is-full-height is-flex m-0 p-3 justify-center">
-            <div className={`is-flex gap-2 justify-center ${["is-three-fifths", "is-four-fifths", "grow"][Number(lan.showTeamsResults) + Number(lan.showAchievements)]}`}>
-                <PlayersLeaderboard />
-                {lan.showTeamsResults && <TeamsLeaderboard />}
-                {lan.showAchievements && <Achievements />}
+        <>
+            <title>{`${lan.name} - Résultats`}</title>
+            <div className="is-full-height is-flex m-0 p-3 justify-center">
+                <div className={`is-flex gap-2 justify-center ${["is-three-fifths", "is-four-fifths", "grow"][Number(lan.showTeamsResults) + Number(lan.showAchievements)]}`}>
+                    <PlayersLeaderboard />
+                    {lan.showTeamsResults && <TeamsLeaderboard />}
+                    {lan.showAchievements && <Achievements />}
+                </div>
             </div>
-        </div>
+        </>
     )
 }
 

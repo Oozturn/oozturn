@@ -1,27 +1,13 @@
-import { MetaFunction } from "react-router"
-import { Form, redirect, useLoaderData, useNavigate } from "react-router"
-import { getLan } from "~/lib/persistence/lan.server"
+import { Form, redirect, useNavigate } from "react-router"
 import { useRef, useState } from "react"
 import { CustomButton } from "~/lib/components/elements/custom-button"
 import { requireUserLoggedIn } from "~/lib/session.server"
-import { getUserById, updateUser } from "~/lib/persistence/users.server"
-import { User } from "~/lib/types/user"
+import { updateUser } from "~/lib/persistence/users.server"
 import { Route } from "./+types/first-login"
+import { useUser } from "~/lib/components/contexts/UserContext"
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  return [
-    { title: data?.lanName + " - Première connexion" }
-  ]
-}
-
-export async function loader({ request }: Route.LoaderArgs): Promise<{
-  lanName: string,
-  user: User
-}> {
-  const user = await getUserById(await requireUserLoggedIn(request))
-  if (!user) throw redirect('/login')
-  // if (user.team && user.seat) throw redirect('/')
-  return { lanName: getLan().name, user: user }
+export async function loader({ request }: Route.LoaderArgs) {
+  await requireUserLoggedIn(request)
 }
 
 export async function action({ request, }: Route.ActionArgs) {
@@ -35,7 +21,7 @@ export default function LoginStepUsername() {
 }
 
 function FirstLoginForm() {
-  const user = useLoaderData<typeof loader>().user
+  const user = useUser()
   const [team, setTeam] = useState(user.team)
   const [seat, setSeat] = useState(user.seat)
   const formRef = useRef(null)
@@ -48,6 +34,8 @@ function FirstLoginForm() {
   }
 
   return (
+    <>
+    <title>{`${lan.name} - Première connexion`}</title>
     <div className="is-flex-col align-center justify-center">
       <div className="is-flex-col align-center gap-5 p-4 has-background-secondary-level " style={{ maxWidth: "50vw" }}>
         <div className="has-text-centered is-size-3">Bienvenue, <i style={{ color: "var(--accent-primary-color)" }}>{user.username}</i> ! </div>
@@ -110,5 +98,6 @@ function FirstLoginForm() {
         </div>
       </div >
     </div >
+    </>
   )
 }

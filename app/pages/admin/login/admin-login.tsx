@@ -1,26 +1,15 @@
-import { Form, MetaFunction, useActionData, useLoaderData } from "react-router"
+import { Form, useActionData, useLoaderData } from "react-router"
 import { requireUserLoggedIn } from "~/lib/session.server"
 import { adminLogin } from "./admin-login.queries.server"
-import { getLan } from "~/lib/persistence/lan.server"
 import { useEffect, useState } from "react"
 import { notifyError } from "~/lib/components/notification"
 import { EyeSVG } from "~/lib/components/data/svg-container"
 import { Route } from "./+types/admin-login"
+import { useLan } from "~/lib/components/contexts/LanContext"
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-    return [
-        { title: data?.lanName + " - Connexion admin" }
-    ]
-}
-
-export async function loader({
-    request
-}: Route.LoaderArgs): Promise<{
-    lanName: string
-    adminLoginNoPassword: boolean
-}> {
+export async function loader({ request }: Route.LoaderArgs) {
     await requireUserLoggedIn(request)
-    return { lanName: getLan().name, adminLoginNoPassword: !process.env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD === '' ? true : false }
+    return { adminLoginNoPassword: !process.env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD === '' ? true : false }
 }
 
 
@@ -32,9 +21,15 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export default function AdminLogin() {
-    const data = useLoaderData<typeof loader>()
-    if (data.adminLoginNoPassword) return <AdminLoginNoPassword />
-    return <AdminLoginForm />
+    const { adminLoginNoPassword } = useLoaderData<typeof loader>()
+    const lan = useLan()
+    if (adminLoginNoPassword) return <AdminLoginNoPassword />
+    return (
+        <>
+            <title>{`${lan.name} - Connexion admin`}</title>
+            <AdminLoginForm />
+        </>
+    )
 }
 
 function AdminLoginNoPassword() {

@@ -1,4 +1,3 @@
-import { MetaFunction } from "react-router"
 import { Link } from "react-router"
 import { useLan } from "~/lib/components/contexts/LanContext"
 import { useTournaments } from "~/lib/components/contexts/TournamentsContext"
@@ -7,23 +6,11 @@ import { AddTournamentCrossSVG, SubsribedSVG } from "~/lib/components/data/svg-c
 import { FormattedTextWithUrls } from "~/lib/components/elements/formatted-text-url"
 import { requireUserLoggedIn } from "~/lib/session.server"
 import { TournamentInfo, TournamentStatus } from "~/lib/tournamentEngine/types"
-import { getLan } from "~/lib/persistence/lan.server"
 import { useRevalidateOnGlobalTournamentUpdate } from "../api/sse.hook"
 import { Route } from "./+types/index"
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  return [
-    { title: data?.lanName + " - Accueil" }
-  ]
-}
-
-export async function loader({
-  request
-}: Route.LoaderArgs): Promise<{
-  lanName: string
-}> {
+export async function loader({ request }: Route.LoaderArgs) {
   await requireUserLoggedIn(request)
-  return { lanName: getLan().name }
 }
 
 export default function Index() {
@@ -34,6 +21,7 @@ export default function Index() {
 
   return (
     <>
+      <title>{lan.name}</title>
       <div className='is-full-height is-flex-col p-3 is-clipped'>
         <div className='is-flex-col gap-3 is-scrollable'>
           {lan?.motd &&

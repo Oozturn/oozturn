@@ -1,4 +1,4 @@
-import { useFetcher, useLoaderData, useNavigate, MetaFunction, redirect } from "react-router"
+import { useFetcher, useLoaderData, useNavigate, redirect } from "react-router"
 import { getTournament } from "~/lib/persistence/tournaments.server"
 import TournamentInfoSettings from "./components/tournament-info-settings"
 import { useUser } from "~/lib/components/contexts/UserContext"
@@ -13,31 +13,20 @@ import { GetFFAMaxPlayers } from "~/lib/utils/tournaments"
 import { BracketType, TournamentFullData, TournamentStatus } from "~/lib/tournamentEngine/types"
 import { TournamentContext, useTournament } from "~/lib/components/contexts/TournamentsContext"
 import { TournamentViewer } from "./components/tournamentViewer"
-import { getLan } from "~/lib/persistence/lan.server"
 import Dropdown from "~/lib/components/elements/custom-dropdown"
-import { useRevalidateOnTournamentUpdate } from "~/api/sse.hook"
+import { useRevalidateOnTournamentsListUpdate } from "~/api/sse.hook"
 import useLocalStorageState from "use-local-storage-state"
 import { EventServerError } from "~/lib/emitter.server"
 import { getUserId } from "~/lib/session.server"
 import { Route } from "./+types/tournament"
+import { useLan } from "~/lib/components/contexts/LanContext"
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-    return [
-        { title: data?.lanName + " - Tournoi " + data?.tournament.properties.name }
-    ]
-}
-
-export async function loader({
-    params,
-}: Route.LoaderArgs): Promise<{
-    tournament: TournamentFullData
-    lanName: string
-}> {
+export async function loader({ params }: Route.LoaderArgs) {
     let tournament: TournamentFullData | undefined = undefined
     try {
         tournament = getTournament(params.id || "").getFullData()
     } catch { throw redirect('/tournaments/404') }
-    return { tournament: tournament, lanName: getLan().name }
+    return { tournament: tournament }
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -145,12 +134,11 @@ export default function TournamentPage() {
     const { tournament } = useLoaderData<typeof loader>()
     const [tournamentWideView,] = useLocalStorageState<string[]>("tournamentWideView", { defaultValue: [] })
 
-
-    useRevalidateOnTournamentUpdate(tournament.id)
+    useRevalidateOnTournamentsListUpdate([tournament.id])
     const user = useUser()
     const fetcher = useFetcher()
     const users = useUsers()
-
+    const lan = useLan()
 
     const canAddPlayers = function () {
         if (tournament.bracketsCount == 2) return true
@@ -205,58 +193,63 @@ export default function TournamentPage() {
         )
     }
 
-    return <div className="is-flex-row grow gap-3 p-0 is-full-height">
-        <TournamentContext.Provider value={tournament}>
-            <div className="is-flex-col grow gap-3">
-                <div className="is-title big is-uppercase has-background-secondary-level p-2 px-4">
-                    Tournoi {tournament.properties.name}
-                </div>
-                <div className="has-background-secondary-level is-flex-row grow p-3 gap-6">
-                    {!tournamentWideView.includes(tournament.id) && <div className="is-flex-col is-relative gap-2" style={{ width: "30%", minWidth: "30%", maxWidth: "30%" }}>
-                        <TournamentInfoSettings />
-                        <TournamentInfoPlayers />
-                        {user.isAdmin && tournament.status != TournamentStatus.Done && <TournamentCommands />}
-                    </div>}
-                    {[TournamentStatus.Open, TournamentStatus.Balancing].includes(tournament.status) ?
-                        <div className="is-flex-col grow no-basis">
-                            {tournament.settings.useTeams ?
-                                <OpponentsListTeam />
-                                :
-                                <OpponentsListSolo />
-                            }
-                            <div className="mb-3"></div>
-                            <div className="is-flex-row justify-space-between gap-3">
-                                {user.isAdmin ?
-                                    <>
-                                        <CustomButton
-                                            callback={toggleBalanceTournament}
-                                            tooltip={tournament.status == TournamentStatus.Open ? "Empêcher les joueurs d'interragir avec le tournoi, pour pouvoir les re-seeder" : "Réouvrir le tournoi aux joueurs"}
-                                            contentItems={[tournament.status == TournamentStatus.Open ? LockSVG() : UnlockSVG(), "Inscriptions"]}
-                                            colorClass='has-background-primary-level' />
-                                        {/**  DEV ONLY  */}
-                                        {process.env.NODE_ENV === "development" && canAddPlayers && <CustomButton callback={addFakePlayer} contentItems={["Add player"]} colorClass='has-background-primary' />}
-                                        {/**  DEV ONLY  */}
-                                    </>
-                                    :
-                                    <></>
-                                }
-                                <>
-                                    <div></div>
-                                    {tournament.players.find(player => player.userId == user.id) ?
-                                        <CustomButton callback={leaveTournament} contentItems={[LeaveSVG(), "Quitter"]} colorClass='has-background-secondary-accent' />
-                                        :
-                                        <CustomButton callback={joinTournament} active={canAddPlayers} contentItems={[ParticipateSVG(), "Participer"]} colorClass='has-background-primary-accent' />
-                                    }
-                                </>
-                            </div>
+    return (
+        <>
+            <title>{`${lan.name} - Tournoi ${tournament.properties.name}`}</title>
+            <div className="is-flex-row grow gap-3 p-0 is-full-height">
+                <TournamentContext.Provider value={tournament}>
+                    <div className="is-flex-col grow gap-3">
+                        <div className="is-title big is-uppercase has-background-secondary-level p-2 px-4">
+                            Tournoi {tournament.properties.name}
                         </div>
-                        :
-                        <TournamentViewer />
-                    }
-                </div>
+                        <div className="has-background-secondary-level is-flex-row grow p-3 gap-6">
+                            {!tournamentWideView.includes(tournament.id) && <div className="is-flex-col is-relative gap-2" style={{ width: "30%", minWidth: "30%", maxWidth: "30%" }}>
+                                <TournamentInfoSettings />
+                                <TournamentInfoPlayers />
+                                {user.isAdmin && tournament.status != TournamentStatus.Done && <TournamentCommands />}
+                            </div>}
+                            {[TournamentStatus.Open, TournamentStatus.Balancing].includes(tournament.status) ?
+                                <div className="is-flex-col grow no-basis">
+                                    {tournament.settings.useTeams ?
+                                        <OpponentsListTeam />
+                                        :
+                                        <OpponentsListSolo />
+                                    }
+                                    <div className="mb-3"></div>
+                                    <div className="is-flex-row justify-space-between gap-3">
+                                        {user.isAdmin ?
+                                            <>
+                                                <CustomButton
+                                                    callback={toggleBalanceTournament}
+                                                    tooltip={tournament.status == TournamentStatus.Open ? "Empêcher les joueurs d'interragir avec le tournoi, pour pouvoir les re-seeder" : "Réouvrir le tournoi aux joueurs"}
+                                                    contentItems={[tournament.status == TournamentStatus.Open ? LockSVG() : UnlockSVG(), "Inscriptions"]}
+                                                    colorClass='has-background-primary-level' />
+                                                {/**  DEV ONLY  */}
+                                                {process.env.NODE_ENV === "development" && canAddPlayers && <CustomButton callback={addFakePlayer} contentItems={["Add player"]} colorClass='has-background-primary' />}
+                                                {/**  DEV ONLY  */}
+                                            </>
+                                            :
+                                            <></>
+                                        }
+                                        <>
+                                            <div></div>
+                                            {tournament.players.find(player => player.userId == user.id) ?
+                                                <CustomButton callback={leaveTournament} contentItems={[LeaveSVG(), "Quitter"]} colorClass='has-background-secondary-accent' />
+                                                :
+                                                <CustomButton callback={joinTournament} active={canAddPlayers} contentItems={[ParticipateSVG(), "Participer"]} colorClass='has-background-primary-accent' />
+                                            }
+                                        </>
+                                    </div>
+                                </div>
+                                :
+                                <TournamentViewer />
+                            }
+                        </div>
+                    </div>
+                </TournamentContext.Provider>
             </div>
-        </TournamentContext.Provider>
-    </div>
+        </>
+    )
 }
 
 function TournamentCommands() {

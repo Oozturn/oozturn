@@ -1,20 +1,14 @@
-import { MetaFunction, redirect } from "react-router"
-import { Form, useActionData, useLoaderData } from "react-router"
+import { redirect, Form, useActionData } from "react-router"
 import { useEffect, useRef, useState } from "react"
 import { EyeSVG, LogoUnfolded } from "~/lib/components/data/svg-container"
 import { CustomButton } from "~/lib/components/elements/custom-button"
-import { getLan } from "~/lib/persistence/lan.server"
 import { checkPassword, hasPassword } from "~/lib/persistence/password.server"
 import { getUserFromRequest, updateSessionWithPasswordAuth } from "~/lib/session.server"
 import { notifyError } from "~/lib/components/notification"
 import { User } from "~/lib/types/user"
 import { Route } from "./+types/step-password"
-
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  return [
-    { title: data?.lanName + " - Connexion" }
-  ]
-}
+import { useLan } from "~/lib/components/contexts/LanContext"
+import { useUser } from "~/lib/components/contexts/UserContext"
 
 export async function loader({ request }: Route.LoaderArgs) {
   if (process.env.AUTHENTICATION === 'false') {
@@ -28,7 +22,6 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (!hasPassword(user.id)) {
     throw redirect('../step-new-password')
   }
-  return { lanName: getLan().name, user: user }
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -56,11 +49,12 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export default function LoginStepPassword() {
-  const { user } = useLoaderData<typeof loader>()
+  const user = useUser()
   const actionResult = useActionData<typeof action>()
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const formRef = useRef(null)
+  const lan = useLan()
 
   useEffect(() => {
     if (actionResult?.errors?.password) {
@@ -70,6 +64,8 @@ export default function LoginStepPassword() {
   }, [actionResult])
 
   return (
+    <>
+    <title>{`${lan.name} - Connexion`}</title>
     <div className="is-flex-col align-center justify-center is-relative">
       <div className="loginLogo" style={{ width: "50vw" }}>
         <LogoUnfolded animate={true} folded={true} />
@@ -106,5 +102,6 @@ export default function LoginStepPassword() {
         </Form>
       </div>
     </div>
+    </>
   )
 }

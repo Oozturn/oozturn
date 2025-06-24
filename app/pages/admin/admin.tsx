@@ -1,4 +1,3 @@
-import { MetaFunction } from "react-router"
 import { Link, useFetcher, useLoaderData, useNavigate } from "react-router"
 import useLocalStorageState from "use-local-storage-state"
 import { useLan } from "~/lib/components/contexts/LanContext"
@@ -7,7 +6,7 @@ import { CustomButton } from "~/lib/components/elements/custom-button"
 import { CustomCheckbox } from "~/lib/components/elements/custom-checkbox"
 import { CustomSelect } from "~/lib/components/elements/custom-select"
 import { EditGlobalTournamentPoints } from "~/lib/components/elements/global-tournament-points"
-import { getLan, updateAchievements, updateLan } from "~/lib/persistence/lan.server"
+import { updateAchievements, updateLan } from "~/lib/persistence/lan.server"
 import { requireUserAdmin } from "~/lib/session.server"
 import { Lan } from "~/lib/types/lan"
 import { autoSubmit } from "~/lib/utils/autosubmit"
@@ -21,27 +20,15 @@ import { CustomModalBinary } from "~/lib/components/elements/custom-modal"
 import { Achievement, AchievementDecriptors, AchievementType } from "~/lib/types/achievements"
 import { getAchievements } from "~/lib/runtimeGlobals/achievements.server"
 import { notifyError } from "~/lib/components/notification"
-import { PlayableMatch, TournamentInfo, TournamentStatus } from "~/lib/tournamentEngine/types"
+import { TournamentStatus } from "~/lib/tournamentEngine/types"
 import { getAllPlayableMatches } from "~/lib/runtimeGlobals/playableMatches.server"
 import { IdToString } from "~/lib/utils/tournaments"
-import { useRevalidateOnTournamentUpdate } from "~/api/sse.hook"
+import { useRevalidateOnTournamentsListUpdate } from "~/api/sse.hook"
 import { Route } from "./+types/admin"
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-    return [
-        { title: data?.lanName + " - Admin" }
-    ]
-}
-
-export async function loader({
-    request
-}: Route.LoaderArgs): Promise<{
-    lanName: string
-    achievements: Achievement[]
-    playableMatches: PlayableMatch[]
-}> {
+export async function loader({ request }: Route.LoaderArgs) {
     await requireUserAdmin(request)
-    return { lanName: getLan().name, achievements: getAchievements(), playableMatches: getAllPlayableMatches() }
+    return { achievements: getAchievements(), playableMatches: getAllPlayableMatches() }
 }
 
 export enum AdminIntents {
@@ -118,6 +105,7 @@ export async function action({ request }: Route.ActionArgs) {
 
 export default function Admin() {
     const fetcher = useFetcher()
+    const lan = useLan()
 
     const [activeSection, setActiveSection] = useLocalStorageState<Section>("admin_activeSection", { defaultValue: "lanSettings" })
 
@@ -130,6 +118,7 @@ export default function Admin() {
 
     return (
         <>
+            <title>{`${lan.name} - Admin`}</title>
             <div className="is-full-height is-flex gap-3 m-0 p-3">
                 <div className="is-two-thirds is-flex-col gap-3 p-0 is-full-height">
                     <AdminSectionContext.Provider value={{ setActiveSection, updateLan }}>
@@ -328,11 +317,7 @@ export function SectionOnGoingMatches({ isActive }: { isActive: boolean }) {
     const navigate = useNavigate()
     const tournamentsWaitingForValidation = tournaments.filter(t => t.status == TournamentStatus.Validating)
     const playableTournaments = tournaments.filter(t => playableMatches.map(pm => pm.tournamentId).includes(t.id))
-    playableTournaments.forEach(pt => useRevalidateOnTournamentUpdate(pt.id))
-
-    function sortTournaments(tournaments: TournamentInfo[]) {
-        return tournaments.map(tournament => [tournament.status == TournamentStatus.Validating, tournament]).sort()
-    }
+    useRevalidateOnTournamentsListUpdate(playableTournaments.map(pt => pt.id))
 
     return <div className={`is-clipped has-background-secondary-level px-4 is-flex-col ${isActive ? "grow no-basis" : ""}`}>
         <div className="is-title medium is-uppercase py-2 px-1 is-clickable" {...clickorkey(() => setActiveSection("ongoingMatches"))} style={{ flex: "none" }}>

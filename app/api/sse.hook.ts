@@ -19,14 +19,14 @@ export function useRevalidateOnGlobalTournamentUpdate() {
   }, [evtData])
 }
 
-export function useRevalidateOnTournamentUpdate(tournamentId: string) {
+export function useRevalidateOnTournamentsListUpdate(tournamentIds: string[]) {
   const revalidator = useRevalidator()
   const evtData = useEventSource("/sse", { event: EVENT_UPDATE_TOURNAMENT })
 
   useEffect(() => {
     if (!evtData) return
     const [, , updatedId] = JSON.parse(evtData)
-    if (updatedId != tournamentId) return
+    if (!tournamentIds.includes(updatedId)) return
     if (revalidator.state === "idle") {
       revalidator.revalidate()
     }
