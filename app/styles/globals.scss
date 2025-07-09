@@ -327,6 +327,16 @@ textarea {
         }
     }
 }
+.customButtonMicro {
+    @extend .customButton;
+    height: 1.4em;
+    width: 1.4em;
+    &:not(.is-shown) {
+        path.fillAsText {
+            fill: transparent !important;
+        }
+    }
+}
 
 .modal {
     cursor: auto;
@@ -439,36 +449,38 @@ textarea {
     box-shadow: none !important;
     padding: 0 !important;
     background-color: transparent !important;
-    // background-color: var(--background-secondary-level) !important;
+    // background-color: var(--accent-secondary-color) !important;
     color: var(--text-color) !important;
-    height: 100% !important;
+    height: 100%;
     min-height: unset !important;
     border-radius: 0 !important;
     font-size: 16px !important;
     overflow: unset !important;
-    &:before{
-		z-index: 1;
-		content: "";
-		position: absolute;
-		right: 15px;
-		top: -7%;
-		height: 114%;
-		width: 5px;
-		background: var(--background-secondary-level);
-        border-left: 5px solid var(--accent-primary-color);
-        -webkit-transform: rotate(27.5deg) skewY(-27.5deg);
-        -moz-transform: rotate(27.5deg) skewY(-27.5deg);
-        -ms-transform: rotate(27.5deg) skewY(-27.5deg);
-		transform: rotate(27.5deg) skewY(-27.5deg);
+    &:after {
+        z-index: -1;
+        content:'';
+        position: absolute;
+        right: 0;
+        left: 0;
+        top: -7%;
+        height: 114%;
+        border-right: 3px solid var(--accent-primary-color);
+        backdrop-filter: blur(10px);
+        // background: var(--background-secondary-level);
+        border-left: 3px solid var(--accent-primary-color);
+        -webkit-transform: skewX(-27.5deg);
+        -moz-transform: skewX(-27.5deg);
+        -ms-transform: skewX(-27.5deg);
+        transform: rotate(27.5deg) skewY(-27.5deg) translateY(0%);
     }
 }
 .Toastify__toast-body {
     // background: red;
-    margin-right: 30px !important;
+    // margin-right: 30px !important;
     padding: 0 !important;
     overflow: hidden;
     max-width: 40vw;
-    height: 100%;
+    height: $navbar-height;
     div {
         white-space: nowrap;
     }
@@ -485,16 +497,14 @@ textarea {
 @keyframes notification_slide_body {
     0%, 20% {
         max-width: 0;
-        margin-right: 0px !important;
     }
     100% {
         max-width: 40vw;
-        margin-right: 30px !important;
     }
 }
 
 .toast-enter-animation {
-    &::before {
+    &::after {
         animation: 2s notification_slide_border 0s forwards;
     }
     .Toastify__toast-body {
@@ -505,7 +515,7 @@ textarea {
     .Toastify__toast-body {
         animation: 2s notification_slide_body 0s reverse forwards;
     }
-    &::before {
+    &::after {
         animation: 2s notification_slide_border 0s reverse forwards;
     }
 }
@@ -634,33 +644,65 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
     }
 }
 
-@keyframes outlineBlink {
+@keyframes notifBlink {
     0% {
-        outline-offset: -2px;
-        outline-color: var(--accent-primary-color);
+        right: -15%;
+        background-color: var(--accent-primary-color);
     }
-    15%, 100% {
-        outline-offset: 20px;
-        outline-color: transparent;
+    10%{
+        right: -80%;
+        background-color: transparent;
+    }
+    10.1% {
+        right: -15%;
+        background-color: var(--accent-primary-color);
+    }
+    20%, 100%{
+        right: -80%;
+        background-color: transparent;
     }
     
 }
 
 .navbar-notifications {
+    margin-left: 40px !important;
     max-height: $navbar-height;
     min-height: $navbar-height;
     min-width: $navbar-height;
-    outline: solid var(--accent-primary-color);
-    outline-width: 2px;
-    outline-offset: -2px;
-    animation: outlineBlink 3s ease-in infinite normal;
+    &:before {
+        z-index: -1;
+        content:'';
+        position: absolute;
+        left: 0%;
+        height: 100%;
+        width: 115%;
+        background-color: var(--accent-primary-color);
+        -webkit-transform: skewX(-27.5deg);
+        -moz-transform: skewX(-27.5deg);
+        -ms-transform: skewX(-27.5deg);
+        transform: skewX(-27.5deg);
+    }
+    &:after {
+        z-index: -1;
+        content:'';
+        position: absolute;
+        right: -15%;
+        height: 100%;
+        width: 15%;
+        background-color: var(--accent-primary-color);
+        -webkit-transform: skewX(-27.5deg);
+        -moz-transform: skewX(-27.5deg);
+        -ms-transform: skewX(-27.5deg);
+        transform: skewX(-27.5deg);
+        animation: notifBlink 2s ease-in-out infinite normal;
+    }
     &:hover {
         outline: unset;
     }
     &:hover .navbarNotificationCenter {
-        max-height: unset;
+        max-width: 500px;
         opacity: 100%;
-        transition: opacity .2s;
+        transition: ease-out .2s;
     }
     &:first-child {
         width: $navbar-height;
@@ -669,15 +711,37 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
 }
 
 .navbarNotificationCenter {
-    max-height: 0;
-    min-width: $navbar-height;
+    z-index: 0;
+    position: absolute;
+    top: -2px;
+    left: -15px;
+    // min-width: $navbar-height;
+    max-width: 0;
     opacity: 0;
     overflow: hidden;
-    position: absolute;
-    top: $navbar-height;
-    border: solid var(--accent-primary-color);
-    border-width: 2px;
     white-space: nowrap;
+    #waitingMatchesTitle {
+        height: $navbar-height;
+    }
+    gap: -2px;
+    #waitingMatchesList {
+        border: solid var(--accent-primary-color);
+        border-width: 2px;
+    }
+    &:after {
+        z-index: 1;
+        position: absolute;
+        top: 0;
+        left: -15px;
+        width: 30px;
+        height: $navbar-height;
+        background-color: var(--background-secondary-level);
+        -webkit-transform: skewX(-27.5deg);
+        -moz-transform: skewX(-27.5deg);
+        -ms-transform: skewX(-27.5deg);
+        transform: skewX(-27.5deg);
+        content: "";
+    }
 }
 
 .navbarUserCustomisationModal {
@@ -953,7 +1017,7 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
     }
 }
 
-.adminUsersList {
+.usersList {
     flex: 2;
     .UserTilesContainer {
         gap: .5rem;
@@ -967,7 +1031,7 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
         background-color: var(--background-primary-level);
         transition: ease-out .125s;
         &.is-active {
-            flex: 0 0 170px;
+            flex: 0 0 140px;
             background-color: var(--accent-secondary-color);
             transition: ease-out .125s;
         }

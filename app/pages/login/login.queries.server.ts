@@ -26,7 +26,7 @@ export async function doLogin(rawUsername: string) {
         user = registerNewUser(rawUsername)
     }
 
-    const userIsComplete = (user.seat != '') && (user.team != '')
+    const userIsComplete = (user.seat != '' || process.env.ASK_FOR_SEATS === "false") && (user.team != '')
     const cookie = await createSessionWithUser(user)
     return redirect(!(process.env.AUTHENTICATION === 'false') ? "step-password" : (userIsComplete ? "/" : "first-login"), {
         headers: {

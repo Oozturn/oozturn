@@ -4,12 +4,14 @@ import { firstBy, zip } from './interlude/interlude'
 /** Result base class, conposed of:
  *  - pos: position in tournament. If not finished, minimal guaranteed position
  *  - seed: player seed
+ *  - matches: number of matches played by this player in this tournament
  *  - wins: number of wins in this tournament
  *  - for: total scored points
  *  - against: total concessed points (Duel) or total of diff between player and top player (FFA) 
  */
 export interface Result {
   seed: number
+  matches: number
   wins: number
   for?: number
   against?: number
@@ -134,6 +136,7 @@ export abstract class Tournament {
       // res is no longer sorted by seed initially
       res[s] = {
         seed: players[s],
+        matches: 0,
         wins: 0,
         for: 0,
         against: 0,

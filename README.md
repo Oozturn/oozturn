@@ -21,8 +21,8 @@ This app can be used either using Docker or manually.
 
 OOZTURN accepts the following settings, to set with environment variables:
 
-| Environment variables    | Usage                                                                                                                                          | Default value |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| Environment variables | Usage | Default value |
+| --------------------- | ----- | ------------- |
 | NEW_USERS_BY_ADMIN | Only admins can register new users. This is ignored for the first account to be created. | true |
 | AUTHENTICATION | A password is needed for the users to log-in | true |
 | SECURE_PASSWORD | Users passwords must be of at least 8 character and contain:<br />- a lowercase<br />- an uppercase<br />- a number<br />- a special character | true |
@@ -32,6 +32,7 @@ OOZTURN accepts the following settings, to set with environment variables:
 | AUTO_REFRESH_USERS | Refresh users list dynamically | true |
 | ADMIN_PASSWORD | Admin password. This parameter is mandatory to enable the admin panel. Without it, admin pages can't be accessed. | empty |
 | ALL_OPPONENTS_SCORE | Allow all opponents to score. can be "false", "duel_only", "true". | false |
+| ASK_FOR_SEATS | Asks users to enter their seat. | true |
 
 ### Docker
 

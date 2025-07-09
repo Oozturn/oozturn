@@ -13,7 +13,6 @@ import { Lan } from "~/lib/types/lan"
 import { autoSubmit } from "~/lib/utils/autosubmit"
 import { Days, range } from "~/lib/utils/ranges"
 import { AdminSectionContext, Section, useAdminSection } from "./components/AdminSectionContext"
-import { UsersList } from "./components/users-list"
 import { addUsers, renameUser, resetUserPassword, setLanMap } from "./admin.queries.server"
 import { ChangeEvent, useRef, useState } from "react"
 import { clickorkey } from "~/lib/utils/clickorkey"
@@ -25,6 +24,7 @@ import { PlayableMatch, TournamentInfo, TournamentStatus } from "~/lib/tournamen
 import { getAllPlayableMatches } from "~/lib/runtimeGlobals/playableMatches.server"
 import { IdToString } from "~/lib/utils/tournaments"
 import { useRevalidateOnTournamentUpdate } from "~/api/sse.hook"
+import { UsersList } from "~/lib/components/elements/users-list"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
@@ -133,7 +133,7 @@ export default function Admin() {
                 <div className="is-two-thirds is-flex-col gap-3 p-0 is-full-height">
                     <AdminSectionContext.Provider value={{ setActiveSection, updateLan }}>
                         <SectionLanSettings isActive={activeSection == "lanSettings"} />
-                        <SectionTournamentsSettings isActive={activeSection == "tournamentsSettings"} />
+                        {/* <SectionTournamentsSettings isActive={activeSection == "tournamentsSettings"} /> */}
                         <SectionGlobalTournamentSettings isActive={activeSection == "globalTournamentSettings"} />
                         <SectionOnGoingMatches isActive={activeSection == "ongoingMatches"} />
 
@@ -141,7 +141,7 @@ export default function Admin() {
                     </AdminSectionContext.Provider>
                 </div>
 
-                <UsersList />
+                <UsersList admin />
             </div>
         </>
     )
@@ -337,7 +337,7 @@ export function SectionOnGoingMatches({ isActive }: { isActive: boolean }) {
         <div className="is-title medium is-uppercase py-2 px-1 is-clickable" {...clickorkey(() => setActiveSection("ongoingMatches"))} style={{ flex: "none" }}>
             Tournois et matchs en cours
         </div>
-        <div className="is-flex-col gap-4 align-stretch" style={{ maxHeight: isActive ? undefined : 0 }} >
+        <div className="is-flex-col gap-4 align-stretch is-scrollable" style={{ maxHeight: isActive ? undefined : 0 }} >
             {playableTournaments.length == 0 && tournamentsWaitingForValidation.length == 0 && <div className="p-3">Aucun tournoi en cours</div>}
             {/* Tournaments waiting for validation */}
             {tournamentsWaitingForValidation.length > 0 && <div className="is-flex gap-3 ">
@@ -352,13 +352,13 @@ export function SectionOnGoingMatches({ isActive }: { isActive: boolean }) {
             {/* Matches waiting for a score */}
             {playableTournaments.length > 0 && <div className="is-flex gap-3">
                 <div className="has-text-right is-one-fifth mt-4">Matchs en cours :</div>
-                <div className="is-flex-col grow gap-2 p-2 has-background-primary-level is-scrollable align-stretch">
+                <div className="is-flex-col grow gap-2 p-2 has-background-primary-level align-stretch">
                     {playableTournaments.map(tournament =>
                         <div key={tournament.id} className="is-flex-col gap-1">
                             <Link to={"/tournaments/" + tournament.id} className="is-uppercase has-background-secondary-level p-1 has-text-weight-semibold fade-on-mouse-out">{tournament.name}</Link>
                             <div className="is-flex wrap grow gap-1">
                                 {playableMatches.filter(pm => pm.tournamentId == tournament.id).map(pMatch => {
-                                    return <Link key={IdToString(pMatch.matchId)} to={"/tournaments/" + tournament.id} className="is-flex-col align-center customButton gap-1 fade-on-mouse-out is-unselectable has-background-secondary-level" style={{ height: "80px" }}>
+                                    return <Link key={IdToString(pMatch.matchId)} to={"/tournaments/" + tournament.id} className="grow is-flex-col align-center customButton gap-1 fade-on-mouse-out is-unselectable has-background-secondary-level" style={{ height: "80px", maxWidth:"33%" }}>
                                         <div>Match {IdToString(pMatch.matchId)}</div>
                                         {pMatch.opponents.length == 2 ?
                                             <div className="is-flex gap-2"><span className="has-text-primary-accent">{pMatch.opponents[0]}</span> VS <span className="has-text-secondary-accent">{pMatch.opponents[1]}</span></div>

@@ -1,4 +1,5 @@
 import { globalTournamentPoints } from "~/lib/types/lan"
+import { MicroButton } from "./custom-button";
 
 interface ShowGlobalTournamentPointsProps {
     points: globalTournamentPoints
@@ -35,13 +36,13 @@ export function EditGlobalTournamentPoints({ points, updatePoints }: EditGlobalT
     const leadersMap = getLeadersMap(points);
     const defaultPointRange = `${points.leaders.length <= 4 ? points.leaders.length + 1 : Math.pow(2, points.leaders.length - 2) + 1} et +`
 
-    return <div className='globalTournamentOptions editing is-flex-row gap-1'>
+    return <div className='globalTournamentOptions editing is-flex-row gap-3 '>
         <div className='is-flex-col'>
             <div className='is-flex justify-end align-center'>Place :</div>
             <div className='is-flex justify-end align-center'>Points :</div>
         </div>
         {Array.from(leadersMap.entries()).map(([key, pts], index) =>
-            <div key={index} className="rankPoints is-flex-col">
+            <div key={index} className="rankPoints is-flex-col align-center">
                 <div className="has-text-weight-semibold is-flex justify-center align-center">{key}</div>
                 <input
                     className="is-flex has-text-centered"
@@ -69,25 +70,24 @@ export function EditGlobalTournamentPoints({ points, updatePoints }: EditGlobalT
                 }}
             />
         </div>
-        <div className="is-flex-col">
-            <button
-                className="button is-small is-primary"
-                onClick={() => {
+        <div className="is-flex-col justify-stretch has-background-primary-level" style={{padding: "2px", gap: "2px"}}>
+            <MicroButton
+                contentItems={["+"]}
+                callback={() => {
                     addGlobalTournamentPointsRanks(points)
                     updatePoints(points)
                 }}
-            >
-                +
-            </button>
-            {points.leaders.length > 1 && <button
-                className="button is-small is-danger"
-                onClick={() => {
+                colorClass="has-background-primary-accent"
+            />
+            <MicroButton
+                contentItems={["-"]}
+                callback={() => {
                     removeGlobalTournamentPointsRanks(points)
                     updatePoints(points)
                 }}
-            >
-                -
-            </button>}
+                colorClass="has-background-secondary-accent"
+                active={points.leaders.length > 1}
+            />
         </div>
     </div>
 }

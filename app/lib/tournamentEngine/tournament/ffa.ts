@@ -257,6 +257,7 @@ export class FFA extends Tournament {
       zip(m.p, m.m).sort(this.compareScore).forEach((t, j, top) => {
         const p = resultEntry(resAry, t[0])
         p.for! += this.lowerScoreIsBetter ? (Math.abs(top[0][1] - t[1])) : t[1]
+        p.matches += 1
         p.against! += this.lowerScoreIsBetter ? t[1] : (Math.abs(top[0][1] - t[1])); // difference with winner
         if (j < adv) {
           p.wins += 1

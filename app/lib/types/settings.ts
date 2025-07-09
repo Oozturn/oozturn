@@ -17,10 +17,15 @@ interface AutoRefreshSettings {
 	users: boolean
 }
 
+interface QoLanSettings {
+	placedPlayers: boolean
+}
+
 export interface Settings {
 	security: SecuritySettings,
 	notifications: NotificationsSettings,
-	autoRefresh: AutoRefreshSettings
+	autoRefresh: AutoRefreshSettings,
+	qoLan: QoLanSettings
 }
 
 export interface CredentialsSettings {

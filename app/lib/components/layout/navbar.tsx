@@ -73,16 +73,18 @@ function NotificationCenter() {
     }
 
     return (
-        <div className="navbar-notifications fade-on-mouse-out navbar-item p-0 m-0 ml-4 is-flex-col align-stretch">
-            <div className="grow is-flex justify-center align-center has-background-primary-accent"><NotifySVG /></div>
-            <div className="navbarNotificationCenter has-background-secondary-level is-flex-col align-stretch gap-1">
-                <div className="p-2 pt-4 is-uppercase has-background-secondary-level has-text-primary-accent has-text-weight-semibold">Matchs en attente</div>
+        <div className="navbar-notifications fade-on-mouse-out navbar-item p-0 m-0 is-flex-col align-stretch">
+            <div className="grow is-flex justify-center align-center"><NotifySVG /></div>
+            <div className="navbarNotificationCenter has-background-secondary-level is-flex-col align-stretch">
+                <div id="waitingMatchesTitle" className="is-flex align-center justify-center p-2 is-uppercase has-background-primary-accent has-text-weight-semibold">Matchs en attente</div>
+                <div id="waitingMatchesList" className="is-flex align-stretch gap-1">
                 {playableMatches.map((match) => (
                     <Link key={match.tournamentId + '_' + IdToString(match.matchId)} to={`/tournaments/${match.tournamentId}`} className="m-2 is-flex align-center gap-1 fade-on-mouse-out">
-                        <div className="is-flex" style={{width: "10px", transform: "rotate(270deg)"}}><DropDownArrowSVG /></div>
+                        <span>//</span>
                         <span className="is-uppercase">{tournaments.find(t => t.id == match.tournamentId)?.name}</span> - Match {IdToString(match.matchId)}
                     </Link>
                 ))}
+                </div>
             </div>
         </div>
     )

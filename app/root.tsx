@@ -56,6 +56,9 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<{
     },
     notifications: {
       tournamentStartStop: process.env.NOTIFICATION_TOURNAMENT_CHANGE === "false" ? false : true,
+    },
+    qoLan: {
+      placedPlayers: process.env.ASK_FOR_SEATS === "false" ? false : true,
     }
   }
   if (await isUserLoggedIn(request)) {

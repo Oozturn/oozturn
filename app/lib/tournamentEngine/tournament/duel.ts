@@ -296,6 +296,8 @@ export class Duel extends Tournament {
 
       // inc wins
       w.wins += 1
+      p0.matches += 1
+      p1.matches += 1
       p0.for! += this.lowerScoreIsBetter ? g.m[1] : g.m[0]
       p1.for! += this.lowerScoreIsBetter ? g.m[0] : g.m[1]
       p0.against! += this.lowerScoreIsBetter ? g.m[0] : g.m[1]

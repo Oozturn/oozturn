@@ -43,7 +43,7 @@ export async function action({ request }: ActionFunctionArgs) {
   storePassword(userId, password)
   
   const user = await getUserFromRequest(request) as User
-  const userIsComplete = (user.seat != '') && (user.team != '')
+  const userIsComplete = (user.seat != '' || process.env.ASK_FOR_SEATS === "false") && (user.team != '')
   const cookie = await updateSessionWithPasswordAuth(request)
   return redirect(userIsComplete ? "/" : "/login/first-login", {
     headers: {

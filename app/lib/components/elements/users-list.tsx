@@ -7,13 +7,13 @@ import { SquareButton, CustomButton } from "~/lib/components/elements/custom-but
 import { CustomModalBinary } from "~/lib/components/elements/custom-modal"
 import { UserTileRectangle } from "~/lib/components/elements/user-tile"
 import { User } from "~/lib/types/user"
-import { AdminIntents } from "../admin"
 import { clickorkey } from "~/lib/utils/clickorkey"
 import { useRevalidateOnUsersUpdate } from "~/api/sse.hook"
 import { useSettings } from "~/lib/components/contexts/SettingsContext"
 import { MoreSVG, SmallCrossSVG } from "~/lib/components/data/svg-container"
+import { AdminIntents } from "~/pages/admin/admin"
 
-export function UsersList() {
+export function UsersList({admin = false}: { admin?: boolean }) {
     const [hooveredUser, setHooveredUser] = useState("")
     const [activeUser, setActiveUser] = useState("")
     const [userInEdit, setUserInEdit] = useState<User | null>(null)
@@ -69,10 +69,10 @@ export function UsersList() {
         fetcher.submit(fd, { method: "POST" })
     }
 
-    return <div className="has-background-secondary-level adminUsersList is-full-height is-flex-col pr-2 p-4 gap-3">
+    return <div className="has-background-secondary-level usersList is-full-height is-flex-col pr-2 p-4 gap-3">
         <div className="is-flex justify-space-between align-center">
             <div className="is-title medium">Joueurs</div>
-            <CustomButton customClasses="small-button" colorClass="has-background-primary-accent" callback={() => setShowAddUsers(true)} contentItems={[SmallCrossSVG(), "Add users"]} />
+            {admin && <CustomButton customClasses="small-button" colorClass="has-background-primary-accent" callback={() => setShowAddUsers(true)} contentItems={[SmallCrossSVG(), "Add users"]} />}
         </div>
         <CustomModalBinary
             show={!!userInEdit}
@@ -109,7 +109,7 @@ export function UsersList() {
                         <div className="is-flex is-clickable grow" {...clickorkey(() => setActiveUser(activeUser == user.id ? '' : user.id))}>
                             <UserTileRectangle userId={user.id} height={40} />
                         </div>
-                        <SquareButton contentItems={[MoreSVG()]} height={40} show={hooveredUser == user.id} callback={(e: TriggerEvent) => {
+                        {admin && <SquareButton contentItems={[MoreSVG()]} height={40} show={hooveredUser == user.id} callback={(e: TriggerEvent) => {
                             showMenu({
                                 id: "usersMenu",
                                 event: e,
@@ -118,12 +118,12 @@ export function UsersList() {
                                 }
                             })
                         }}
-                        />
+                        />}
                     </div>
                     <div className='userTooltip is-flex pl-3' {...clickorkey(() => setActiveUser(activeUser == user.id ? '' : user.id))}>
                         <div className='is-flex-col'>
                             <div>Place: {user.seat || "non placé"}</div>
-                            <div>IP: {user.ip || 'inconnue'}</div>
+                            {/* <div>IP: {user.ip || 'inconnue'}</div> */}
                             <div>Tournois: {tournaments?.filter(tournament => tournament.players.find(player => player.userId == user.id)).length || 0}</div>
                             <div>Points: {leaderboard?.find(pscore => pscore.player.id == user.id)?.points || 0}</div>
                         </div>

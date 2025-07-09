@@ -218,7 +218,7 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                                     accept="image/jpeg,image/png,image/webp,image/gif"
                                     onChange={handleFileChange}
                                 />
-                                {tTournamentProperties.picture &&
+                                {tournamentImageSrc &&
                                     <CustomButton
                                         callback={() => { setTournamentImageSrc(""); setTournamentImageFile(undefined) }}
                                         contentItems={["Retirer l'image"]}

@@ -158,6 +158,8 @@ export class GroupStage extends Tournament {
             w.pts += this.winPoints;
             l.losses += 1;
         }
+        p0.matches += 1;
+        p1.matches += 1;
         p0.for! += this.lowerScoreIsBetter ? m.m[1] : m.m[0];
         p1.for! += this.lowerScoreIsBetter ? m.m[0] : m.m[1];
         p0.against! += this.lowerScoreIsBetter ? m.m[0] : m.m[1];
@@ -199,7 +201,7 @@ export class GroupStage extends Tournament {
     private compareResults = (x: Result, y: Result) => {
         const xScore = x.for! - x.against!;
         const yScore = y.for! - y.against!;
-        return (y.pts - x.pts) || (yScore - xScore) || (y.for! - x.for!) || (x.seed - y.seed);
+        return (y.pts/y.matches - x.pts/x.matches) || (yScore/y.matches - xScore/x.matches) || (y.for!/y.matches - x.for!/x.matches) || (x.seed - y.seed);
     }
 
     private finalCompare = (x: Result, y: Result) => {

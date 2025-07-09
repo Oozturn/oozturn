@@ -4,8 +4,8 @@ import { getTournament } from "~/lib/persistence/tournaments.server"
 import TournamentInfoSettings from "./components/tournament-info-settings"
 import { useUser } from "~/lib/components/contexts/UserContext"
 import { CustomButton, SquareButton } from "~/lib/components/elements/custom-button"
-import { CustomModalBinary } from "~/lib/components/elements/custom-modal"
-import { ReactNode, useState } from "react"
+import { CustomModal, CustomModalBinary } from "~/lib/components/elements/custom-modal"
+import { ReactNode, useRef, useState } from "react"
 import { BinSVG, ForfeitSVG, LeaveSVG, LockSVG, MoreSVG, ParticipateSVG, RollBackSVG, StartSVG, SubsribedSVG, ThumbUpSVG, UnlockSVG } from "~/lib/components/data/svg-container"
 import { addPlayerToTournament, addTeamToTournament, toggleBalanceTournament, removePlayerFromTournament, reorderPlayers, reorderTeams, addPlayerToTeam, removeTeamFromTournament, renameTeam, removePlayerFromTeams, distributePlayersOnTeams, balanceTeams, randomizePlayersOnTeams, cancelTournament, startTournament, scoreMatch, stopTournament, toggleForfeitPlayerForTournament, validateTournament, togglePauseTournament } from "./tournament.queries.server"
 import { useUsers } from "~/lib/components/contexts/UsersContext"
@@ -20,6 +20,10 @@ import { useRevalidateOnTournamentUpdate } from "~/api/sse.hook"
 import useLocalStorageState from "use-local-storage-state"
 import { EventServerError } from "~/lib/emitter.server"
 import { getUserId } from "~/lib/session.server"
+import { User } from "~/lib/types/user"
+import { CustomCheckbox } from "~/lib/components/elements/custom-checkbox"
+import { UserTileRectangle } from "~/lib/components/elements/user-tile"
+import { clickorkey } from "~/lib/utils/clickorkey"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
@@ -65,6 +69,11 @@ export async function action({ request }: ActionFunctionArgs) {
                 break
             case TournamentManagementIntents.ADD_PLAYER:
                 addPlayerToTournament(jsonData.tournamentId as string, jsonData.userId as string)
+                break
+            case TournamentManagementIntents.ADD_PLAYERS:
+                (jsonData.userIds as string[]).forEach(uid =>
+                    addPlayerToTournament(jsonData.tournamentId as string, uid)
+                )
                 break
             case TournamentManagementIntents.TOGGLE_FORFEIT_PLAYER:
                 toggleForfeitPlayerForTournament(jsonData.tournamentId as string, jsonData.userId as string)
@@ -122,6 +131,7 @@ export enum TournamentManagementIntents {
     VALIDATE = "validateTournament",
     PAUSE = "togglePauseTournament",
     ADD_PLAYER = "addPlayerToTournament",
+    ADD_PLAYERS = "addPlayersToTournament",
     TOGGLE_FORFEIT_PLAYER = "toggleForfeitPlayerForTournament",
     REMOVE_PLAYER = "removePlayerFromTournament",
     REORDER_PLAYERS = "reorderPlayers",
@@ -233,6 +243,7 @@ export default function TournamentPage() {
                                             tooltip={tournament.status == TournamentStatus.Open ? "Empêcher les joueurs d'interragir avec le tournoi, pour pouvoir les re-seeder" : "Réouvrir le tournoi aux joueurs"}
                                             contentItems={[tournament.status == TournamentStatus.Open ? LockSVG() : UnlockSVG(), "Inscriptions"]}
                                             colorClass='has-background-primary-level' />
+                                        {canAddPlayers && <PlayersSelector />}
                                         {/**  DEV ONLY  */}
                                         {process.env.NODE_ENV === "development" && canAddPlayers && <CustomButton callback={addFakePlayer} contentItems={["Add player"]} colorClass='has-background-primary' />}
                                         {/**  DEV ONLY  */}
@@ -257,6 +268,74 @@ export default function TournamentPage() {
             </div>
         </TournamentContext.Provider>
     </div>
+}
+
+
+function PlayersSelector() {
+    const { tournament } = useLoaderData<typeof loader>()
+    const fetcher = useFetcher()
+    const [showAddPlayers, setShowAddPlayers] = useState(false)
+    const users = useUsers()
+    const [playersList, setPlayersList] = useState<{ id: string, name: string, checked: boolean }[]>([])
+
+    const isFFA = tournament.bracketSettings[0].type == BracketType.FFA
+    const availablePlaces = function () {
+        if (isFFA) return Infinity
+        const maxPlayers = GetFFAMaxPlayers(tournament.bracketSettings[0].sizes || [], tournament.bracketSettings[0].advancers || [])
+        return (maxPlayers * (tournament.settings.useTeams ? tournament.settings.teamsMaxSize || 1 : 1) - tournament.players.length)
+    }()
+
+    function showModal() {
+        setPlayersList(users.filter(u => !tournament.players.map(p => p.userId).includes(u.id)).map(u => { return { id: u.id, name: u.username, checked: false } }))
+        setShowAddPlayers(true)
+    }
+
+    function togglePlayer(id: string) {
+        const pList = playersList.slice()
+        const player = playersList.find(p => p.id == id)
+        if (player) {
+            player.checked = !player.checked
+            if (!isFFA || pList.filter(p => p.checked).length <= availablePlaces) {
+                setPlayersList(pList)
+            }
+        }
+    }
+
+    const addPlayers = () => {
+        fetcher.submit(
+            {
+                intent: TournamentManagementIntents.ADD_PLAYERS,
+                userIds: playersList.filter(p => p.checked).map(p => p.id),
+                tournamentId: tournament?.id || "",
+            },
+            { method: "POST", encType: "application/json" }
+        )
+    }
+
+    return <><CustomButton callback={showModal} contentItems={["Add players"]} colorClass="has-background-primary-level" />
+        <CustomModalBinary
+            show={showAddPlayers}
+            onHide={() => setShowAddPlayers(false)}
+            content={
+                <div className="grow is-flex-col align-stretch p-1" style={{ maxHeight: "60vh" }}>
+                    <div className="mb-3">Sélectionne les joueurs à inscrire au tournoi:</div>
+                    <div className="is-flex wrap gap-3 is-scrollable has-background-primary-level p-2">
+                        {playersList.map(player =>
+                            <div key={player.id}
+                                {...clickorkey(() => togglePlayer(player.id))}
+                                className={`grow is-clickable p-0 pr-2 has-background-${player.checked ? "secondary-accent" : "secondary-level"} is-flex-row align-center`}
+                            >
+                                <UserTileRectangle userId={player.id} />
+                            </div>
+                        )}
+                        <div style={{ flexGrow: 99 }}></div>
+                    </div>
+                </div>
+            }
+            cancelButton={true}
+            onConfirm={addPlayers}
+        />
+    </>
 }
 
 function TournamentCommands() {

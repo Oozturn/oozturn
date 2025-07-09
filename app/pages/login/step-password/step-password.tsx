@@ -34,7 +34,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData()
   const password = String(formData.get("password") || "").trim()
   const user = await getUserFromRequest(request) as User
-  const userIsComplete = (user.seat != '') && (user.team != '')
+  const userIsComplete = (user.seat != '' || process.env.ASK_FOR_SEATS === "false") && (user.team != '')
 
   const errors: { password?: string } = {}
 
