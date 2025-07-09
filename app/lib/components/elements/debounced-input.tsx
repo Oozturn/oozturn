@@ -1,7 +1,7 @@
 import { useRef, useState } from "react"
 
 
-export function DebouncedInputNumber({ name, defaultValue, setter, className, debounceTimeout }: { name: string, defaultValue: number | undefined, setter: (value: number | undefined) => void, className: string, debounceTimeout: number }) {
+export function DebouncedInputNumber({ name, defaultValue, setter, className, debounceTimeout, error }: { name: string, defaultValue: number | undefined, setter: (value: number | undefined) => void, className: string, debounceTimeout: number, error: boolean }) {
 	const [value, setValue] = useState(defaultValue)
 	const timeoutRef = useRef<NodeJS.Timeout>()
 
@@ -11,10 +11,10 @@ export function DebouncedInputNumber({ name, defaultValue, setter, className, de
 		}
 		setValue(e.target.value ? Number(e.target.value) : undefined)
 		timeoutRef.current = setTimeout(() => {
-			setter(value)
+			applyNow()
 		}, debounceTimeout)
 	}
-	const applyNow = (e: React.FocusEvent<HTMLInputElement> | React.KeyboardEvent<HTMLInputElement>) => {
+	const applyNow = () => {
 		if (timeoutRef.current) {
 			clearTimeout(timeoutRef.current)
 		}
@@ -22,10 +22,10 @@ export function DebouncedInputNumber({ name, defaultValue, setter, className, de
 	}
 
 	return <input type="number" name={name}
-		className={className}
+		className={className + ` ${error ? 'error' : ''}`}
 		defaultValue={value}
 		onChange={valueChanged}
 		onBlur={applyNow}
-		onKeyDown={(e) => { if (e.key === 'Enter') applyNow(e) }}
+		onKeyDown={(e) => { if (e.key === 'Enter') applyNow() }}
 	/>
 }

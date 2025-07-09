@@ -289,6 +289,11 @@ textarea {
     padding-right: .5rem;
 }
 
+.error {
+    color: red !important;
+    border: solid 1px red;
+}
+
 .threeDigitsWidth {
     width: 2.5rem;
 }

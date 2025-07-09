@@ -1,4 +1,4 @@
-import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction, redirect } from "@remix-run/node"
+import { json, ActionFunctionArgs, LoaderFunctionArgs, MetaFunction, redirect } from "@remix-run/node"
 import { useFetcher, useLoaderData, useNavigate } from "@remix-run/react"
 import { getTournament } from "~/lib/persistence/tournaments.server"
 import TournamentInfoSettings from "./components/tournament-info-settings"
@@ -19,9 +19,8 @@ import Dropdown from "~/lib/components/elements/custom-dropdown"
 import { useRevalidateOnTournamentUpdate } from "~/api/sse.hook"
 import useLocalStorageState from "use-local-storage-state"
 import { EventServerError } from "~/lib/emitter.server"
-import { getUserId } from "~/lib/session.server"
+import { getUserFromRequest, getUserId } from "~/lib/session.server"
 import { User } from "~/lib/types/user"
-import { CustomCheckbox } from "~/lib/components/elements/custom-checkbox"
 import { UserTileRectangle } from "~/lib/components/elements/user-tile"
 import { clickorkey } from "~/lib/utils/clickorkey"
 
@@ -112,14 +111,19 @@ export async function action({ request }: ActionFunctionArgs) {
                 randomizePlayersOnTeams(jsonData.tournamentId as string)
                 break
             case MatchesIntents.SCORE:
-                scoreMatch(jsonData.tournamentId as string, jsonData.matchID as string, jsonData.opponent as string, jsonData.score as number | null)
+                scoreMatch(jsonData.tournamentId as string, jsonData.matchID as string, jsonData.opponent as string, jsonData.score as number | null, await getUserFromRequest(request) as User)
+                return json({error: null, type: MatchesIntents.SCORE, matchID: jsonData.matchID as string, opponent: jsonData.opponent as string})
+            default:
+                break
         }
     } catch (error) {
         const userId = await getUserId(request) as string
         EventServerError(userId, intent + ": " + error as string)
+        if(intent == MatchesIntents.SCORE) {
+            return json({error: "Error while scoring match", type: MatchesIntents.SCORE, matchID: jsonData.matchID as string, opponent: jsonData.opponent as string})
+        }
     }
-
-    return null
+    return json({error: null})
 }
 
 export enum TournamentManagementIntents {

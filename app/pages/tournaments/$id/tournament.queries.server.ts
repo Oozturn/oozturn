@@ -3,7 +3,8 @@ import { logErrorAndThrow, logger } from "~/lib/logging/logging"
 import { getTournament, cancelTournament as cancelTournamentOnPersistance } from "~/lib/persistence/tournaments.server"
 import { updatePlayableMatches } from "~/lib/runtimeGlobals/playableMatches.server"
 import { TournamentStatus } from "~/lib/tournamentEngine/types"
-import { StringToId } from "~/lib/utils/tournaments"
+import { canEditScore, StringToId } from "~/lib/utils/tournaments"
+import { User } from "~/lib/types/user"
 
 /** 
  * Tournament Management
@@ -201,10 +202,11 @@ export function randomizePlayersOnTeams(tournamentId: string) {
     }
 }
 
-export function scoreMatch(tournamentId: string, matchID: string, opponent: string, score: number | null) {
-    // Scores a 
+export function scoreMatch(tournamentId: string, matchID: string, opponent: string, score: number | null, user: User) {
+    // Scores a match
     try {
         const tournament = getTournament(tournamentId)
+        if (!canEditScore(tournament.getMatch(StringToId(matchID)), opponent, tournament.getFullData(), user, process.env.ALL_OPPONENTS_SCORE === "duel_only" ? "duel_only" : (process.env.ALL_OPPONENTS_SCORE === "true" ? true : false))) return
         tournament.score(StringToId(matchID), opponent, score === null ? undefined : score)
         EventUpdateTournamentBracket(tournamentId)
         updatePlayableMatches()

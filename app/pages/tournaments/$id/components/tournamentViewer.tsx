@@ -1,6 +1,6 @@
-import { IdToString } from "~/lib/utils/tournaments"
+import { canEditScore, IdToString } from "~/lib/utils/tournaments"
 import { useContext, useEffect, useRef, useState } from "react"
-import { BracketType, TournamentFullData, TournamentStatus } from "~/lib/tournamentEngine/types"
+import { BracketType, TournamentStatus } from "~/lib/tournamentEngine/types"
 import { Duel } from "~/lib/tournamentEngine/tournament/duel"
 import { TransformComponent, TransformWrapper, useTransformContext } from "react-zoom-pan-pinch"
 import { HightlightOpponentContext } from "./HightlightOpponentContext"
@@ -16,7 +16,6 @@ import { FitSVG, GroupSVG, MapPinSVG, PanSVG, ZoomInSVG, ZoomOutSVG } from "~/li
 import { range } from "~/lib/utils/ranges"
 import { DebouncedInputNumber } from "~/lib/components/elements/debounced-input"
 import { useUsers } from "~/lib/components/contexts/UsersContext"
-import { User } from "~/lib/types/user"
 import { useSettings } from "~/lib/components/contexts/SettingsContext"
 
 export function TournamentViewer() {
@@ -29,7 +28,6 @@ export function TournamentViewer() {
     const [hightlightOpponent, setHightlightOpponent] = useState("")
     const [tournamentWideView, setTournamentWideView] = useLocalStorageState<string[]>("tournamentWideView", { defaultValue: [] })
     const [currentBracketView, setCurrentBracketView] = useState(tournament.currentBracket)
-    const user = useUser()
 
     useEffect(() => {
         const ref = containerRef.current as unknown as HTMLDivElement
@@ -327,6 +325,21 @@ function MatchTile({ matchId }: { matchId: Id }) {
     const fetcher = useFetcher()
     const { hightlightOpponent, setHightlightOpponent } = useContext(HightlightOpponentContext)
     const settings = useSettings()
+    const [errors, setErrors] = useState<{ matchID: string, opponent: string }[]>([])
+
+    const fetcherData = fetcher.data as { error?: string, type?: MatchesIntents, matchID?: string, opponent?: string } | undefined
+
+    useEffect(() => {
+        if (!fetcherData || fetcherData.type != MatchesIntents.SCORE || !fetcherData.matchID || !fetcherData.opponent) return
+        if (fetcherData.error) {
+            if(!errors.some(e => e.matchID == fetcherData.matchID && e.opponent == fetcherData.opponent)) {
+                setErrors([...errors, { matchID: fetcherData.matchID, opponent: fetcherData.opponent }])
+            }
+        } else {
+            setErrors(errors.filter(e => !(e.matchID == fetcherData.matchID && e.opponent == fetcherData.opponent)))
+        }
+    }, [fetcherData])
+
 
     const ffOpponentsIds = [...tournament.players.filter(p => p.isForfeit).map(p => p.userId), ...tournament.teams.filter(t => t.isForfeit).map(t => t.name)]
     const userTeam = tournament.teams.find(team => team.members.includes(user.id))
@@ -363,7 +376,7 @@ function MatchTile({ matchId }: { matchId: Id }) {
                 opponent: opponent,
                 score: score === undefined ? null : score
             },
-            { method: "POST", encType: "application/json", action: "/tournaments/" + tournament.id }
+            { method: "POST", encType: "application/json" }
         )
     }
 
@@ -421,6 +434,7 @@ function MatchTile({ matchId }: { matchId: Id }) {
                                 defaultValue={opponentScore}
                                 setter={(v: number | undefined) => { score(matchId, opponentId || "", v) }}
                                 debounceTimeout={3000}
+                                error={errors.some(e => e.matchID == IdToString(matchId) && e.opponent == opponentId)}
                             />
                             :
                             <div className="has-text-centered" style={{ width: "2.5rem" }}>{ffOpponentsIds.includes(opponentId!) ? "F" : opponentScore != undefined ? opponentScore : ""}</div>
@@ -502,6 +516,7 @@ function GroupStageMatchTile({ matchIds }: { matchIds: Id[] }) {
                                     defaultValue={opponentScore}
                                     setter={(v: number | undefined) => { score(match.id, opponentId || "", v) }}
                                     debounceTimeout={3000}
+                                    error={false}
                                 />
                                 :
                                 <div className={`has-text-centered ${opponentScore != undefined ? "" : "fade-on-mouse-out"}`} style={{ width: "2.5rem", height: 32 }}>{opponentScore != undefined ? ffOpponentsIds.includes(opponentId!) ? "F" : opponentScore : "?"}</div>
@@ -513,23 +528,4 @@ function GroupStageMatchTile({ matchIds }: { matchIds: Id[] }) {
             })}
         </div>
     )
-}
-
-function canEditScore(match: any, opponentId: string | undefined, tournament: TournamentFullData, user: User, allopponentScoreSetting: boolean | "duel_only") {
-    if (!match.scorable) return false
-    if (!opponentId) return false
-    if (user.isAdmin) return true
-
-    const userTeam = tournament.settings.useTeams ? tournament.teams.find(team => team.members.includes(user.id)) : undefined
-    if (userTeam && (user.id != userTeam.members[0])) return false
-
-    const idToUse = userTeam ? userTeam.name : user.id
-    if (idToUse == opponentId) return true
-
-    if (tournament.bracketSettings[match.bracket].type == BracketType.FFA) {
-        if ((allopponentScoreSetting === true) && match.opponents.includes(idToUse)) return true
-    }
-    else if ((allopponentScoreSetting != false) && match.opponents.includes(idToUse)) return true
-
-    return false
 }

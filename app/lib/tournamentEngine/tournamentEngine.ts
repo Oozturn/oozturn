@@ -342,6 +342,8 @@ export class TournamentEngine implements TournamentSpecification {
 	}
 
 	public score(matchId: Id, opponent: string, score: number | undefined): void {
+		if (![TournamentStatus.Paused, TournamentStatus.Running, TournamentStatus.Validating].includes(this.status))
+			throw new Error(`Tournament ${this.id} not running`)
 		this.internalScore(matchId, opponent, score)
 		this.searchForMatchToBeCompleted()
 	}
