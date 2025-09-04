@@ -1,0 +1,19 @@
+{
+    "security": {
+        "new_users_by_admin_only": false,
+        "authentication_needed": false,
+        "secure_users_password": false,
+        "admin_password": "$2y$10$ONG2yFKdVJHlv47EJ3lgvOXFXxSknqDMLUpHODH1wkUTk/bjHIol."
+    },
+    "igdb_api": {
+        "igdb_client_id": "",
+        "igdb_client_secret": ""
+    },
+    "notifications": {
+        "notify_all_users_on_tournament_start_stop": true
+    },
+    "autorefresh": {
+        "tournaments_list": true,
+        "users_list": true
+    }
+}

@@ -12,6 +12,7 @@ import { useRevalidateOnUsersUpdate } from "~/api/sse.hook"
 import { useSettings } from "~/lib/components/contexts/SettingsContext"
 import { MoreSVG, SmallCrossSVG } from "~/lib/components/data/svg-container"
 import { AdminIntents } from "~/pages/admin/admin"
+import { useTranslation } from "react-i18next"
 
 export function UsersList({admin = false}: { admin?: boolean }) {
     const [hooveredUser, setHooveredUser] = useState("")
@@ -34,6 +35,7 @@ export function UsersList({admin = false}: { admin?: boolean }) {
     }
 
     const fetcher = useFetcher()
+    const { t } = useTranslation();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const leaderboard: any[] = []
@@ -71,7 +73,7 @@ export function UsersList({admin = false}: { admin?: boolean }) {
 
     return <div className="has-background-secondary-level usersList is-full-height is-flex-col pr-2 p-4 gap-3">
         <div className="is-flex justify-space-between align-center">
-            <div className="is-title medium">Joueurs</div>
+            <div className="is-title medium">{t("joueurs")}</div>
             {admin && <CustomButton customClasses="small-button" colorClass="has-background-primary-accent" callback={() => setShowAddUsers(true)} contentItems={[SmallCrossSVG(), "Add users"]} />}
         </div>
         <CustomModalBinary

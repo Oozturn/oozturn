@@ -1283,3 +1283,7 @@ input[type=number] {
         }
     }
 }
+
+.cap-first::first-letter {
+  text-transform: uppercase;
+}

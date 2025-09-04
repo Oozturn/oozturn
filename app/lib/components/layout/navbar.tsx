@@ -11,6 +11,7 @@ import { useStats } from "../contexts/StatsContext"
 import { usePlayableMatches } from "../contexts/PlayableMatchesContext"
 import { IdToString } from "~/lib/utils/tournaments"
 import { useTournaments } from "../contexts/TournamentsContext"
+import { useTranslation } from "react-i18next"
 
 
 export default function Navbar() {
@@ -20,6 +21,7 @@ export default function Navbar() {
     const [showMobileNav] = useState(false)
     const [animateLogo, setAnimateLogo] = useState(false)
     const current_page: string = useLocation().pathname
+    const { t } = useTranslation();
     const loading = false
 
     if (!user) return null
@@ -46,10 +48,10 @@ export default function Navbar() {
                 <NotificationCenter />
                 <div className={`navbar-menu ${showMobileNav && "is-active"}`}>
                     <div className="navbar-end">
-                        {user?.isAdmin && <Link className={`navbar-item is-title medium is-uppercase is-tab px-0 mx-3 ${current_page == "/admin" ? 'is-active' : ''}`} to="/admin">Admin</Link>}
-                        {user && <Link className={`navbar-item is-title medium is-uppercase is-tab px-0 mx-3 ${current_page == "/" ? 'is-active' : ''}`} to="/">Accueil</Link>}
-                        {user && <Link className={`navbar-item is-title medium is-uppercase is-tab px-0 mx-3 ${current_page == "/info" ? 'is-active' : ''}`} to="/info">Infos</Link>}
-                        {user && <Link className={`navbar-item is-title medium is-uppercase is-tab px-0 mx-3 ${current_page == "/results" ? 'is-active' : ''}`} to="/results">Résultats</Link>}
+                        {user?.isAdmin && <Link className={`navbar-item is-title medium is-uppercase is-tab px-0 mx-3 ${current_page == "/admin" ? 'is-active' : ''}`} to="/admin">{t("navbar.admin")}</Link>}
+                        {user && <Link className={`navbar-item is-title medium is-uppercase is-tab px-0 mx-3 ${current_page == "/" ? 'is-active' : ''}`} to="/">{t("navbar.acceuil")}</Link>}
+                        {user && <Link className={`navbar-item is-title medium is-uppercase is-tab px-0 mx-3 ${current_page == "/info" ? 'is-active' : ''}`} to="/info">{t("navbar.infos")}</Link>}
+                        {user && <Link className={`navbar-item is-title medium is-uppercase is-tab px-0 mx-3 ${current_page == "/results" ? 'is-active' : ''}`} to="/results">{t("navbar.resultats")}</Link>}
                         <div className="navbar-item m-4"></div>
                         {loading ? "" :
                             user ?
@@ -98,6 +100,7 @@ function UserProfile() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const userStats: UserStats | undefined = useStats().usersStats.find(us => us.userId == me?.id)
     const [showEdit, setShowEdit] = useState(false)
+    const { t } = useTranslation();
 
     if (!me) {
         return null
@@ -128,7 +131,7 @@ function UserProfile() {
                     <div>{me.username}</div>
                     {me.team && <div className="fade-text">{'[' + me.team + ']'}</div>}
                     <div className="is-flex is-full-width mt-5 align-end">
-                        <div className="is-size-7 px-1 is-underlined is-clickable fade-on-mouse-out" {...clickorkey(handleLogout)}>Se déconnecter</div>
+                        <div className="is-size-7 px-1 is-underlined is-clickable fade-on-mouse-out cap-first" {...clickorkey(handleLogout)}>{t("navbar.se_deconnecter")}</div>
                         <div className="grow"></div>
                         {userStats &&
                             <div className="is-flex points align-start">

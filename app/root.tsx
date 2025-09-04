@@ -32,6 +32,11 @@ import Footer from "./lib/components/layout/footer"
 import { PlayableMatchesContext } from "./lib/components/contexts/PlayableMatchesContext"
 import { getPlayableMatches } from "./lib/runtimeGlobals/playableMatches.server"
 import { SettingsContext } from "./lib/components/contexts/SettingsContext"
+import i18nServer from "./modules/i18n.server";
+import { useChangeLanguage } from "remix-i18next/react";
+
+// We'll configure the namespace to use here
+export const handle = { i18n: ["translation"] };
 
 export async function loader({ request }: LoaderFunctionArgs): Promise<{
   settings: Settings
@@ -40,8 +45,10 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<{
   users: User[]
   tournaments: TournamentInfo[]
   stats?: Statistics
-  playableMatches: PlayableMatch[]
+  playableMatches: PlayableMatch[],
+  locale : string
 }> {
+  const locale = await i18nServer.getLocale(request); // get the locale
   const settings: Settings = {
     autoRefresh: {
       tournaments: process.env.AUTO_REFRESH_TOURNAMENTS === "false" ? false : true,
@@ -70,7 +77,8 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<{
       users: getUsers(),
       tournaments: getTournaments(),
       stats: getStats(),
-      playableMatches: getPlayableMatches(user.id)
+      playableMatches: getPlayableMatches(user.id),
+      locale: locale
     }
   } else {
     return {
@@ -78,17 +86,19 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<{
       lan: getLan(),
       tournaments: [],
       users: [],
-      playableMatches: []
+      playableMatches: [],
+      locale: locale
     }
   }
 }
 
 export default function App() {
-  const { settings, lan, user, users, tournaments, stats, playableMatches } = useLoaderData<typeof loader>()
+  const { settings, lan, user, users, tournaments, stats, playableMatches, locale } = useLoaderData<typeof loader>()
+  useChangeLanguage(locale); // Change i18next language if locale changes
   const iconUrl = useIconUrl()
   useRevalidateOnLanUpdate()
   return (
-    <html lang="fr">
+    <html lang={locale ?? "fr"}>
       <SettingsContext.Provider value={settings}>
         <LanContext.Provider value={lan}>
           <head>

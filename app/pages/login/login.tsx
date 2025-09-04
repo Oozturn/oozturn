@@ -6,6 +6,7 @@ import { useLan } from "~/lib/components/contexts/LanContext"
 import { getLan } from "~/lib/persistence/lan.server"
 import { useRef, useState } from "react"
 import { CustomButton } from "~/lib/components/elements/custom-button"
+import { useTranslation } from "react-i18next"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -34,6 +35,7 @@ function LoginForm() {
   const [animateLogo, setAnimateLogo] = useState(false)
   const [username, setUsername] = useState("")
   const formRef = useRef(null)
+  const { t } = useTranslation();
 
   async function handleSubmit() {
     if (!formRef.current) return
@@ -51,10 +53,10 @@ function LoginForm() {
         <LogoUnfolded animate={animateLogo} />
       </div>
       <div className="is-flex-col align-center gap-5 p-4 has-background-secondary-level " style={{ maxWidth: "50vw" }}>
-        <div className="has-text-centered is-size-3">Bienvenue à la LAN <i style={{ color: "var(--accent-primary-color)" }}>{lan.name}</i> ! </div>
+        <div className="has-text-centered is-size-3 cap-first">{t("login.bienvenue_a_la_lan")}<i style={{ color: "var(--accent-primary-color)" }}>{lan.name}</i> ! </div>
         <Form ref={formRef} method="post" className="is-flex-col gap-6 is-full-width align-stretch">
           <div className="is-flex-col align-center gap-2">
-            <div>Pour te connecter, entre ton pseudo ici :</div>
+            <div className="cap-first">{t("login.entrer_pseudo")} :</div>
             <input
               id="username"
               name="username"
@@ -62,13 +64,13 @@ function LoginForm() {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="Pseudo"
+              placeholder={t("login.pseudo_placeholder")}
               required
               readOnly={animateLogo}
               // eslint-disable-next-line jsx-a11y/no-autofocus
               autoFocus
               maxLength={15}
-              title="15 caractères max. N'ajoute pas ton tag d'équipe, ce sera fait plus tard"
+              title={t("login.pseudo_hint")}
               onKeyDown={(e) => { if(e.key === 'Enter'){e.preventDefault(); !!username && handleSubmit()} }}
             />
           </div>
@@ -77,7 +79,7 @@ function LoginForm() {
             colorClass="has-background-secondary-accent"
             customClasses="is-align-self-flex-end"
             callback={handleSubmit}
-            contentItems={["Se connecter"]}
+            contentItems={[t("login.se_connecter")]}
           />
           {/* <div className="">
             <button type='submit' disabled={animateLogo} className={`customButton fade-on-mouse-out is-unselectable has-background-secondary-accent is-pulled-right ${animateLogo ? "fade-text has-background-primary-level" : ""}`}>Se connecter</button>

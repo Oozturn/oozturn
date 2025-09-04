@@ -25,6 +25,7 @@ import { getAllPlayableMatches } from "~/lib/runtimeGlobals/playableMatches.serv
 import { IdToString } from "~/lib/utils/tournaments"
 import { useRevalidateOnTournamentUpdate } from "~/api/sse.hook"
 import { UsersList } from "~/lib/components/elements/users-list"
+import { useTranslation } from "react-i18next"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
@@ -153,6 +154,7 @@ export function SectionLanSettings({ isActive }: { isActive: boolean }) {
     const lan = useLan()
     const fileInputRef = useRef<HTMLInputElement>(null)
     const fetcherUpdateMap = useFetcher()
+    const { t } = useTranslation();
 
     async function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
         if (e.target.files) {
@@ -184,7 +186,7 @@ export function SectionLanSettings({ isActive }: { isActive: boolean }) {
             </fetcher.Form>
             {/* MOTD */}
             <fetcher.Form className="is-flex gap-3" method="POST">
-                <div className='has-text-right is-one-fifth'>Mot du jour :</div>
+                <div className='has-text-right is-one-fifth'>{t("Mot_du_jour")} :</div>
                 <div className="grow">
                     <input type="hidden" name="intent" value={AdminIntents.UPDATE_LAN} />
                     <textarea id="field"
