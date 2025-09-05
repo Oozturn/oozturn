@@ -1,0 +1,45 @@
+export default {
+  equipe: "Équipe",
+  place: "Place",
+  modifier: "Modifier",
+  enregistrer: "Enregistrer",
+  passer: "Passer",
+  mot_du_jour: "Mot du jour",
+  tournois: "Tournois",
+  joueurs: "Joueurs",
+  developpement_par: "Développement par Will421 et Bug38 - Design par GCQRA",
+  login: {
+    bienvenue_a_la_lan: "bienvenue à la LAN",
+    entrer_pseudo: "pour te connecter, entre ton pseudo ici",
+    pseudo_placeholder: "Pseudo",
+    pseudo_hint: "15 caractères max. N'ajoute pas ton tag d'équipe, ce sera fait plus tard",
+    se_connecter: "Se connecter",
+  },
+  login_password: {
+      titre_mdp_creation: "crée ton mot de passe",
+      titre_mdp_modification: "modifie ton mot de passe",
+      confirm_mdp : "confirmation du mot de passe",
+      mdp_hint: "18 caractères max.",
+      mdp_regle: "18 caractères max.",
+      mdp_regle_secure: "18 caractères max. doit contenir au moins 1 de chaque : minuscule / majuscule / nombre / charcactère spécial",
+      mdp_placeholder: "Mot de passe",
+      mdp_creation: "création du mot de passe",
+  },
+  first_login: {
+    equipe_et_place: "pour commencer, renseigne ton équipe et ta place",
+    bienvenue: "Bienvenue",
+    equipe_hint: "Utilisé pour calculer le score de ton équipe à cette LAN. Te foire pas sur l'orthographe.",
+    place_hint: "Utilisé pour te retrouver facilement lors des duels. Devrait être de la forme 'A12'. Demande à un admin si tu trouves pas l'info.",
+  },
+  navbar: {
+    adlmin: "admin",
+    acceuil: "acceuil",
+    infos: "infos",
+    resultats: "résultats",
+    se_deconnecter: "se déconnecter",
+  },
+  info: {
+    plan_de_la_lan: "plan de la LAN",
+    demande_plan_lan: "Demande à un admin le plan de la LAN !",
+  }
+};

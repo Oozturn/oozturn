@@ -9,6 +9,7 @@ import { requireUserLoggedIn } from "~/lib/session.server"
 import { TournamentInfo, TournamentStatus } from "~/lib/tournamentEngine/types"
 import { getLan } from "~/lib/persistence/lan.server"
 import { useRevalidateOnGlobalTournamentUpdate } from "../api/sse.hook"
+import { useTranslation } from "react-i18next"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -30,6 +31,7 @@ export default function Index() {
   const lan = useLan()
   const tournaments = useTournaments()
   useRevalidateOnGlobalTournamentUpdate()
+  const {t} = useTranslation()
 
   return (
     <>
@@ -37,14 +39,14 @@ export default function Index() {
         <div className='is-flex-col gap-3 is-scrollable'>
           {lan?.motd &&
             <div className='is-flex-col gap-3 has-background-secondary-level p-5'>
-              <div className='is-title big pb-3'>MOT DU JOUR</div>
+              <div className='is-title big pb-3'>{t("mot_du_jour")}</div>
               <p className='enable-line-break'>
                 <FormattedTextWithUrls text={lan?.motd} />
               </p>
             </div>
           }
           <div className="grow has-background-secondary-level pr-2 py-5 pl-5 is-flex-col gap-5">
-            <div className='is-title big'>TOURNOIS</div>
+            <div className='is-title big'>{t("tournois")}</div>
             <div className="is-scrollable grow">
               <div className='homeTournamentsGrid pr-4'>
                 {me?.isAdmin &&
