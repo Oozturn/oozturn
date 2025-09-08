@@ -1,11 +1,12 @@
 import { ActionFunctionArgs, MetaFunction } from "@remix-run/node"
-import { Form, useActionData } from "@remix-run/react"
+import { Form, useActionData, useFetcher } from "@remix-run/react"
 import { LogoUnfolded } from "~/lib/components/data/svg-container"
 import { doLogin } from "./login.queries.server"
 import { useLan } from "~/lib/components/contexts/LanContext"
 import { getLan } from "~/lib/persistence/lan.server"
 import { useRef, useState } from "react"
 import { CustomButton } from "~/lib/components/elements/custom-button"
+import { getLoggedUsers } from "~/lib/utils/login"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -24,11 +25,102 @@ export async function action({ request, }: ActionFunctionArgs) {
   return await doLogin(String(body.get("username")))
 }
 
-export default function LoginStepUsername() {
-  return <LoginForm />
+export default function Login() {
+  const [animateLogo, setAnimateLogo] = useState(false)
+  const lan = useLan()
+  const fetcherData = useFetcher().data as { error?: string }
+  const error = fetcherData?.error
+
+
+  return (
+    <div className="is-flex-col align-center justify-center">
+      <div className="loginLogo" style={{ width: "50vw" }}>
+        <LogoUnfolded animate={animateLogo} />
+      </div>
+      <div className="is-flex-col align-center justify-center" style={{ width: "50vw", height: "40vh" }}>
+      <LoginForm />
+      </div>
+      {error && (
+        <p className="has-text-danger" style={{ position: "absolute", bottom: "-2rem", width: "500%", textAlign: "center" }}>
+          {error}
+        </p>
+      )}
+    </div>
+  )
+
 }
 
-function LoginForm() {
+export function LoginForm() {
+  const fetcher = useFetcher()
+  const [loginState, setLoginState] = useState<"username" | "password" | "newPassword">("username")
+
+  // recover existing users from local storage
+  const loggedUsers = getLoggedUsers()
+  // show last 3 loggued users and the possibility to log in with another
+  function submitUsername(username: string) { }
+
+  // on click on one of the last users, or on valitaion after entering a username, send login data to server.
+  // if password is needed, ask for password
+  // if new user, ask for a new password
+  // after login successfuly, redirect to the main page
+
+  switch (loginState) {
+    case "username":
+      return <UsernameForm loggedUsers={loggedUsers} submitUsername={submitUsername} />
+
+  }
+
+  return <LoginFormOld />
+}
+
+
+type UsernameFormProps = {
+  loggedUsers: string[];
+  submitUsername: (username: string) => void;
+};
+
+function UsernameForm({ loggedUsers, submitUsername }: UsernameFormProps) {
+
+  const [username, setUsername] = useState("");
+  const [askingForNewUser, setAskingForNewUser] = useState(false);
+
+  if (askingForNewUser || loggedUsers.length === 0) {
+    return (
+      <div>
+        {loggedUsers.length > 0 && <div onClick={() => setAskingForNewUser(false)}>{"<-"} Choisis un compte existant</div>}
+        <h2>Choisis un pseudo</h2>
+        <div className="is-flex-col align-center gap-2">
+          <input
+            type="text"
+            value={username}
+            onChange={e => setUsername(e.target.value)}
+            placeholder="Nouveau pseudo"
+          />
+          <button onClick={() => submitUsername(username)} disabled={!username}>
+            Valider
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <div>
+        <h2>Choisis un compte</h2>
+        <div className="is-flex-col align-center gap-2">
+          {loggedUsers.map((user) => (
+            <button key={user} onClick={() => submitUsername(user)}>
+              {user}
+            </button>
+          ))}
+        </div>
+        <div onClick={() => setAskingForNewUser(true)}>Choisis un autre compte {"->"} </div>
+      </div>
+    </>)
+}
+
+function LoginFormOld() {
   const lan = useLan()
   const actionResult = useActionData<typeof action>()
   const [animateLogo, setAnimateLogo] = useState(false)
@@ -69,7 +161,7 @@ function LoginForm() {
               autoFocus
               maxLength={15}
               title="15 caractères max. N'ajoute pas ton tag d'équipe, ce sera fait plus tard"
-              onKeyDown={(e) => { if(e.key === 'Enter'){e.preventDefault(); !!username && handleSubmit()} }}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); !!username && handleSubmit() } }}
             />
           </div>
           <CustomButton
@@ -85,7 +177,7 @@ function LoginForm() {
         </Form>
       </div>
       {actionResult?.error && (
-        <p className="has-text-danger" style={{ position: "absolute", bottom: "-2rem", width:"500%", textAlign: "center" }}>
+        <p className="has-text-danger" style={{ position: "absolute", bottom: "-2rem", width: "500%", textAlign: "center" }}>
           {actionResult.error}
         </p>
       )}
