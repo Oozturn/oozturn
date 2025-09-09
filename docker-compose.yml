@@ -10,8 +10,10 @@ services:
       - NEW_USERS_BY_ADMIN=true
       - AUTHENTICATION=true
       - SECURE_PASSWORD=true
-      - USE_HTTP_ONLY=false
+      - USE_HTTP_ONLY=true
       - NOTIFICATION_TOURNAMENT_CHANGE=true
       - AUTO_REFRESH_TOURNAMENTS=true
       - AUTO_REFRESH_USERS=true
       - ADMIN_PASSWORD=superSecretPassword
+      - ALL_OPPONENTS_SCORE=duel_only
+      - ASK_FOR_SEATS=true

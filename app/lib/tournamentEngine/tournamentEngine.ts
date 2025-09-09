@@ -387,21 +387,47 @@ export class TournamentEngine implements TournamentSpecification {
 		this.activeBracket++
 		const nextBracket = this.brackets[this.activeBracket]
 
-		let nextOpponents
+		let nextOpponents: Team[] | Player[]
 		if (this.settings.useTeams) {
 			nextOpponents = this.teams.slice()
 		} else {
 			nextOpponents = this.players.slice()
 		}
 
-		const results = previousBracket.results()
-		nextOpponents.sort(usingResults(results, previousBracket.settings))
-
-		if (nextBracket.settings.size) {
-			nextOpponents = nextOpponents.slice(0, nextBracket.settings.size)
+		function usingResults(results: BracketResult[], bSettings: BracketSettings): (((a: Team, b: Team) => number) & ((a: Player, b: Player) => number)) {
+			return (a, b) => {
+				const resultA = results.find(r => r.id == getOpponentId(a))!
+				const resultB = results.find(r => r.id == getOpponentId(b))!
+				return resultsSorter(resultA, resultB, bSettings) || (resultB.seed - resultA.seed)
+			}
+		}
+		function usingMatchId(matches: Match[]): ((aId: string, bId: string) => number) {
+			return (aId, bId) => {
+				return IdToString(matches.find(m => m.opponents.includes(aId))!.id) < IdToString(matches.find(m => m.opponents.includes(bId))!.id) ? -1 : 1
+			}
+		}
+		function usingSortedIds(sortedIds: string[]): (((a: Team, b: Team) => number) & ((a: Player, b: Player) => number)) {
+			return (a, b) => {
+				const aId = getOpponentId(a)
+				const bId = getOpponentId(b)
+				return sortedIds.indexOf(aId) - sortedIds.indexOf(bId)
+			}
 		}
 
-		nextBracket.start(nextOpponents)
+		nextOpponents.sort(usingResults(previousBracket.results(), previousBracket.settings))
+
+		const nbPreviousMatches = previousBracket.settings.type == BracketType.FFA ? previousBracket.getMatches().length : (new Set(previousBracket.getMatches().map(m => m.id.s))).size
+
+		const nextOpponentsIds: string[] = []
+		for (let i = 0; i < Math.ceil(nextOpponents.length) / nbPreviousMatches; i++) {
+			nextOpponentsIds.push(...
+				nextOpponents.slice(i * nbPreviousMatches, i * nbPreviousMatches + nbPreviousMatches)
+					.map(opponent => getOpponentId(opponent))
+					.sort(usingMatchId(previousBracket.getMatches()))
+			)
+		}
+
+		nextBracket.start(nextOpponents.sort(usingSortedIds(nextOpponentsIds)).slice(0, nextBracket.settings.size))
 	}
 
 	public getMatches(bracket: number = this.activeBracket): Match[] {
@@ -743,7 +769,7 @@ class Bracket {
 				score: match.m || this.states.find(bs => IdToString(bs.id) == IdToString(match.id))?.score || match.p.map(() => undefined),
 				scorable: this.internalBracket!.unscorable(match.id, match.p.map((_, i) => i), false) == null,
 				isFinale: finalsList.includes(IdToString(match.id))
-			}
+			} as Match
 		}
 		)
 	}
@@ -809,13 +835,5 @@ function getOpponentId(opponent: Player | Team) {
 		return opponent.userId
 	} else {
 		return opponent.name
-	}
-}
-
-function usingResults(results: BracketResult[], bSettings: BracketSettings): (((a: Team, b: Team) => number) & ((a: Player, b: Player) => number)) {
-	return (a, b) => {
-		const resultA = results.find(r => r.id == getOpponentId(a))!
-		const resultB = results.find(r => r.id == getOpponentId(b))!
-		return resultsSorter(resultA, resultB, bSettings) || (resultB.seed - resultA.seed)
 	}
 }

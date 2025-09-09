@@ -463,13 +463,20 @@ test('8 players | FFA 4 | Duel top 4', () => {
     }
 
     tournamentEngine.startTournament()
-    scorer({ s: 1, r: 1, m: 1 }, [0, 1, 2, 3]) // 1 < 3 < 6 < 8
-    scorer({ s: 1, r: 1, m: 2 }, [0, 1, 2, 3]) // 2 < 4 < 5 < 7
+    scorer({ s: 1, r: 1, m: 1 }, [0, 1, 2, 5]) // 1 < 3 < 6 < 8
+    scorer({ s: 1, r: 1, m: 2 }, [0, 1, 3, 4]) // 2 < 4 < 5 < 7
     tournamentEngine.validateActiveBracket()
 
     expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Running)
     expect(tournamentEngine.getResults()).toMatchObject([
-        ...[1, 2, 3, 4, 6, 5, 8, 7].map(i => { return { userId: (9 - i) + "", position: Math.max(4, i - (i + 1) % 2) } })
+        { userId: '8', position: 4 },
+        { userId: '7', position: 4 },
+        { userId: '6', position: 4 },
+        { userId: '5', position: 4 },
+        { userId: '4', position: 5 },
+        { userId: '3', position: 6 },
+        { userId: '2', position: 7 },
+        { userId: '1', position: 8 }
     ])
     validateStorage(tournamentEngine)
 
@@ -485,10 +492,10 @@ test('8 players | FFA 4 | Duel top 4', () => {
         { userId: '7', position: 2 },
         { userId: '6', position: 3 },
         { userId: '5', position: 4 },
-        { userId: '3', position: 5 },
         { userId: '4', position: 5 },
-        { userId: '1', position: 7 },
-        { userId: '2', position: 7 }
+        { userId: '3', position: 6 },
+        { userId: '2', position: 7 },
+        { userId: '1', position: 8 }
     ])
     validateStorage(tournamentEngine)
 });

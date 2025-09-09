@@ -23,7 +23,7 @@ ENV NODE_ENV="production"
 # Install production node modules
 # Install distribution specific sharp module
 # Remove dev and optional modules
-RUN npm ci --omit=dev && npm install @img/sharp-linuxmusl-x64 @img/sharp-libvips-linuxmusl-x64 && npm prune --omit=dev --omit=optional && npm cache clean --force 
+RUN npm ci --omit=dev && npm prune --omit=dev --omit=optional && npm install @img/sharp-linuxmusl-x64 @img/sharp-libvips-linuxmusl-x64 && npm cache clean --force 
 
 # Copy built application and server files
 COPY --from=build /app/build /app/build

@@ -194,7 +194,7 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                     <div className='is-flex gap-5'>
                         <div className='has-text-right is-one-fifth'>Image :</div>
                         <div className="is-flex align-end gap-5">
-                            <img
+                            <img alt=""
                                 {...clickorkey(() => fileInputRef.current?.click())}
                                 src={tournamentImageSrc || "/none.webp"}
                                 className="is-clickable"

@@ -63,10 +63,10 @@ test('Duel 4 players winner with higherscore', () => {
   duel.score({ s: Duel.LB, r: 1, m: 1 }, [0, 10]) // 4 vs 3, 3 win
   expect(duel.results()).toEqual(
     [
-      { "seed": 1, "wins": 2, "for": 20, "against": 0, "pos": 1 },
-      { "seed": 2, "wins": 1, "for": 10, "against": 10, "pos": 2 },
-      { "seed": 3, "wins": 1, "for": 10, "against": 10, "pos": 3 },
-      { "seed": 4, "wins": 0, "for": 0, "against": 20, "pos": 4 }
+      { "seed": 1, "wins": 2, "for": 20, "matches": 2, "against": 0, "pos": 1 },
+      { "seed": 2, "wins": 1, "for": 10, "matches": 2, "against": 10, "pos": 2 },
+      { "seed": 3, "wins": 1, "for": 10, "matches": 2, "against": 10, "pos": 3 },
+      { "seed": 4, "wins": 0, "for": 0, "matches": 2, "against": 20, "pos": 4 }
     ]
   )
 });
@@ -79,10 +79,10 @@ test('Duel 4 players winner with lowerscore', () => {
   duel.score({ s: Duel.LB, r: 1, m: 1 }, [10, 0]) // 4 vs 3, 3 win
   expect(duel.results()).toEqual(
     [
-      { "seed": 1, "wins": 2, "for": 20, "against": 0, "pos": 1 },
-      { "seed": 2, "wins": 1, "for": 10, "against": 10, "pos": 2 },
-      { "seed": 3, "wins": 1, "for": 10, "against": 10, "pos": 3 },
-      { "seed": 4, "wins": 0, "for": 0, "against": 20, "pos": 4 }
+      { "seed": 1, "wins": 2, "for": 20, "matches": 2, "against": 0, "pos": 1 },
+      { "seed": 2, "wins": 1, "for": 10, "matches": 2, "against": 10, "pos": 2 },
+      { "seed": 3, "wins": 1, "for": 10, "matches": 2, "against": 10, "pos": 3 },
+      { "seed": 4, "wins": 0, "for": 0, "matches": 2, "against": 20, "pos": 4 }
     ]
   )
 })
@@ -99,11 +99,11 @@ test('Duel 5 players with higherscore', () => {
   duel.score({ s: Duel.LB, r: 1, m: 1 }, [0, 10]) //4 vs 3, 3 win
   expect(duel.results()).toEqual(
     [
-      { "seed": 1, "wins": 2, "for": 20, "against": 0, "pos": 1 },
-      { "seed": 2, "wins": 1, "for": 10, "against": 10, "pos": 2 },
-      { "seed": 3, "wins": 1, "for": 10, "against": 10, "pos": 3 },
-      { "seed": 4, "wins": 1, "for": 10, "against": 20, "pos": 4 },
-      { "seed": 5, "wins": 0, "for": 0, "against": 10, "pos": 5 }
+      { "seed": 1, "wins": 2, "for": 20, "matches": 2, "against": 0, "pos": 1 },
+      { "seed": 2, "wins": 1, "for": 10, "matches": 2, "against": 10, "pos": 2 },
+      { "seed": 3, "wins": 1, "for": 10, "matches": 2, "against": 10, "pos": 3 },
+      { "seed": 4, "wins": 1, "for": 10, "matches": 3, "against": 20, "pos": 4 },
+      { "seed": 5, "wins": 0, "for": 0, "matches": 1, "against": 10, "pos": 5 }
     ]
   )
 })
@@ -120,11 +120,11 @@ test('Duel 5 players with lowerscore', () => {
   duel.score({ s: Duel.LB, r: 1, m: 1 }, [10, 0]) //4 vs 3, 3 win
   expect(duel.results()).toEqual(
     [
-      { "seed": 1, "wins": 2, "for": 20, "against": 0, "pos": 1 },
-      { "seed": 2, "wins": 1, "for": 10, "against": 10, "pos": 2 },
-      { "seed": 3, "wins": 1, "for": 10, "against": 10, "pos": 3 },
-      { "seed": 4, "wins": 1, "for": 10, "against": 20, "pos": 4 },
-      { "seed": 5, "wins": 0, "for": 0, "against": 10, "pos": 5 }
+      { "seed": 1, "wins": 2, "for": 20, "matches": 2, "against": 0, "pos": 1 },
+      { "seed": 2, "wins": 1, "for": 10, "matches": 2, "against": 10, "pos": 2 },
+      { "seed": 3, "wins": 1, "for": 10, "matches": 2, "against": 10, "pos": 3 },
+      { "seed": 4, "wins": 1, "for": 10, "matches": 3, "against": 20, "pos": 4 },
+      { "seed": 5, "wins": 0, "for": 0, "matches": 1, "against": 10, "pos": 5 }
     ]
   )
 })
