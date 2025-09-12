@@ -1,6 +1,6 @@
 import TTLCache from '@isaacs/ttlcache'
 import { BiDirectionalMap } from "../utils/BiDirectionalMap"
-import { IdToString } from "../utils/tournaments"
+import { IdToString, now } from "../utils/tournaments"
 import { Duel } from "./tournament/duel"
 import { FFA } from "./tournament/ffa"
 import { GroupStage } from "./tournament/groupstage"
@@ -13,6 +13,7 @@ import { resultsSorter } from '../utils/sorters'
 interface BracketState {
 	id: Id
 	score: (number | undefined)[]
+	timestamp?: number
 }
 export interface TournamentStorage {
 	id: string
@@ -600,7 +601,7 @@ export class TournamentEngine implements TournamentSpecification {
 				}
 			}
 		}
-		
+
 		range(this.brackets.length - 1, 0, -1).forEach(bracket => {
 			const bracketResults = this.brackets[bracket].results().sort((a, b) => resultsSorter(a, b, this.brackets[bracket].settings))
 			const positions = getPositions(bracketResults)
@@ -681,6 +682,7 @@ class Bracket {
 		this.initInternalBracket(opponents.length)
 		this.seedOpponents(opponents)
 		this.status = BracketStatus.Running
+		this.setNewScorableTimestamps()
 	}
 
 	reset(): void {
@@ -768,10 +770,18 @@ class Bracket {
 				),
 				score: match.m || this.states.find(bs => IdToString(bs.id) == IdToString(match.id))?.score || match.p.map(() => undefined),
 				scorable: this.internalBracket!.unscorable(match.id, match.p.map((_, i) => i), false) == null,
-				isFinale: finalsList.includes(IdToString(match.id))
+				isFinale: finalsList.includes(IdToString(match.id)),
+				timestamp: this.states.find(bs => IdToString(bs.id) == IdToString(match.id))?.timestamp
 			} as Match
 		}
 		)
+	}
+
+	setNewScorableTimestamps(): void {
+		this.getMatches()
+			.filter(m => m.scorable)
+			.filter(m => !this.states.find(bs => IdToString(bs.id) == IdToString(m.id)))
+			.forEach(m => this.states.push({ id: m.id, score: m.score, timestamp: now() }))
 	}
 
 	score(matchId: Id, opponent: string, score: number | undefined): void {
@@ -781,7 +791,7 @@ class Bracket {
 			throw new Error(`Unknown opponent in match ${IdToString(matchId)}: ${opponent}`)
 		const state = this.states.find(bs => IdToString(bs.id) == IdToString(matchId))
 		if (!state) {
-			this.states.push({ id: matchId, score: match.opponents.map(o => o == opponent ? score : undefined) })
+			this.states.push({ id: matchId, score: match.opponents.map(o => o == opponent ? score : undefined), timestamp: now() })
 			return
 		}
 		const futureScore = state.score.map((s, i) => i == opponentIndex ? score : s)
@@ -791,8 +801,10 @@ class Bracket {
 				throw new Error(`Impossible to apply score ${futureScore} to match ${matchId} : ${unscorableReason}`)
 		}
 		state.score[opponentIndex] = score
+		state.timestamp = now()
 		if (state.score.every(value => value != undefined)) {
 			this.applyState(state)
+			this.setNewScorableTimestamps()
 		}
 	}
 

@@ -28,6 +28,7 @@ export function TournamentViewer() {
     const [hightlightOpponent, setHightlightOpponent] = useState("")
     const [tournamentWideView, setTournamentWideView] = useLocalStorageState<string[]>("tournamentWideView", { defaultValue: [] })
     const [currentBracketView, setCurrentBracketView] = useState(tournament.currentBracket)
+    const users = useUsers()
 
     useEffect(() => {
         const ref = containerRef.current as unknown as HTMLDivElement
@@ -116,7 +117,7 @@ export function TournamentViewer() {
                 )
                 :
                 (hightlightOpponent && tournament.players.filter(player => player?.userId == hightlightOpponent).map(player => {
-                    const user = useUsers().find(user => user.id == player.userId)
+                    const user = users.find(user => user.id == player.userId)
                     if (!user) return null
                     return <div key={user.id} id='OpponentInfosContainer' className="OpponentInfosContainer has-background-primary-level">
                         <div id='OpponentInfos' className='is-flex-col p-4 gap-4 is-relative'>

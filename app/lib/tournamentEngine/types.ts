@@ -97,6 +97,7 @@ export interface Match {
 	score: (number | undefined)[]
 	scorable: boolean
 	isFinale: boolean
+	timestamp?: number // Date of match availability
 }
 
 export interface TournamentFullData {
@@ -120,4 +121,5 @@ export interface PlayableMatch {
 	matchId: Id
 	opponents: string[]
 	concernedUserIds: string[]
+	timestamp: number
 }

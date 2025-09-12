@@ -326,12 +326,8 @@ export function SectionOnGoingMatches({ isActive }: { isActive: boolean }) {
     const tournaments = useTournaments()
     const navigate = useNavigate()
     const tournamentsWaitingForValidation = tournaments.filter(t => t.status == TournamentStatus.Validating)
-    const playableTournaments = tournaments.filter(t => playableMatches.map(pm => pm.tournamentId).includes(t.id))
+    const playableTournaments = Array.from(new Set(playableMatches.map(pm => pm.tournamentId).map(tid => tournaments.find(t => t.id == tid)))) as TournamentInfo[]
     playableTournaments.forEach(pt => useRevalidateOnTournamentUpdate(pt.id))
-
-    function sortTournaments(tournaments: TournamentInfo[]) {
-        return tournaments.map(tournament => [tournament.status == TournamentStatus.Validating, tournament]).sort()
-    }
 
     return <div className={`is-clipped has-background-secondary-level px-4 is-flex-col ${isActive ? "grow no-basis" : ""}`}>
         <div className="is-title medium is-uppercase py-2 px-1 is-clickable" {...clickorkey(() => setActiveSection("ongoingMatches"))} style={{ flex: "none" }}>
@@ -358,12 +354,17 @@ export function SectionOnGoingMatches({ isActive }: { isActive: boolean }) {
                             <Link to={"/tournaments/" + tournament.id} className="is-uppercase has-background-secondary-level p-1 has-text-weight-semibold fade-on-mouse-out">{tournament.name}</Link>
                             <div className="is-flex wrap grow gap-1">
                                 {playableMatches.filter(pm => pm.tournamentId == tournament.id).map(pMatch => {
-                                    return <Link key={IdToString(pMatch.matchId)} to={"/tournaments/" + tournament.id} className="grow is-flex-col align-center customButton gap-1 fade-on-mouse-out is-unselectable has-background-secondary-level" style={{ height: "80px", maxWidth:"33%" }}>
-                                        <div>Match {IdToString(pMatch.matchId)}</div>
+                                    return <Link key={IdToString(pMatch.matchId)} to={"/tournaments/" + tournament.id} className="grow is-flex-col is-relative justify-center align-stretch is-clipped customButton gap-1 fade-on-mouse-out is-unselectable has-background-secondary-level" style={{ height: "100px", maxWidth: "33%" }}>
+                                        <div className="is-size-5 has-text-centered">Match {IdToString(pMatch.matchId)}</div>
                                         {pMatch.opponents.length == 2 ?
-                                            <div className="is-flex gap-2"><span className="has-text-primary-accent">{pMatch.opponents[0]}</span> VS <span className="has-text-secondary-accent">{pMatch.opponents[1]}</span></div>
-                                            : <div>FFA</div>
+                                            <div className="is-flex justify-center align-center gap-2 is-size-5">
+                                                <span className="has-text-primary-accent" style={{ whiteSpace: "nowrap" }}>{pMatch.opponents[0]}</span>
+                                                VS
+                                                <span className="has-text-secondary-accent" style={{ whiteSpace: "nowrap" }}>{pMatch.opponents[1]}</span>
+                                            </div>
+                                            : <div className="is-flex justify-center align-center gap-2 is-size-5">FFA</div>
                                         }
+                                        {pMatch.timestamp != 0 && <div className="is-size-6 has-text-centered">{new Date(pMatch.timestamp).toLocaleString("fr-FR", { weekday: "long", hour: "2-digit", minute: "2-digit" })}</div>}
                                     </Link>
                                 })}
                             </div>

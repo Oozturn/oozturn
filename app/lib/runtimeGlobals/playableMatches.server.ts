@@ -21,18 +21,20 @@ export function getPlayableMatches(userId: string) {
 export function updatePlayableMatches() {
     const tournaments = global.tournaments.filter(tournament => tournament.getStatus() == TournamentStatus.Running)
     global.playableMatches = tournaments.flatMap(tournament => tournament.getMatches()
-                                        .filter(match => match.opponents.every(o => o != undefined) && match.score.includes(undefined))
-                                        .map(match => {
-        const opponentsAreTeams = tournament.getFullData().settings.useTeams
-        const tournamentForfeits = tournament.getPlayers().filter(player => player.isForfeit).map(player => player.userId)
-        const concerned = match.opponents.flatMap(opponent => opponentsAreTeams ? tournament.getTeams().filter(team => team.name == opponent)[0]?.members : opponent)
-                                         .filter(player => (player != undefined) && !tournamentForfeits.includes(player)) as string[]
-        return {
-            tournamentId: tournament.getId(),
-            bracket: match.bracket,
-            matchId: match.id,
-            opponents: match.opponents.map(opponent => opponent as string),
-            concernedUserIds: concerned
-        }}
-    ))
+        .filter(match => match.opponents.every(o => o != undefined) && match.score.includes(undefined))
+        .map(match => {
+            const opponentsAreTeams = tournament.getFullData().settings.useTeams
+            const tournamentForfeits = tournament.getPlayers().filter(player => player.isForfeit).map(player => player.userId)
+            const concerned = match.opponents.flatMap(opponent => opponentsAreTeams ? tournament.getTeams().filter(team => team.name == opponent)[0]?.members : opponent)
+                .filter(player => (player != undefined) && !tournamentForfeits.includes(player)) as string[]
+            return {
+                tournamentId: tournament.getId(),
+                bracket: match.bracket,
+                matchId: match.id,
+                opponents: match.opponents.map(opponent => opponent as string),
+                concernedUserIds: concerned,
+                timestamp: match.timestamp || 0
+            }
+        })
+    ).sort((a, b) => a.timestamp && b.timestamp ? a.timestamp - b.timestamp : 0)
 }

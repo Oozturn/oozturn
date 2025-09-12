@@ -143,7 +143,6 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
             const reader = new FileReader()
             reader.readAsDataURL(e.target.files[0])
             reader.onload = () => {
-                console.log('called: ', reader)
                 if (reader.result) {
                     setTournamentImageSrc(reader.result as string)
                     setTournamentImageFile(e.target.files![0])
