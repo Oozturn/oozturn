@@ -10,22 +10,20 @@ import { notifyError } from "~/lib/components/notification"
 import { User } from "~/lib/types/user"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  return [
-    { title: data?.lanName + " - Connexion" }
-  ]
+  return [{ title: data?.lanName + " - Connexion" }]
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  if (process.env.AUTHENTICATION === 'false') {
-    throw redirect('/login')
+  if (process.env.AUTHENTICATION === "false") {
+    throw redirect("/login")
   }
 
   const user = await getUserFromRequest(request)
   if (!user) {
-    throw redirect('/login')
+    throw redirect("/login")
   }
   if (!hasPassword(user.id)) {
-    throw redirect('../step-new-password')
+    throw redirect("../step-new-password")
   }
   return { lanName: getLan().name, user: user }
 }
@@ -33,8 +31,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData()
   const password = String(formData.get("password") || "").trim()
-  const user = await getUserFromRequest(request) as User
-  const userIsComplete = (user.seat != '' || process.env.ASK_FOR_SEATS === "false") && (user.team != '')
+  const user = (await getUserFromRequest(request)) as User
+  const userIsComplete = (user.seat != "" || process.env.ASK_FOR_SEATS === "false") && user.team != ""
 
   const errors: { password?: string } = {}
 
@@ -74,7 +72,9 @@ export default function LoginStepPassword() {
         <LogoUnfolded animate={true} folded={true} />
       </div>
       <div className="is-flex-col align-center gap-5 p-4 has-background-secondary-level " style={{ maxWidth: "50vw" }}>
-        <div className="has-text-centered is-size-3">Bienvenue <i style={{ color: "var(--accent-primary-color)" }}>{user.username}</i> ! </div>
+        <div className="has-text-centered is-size-3">
+          Bienvenue <i style={{ color: "var(--accent-primary-color)" }}>{user.username}</i> !{" "}
+        </div>
         <Form ref={formRef} method="post" className="is-flex-col gap-6 is-full-width align-stretch">
           <div className="is-flex-col align-stretch gap-2">
             <div>Mot de passe :</div>
@@ -90,9 +90,19 @@ export default function LoginStepPassword() {
                 required
                 // eslint-disable-next-line jsx-a11y/no-autofocus
                 autoFocus
-                onKeyDown={(e) => { if (e.key === 'Enter') { !password && e.preventDefault() } }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    !password && e.preventDefault()
+                  }
+                }}
               />
-              <div className="pr-2" onMouseEnter={() => setShowPassword(true)} onMouseLeave={() => setShowPassword(false)}><EyeSVG /></div>
+              <div
+                className="pr-2"
+                onMouseEnter={() => setShowPassword(true)}
+                onMouseLeave={() => setShowPassword(false)}
+              >
+                <EyeSVG />
+              </div>
             </div>
           </div>
           <CustomButton

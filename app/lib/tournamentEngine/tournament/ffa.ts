@@ -1,7 +1,20 @@
 import { compare, firstBy, flatten, gt, insert, maximum, replicate, zip } from "./interlude/interlude"
 import { Match } from "./match"
 import { group, minimalGroupSize } from "./scheduling/group"
-import { Result as BaseResult, compareZip, compareZipReversed, isInteger, matchTieCompute, NONE, resultEntry, sorted, StateElt, Tournament, Id as TournamentId, TournamentOpts } from "./tournament"
+import {
+  Result as BaseResult,
+  compareZip,
+  compareZipReversed,
+  isInteger,
+  matchTieCompute,
+  NONE,
+  resultEntry,
+  sorted,
+  StateElt,
+  Tournament,
+  Id as TournamentId,
+  TournamentOpts
+} from "./tournament"
 
 //------------------------------------------------------------------
 // Initialization helpers
@@ -14,17 +27,17 @@ const unspecify = function (grps: number[][]) {
 }
 
 const makeMatches = function (np: number, grs: number[], adv: number[]): Match[] {
-  const matches = []; // pushed in sort order
+  const matches = [] // pushed in sort order
   // rounds created iteratively - know configuration valid at this point so just
   // repeat the calculation in the validation
   for (let i = 0; i < grs.length; i += 1) {
-    const a = adv[i]
-      , gs = grs[i]
-      , numGroups = Math.ceil(np / gs)
+    const a = adv[i],
+      gs = grs[i],
+      numGroups = Math.ceil(np / gs)
     let grps = group(np, gs)
 
     if (numGroups !== grps.length) {
-      throw new Error('internal FFA construction error')
+      throw new Error("internal FFA construction error")
     }
     if (i > 0) {
       // only fill in seeding numbers for round 1, otherwise placeholders
@@ -33,7 +46,7 @@ const makeMatches = function (np: number, grs: number[], adv: number[]): Match[]
 
     // fill in matches
     for (let m = 0; m < grps.length; m += 1) {
-      matches.push({ id: mId(i + 1, m + 1), p: grps[m] }); // matches 1-indexed
+      matches.push({ id: mId(i + 1, m + 1), p: grps[m] }) // matches 1-indexed
     }
     // reduce players left (for next round - which will exist if a is defined)
     np = numGroups * a
@@ -48,36 +61,37 @@ const makeMatches = function (np: number, grs: number[], adv: number[]): Match[]
 const roundInvalid = function (np: number, grs: number, adv: number, numGroups: number) {
   // the group size in here refers to the maximal reduced group size
   if (np < 2) {
-    return 'needs at least 2 players'
+    return "needs at least 2 players"
   }
   if (grs < 2) {
-    return 'group size must be at least 2'
+    return "group size must be at least 2"
   }
   if (adv >= grs) {
-    return 'must advance less than the group size'
+    return "must advance less than the group size"
   }
-  const isUnfilled = (np % numGroups) > 0
+  const isUnfilled = np % numGroups > 0
   if (isUnfilled && adv >= grs - 1) {
-    return 'must advance less than the smallest match size'
+    return "must advance less than the smallest match size"
   }
   if (adv <= 0) {
-    return 'must eliminate players each match'
+    return "must eliminate players each match"
   }
   return null
 }
 
 const finalInvalid = function (leftOver: number, limit: number, gLast: number) {
   if (leftOver < 2) {
-    return 'must contain at least 2 players'; // force >4 when using limits
+    return "must contain at least 2 players" // force >4 when using limits
   }
   const lastNg = Math.ceil(leftOver / gLast)
-  if (limit > 0) { // using limits
+  if (limit > 0) {
+    // using limits
     if (limit >= leftOver) {
-      return 'limit must be less than the remaining number of players'
+      return "limit must be less than the remaining number of players"
     }
     // need limit to be a multiple of numGroups (otherwise tiebreaks necessary)
     if (limit % lastNg !== 0) {
-      return 'number of matches must divide limit'
+      return "number of matches must divide limit"
     }
   }
   return null
@@ -85,13 +99,13 @@ const finalInvalid = function (leftOver: number, limit: number, gLast: number) {
 
 const invalid = function (np: number, grs: number[], adv: number[], limit: number) {
   if (np < 2) {
-    throw new Error('number of players must be at least 2')
+    throw new Error("number of players must be at least 2")
   }
   if (!grs.length || !grs.every(isInteger)) {
-    throw new Error('sizes must be a non-empty array of integers')
+    throw new Error("sizes must be a non-empty array of integers")
   }
   if (!adv.every(isInteger) || grs.length !== adv.length + 1) {
-    throw new Error('advancers must be a sizes.length-1 length array of integers')
+    throw new Error("advancers must be a sizes.length-1 length array of integers")
   }
 
   let numGroups = 0
@@ -106,7 +120,7 @@ const invalid = function (np: number, grs: number[], adv: number[], limit: numbe
     // and ensure with group reduction that eliminationValid for reduced params
     const invReason = roundInvalid(np, gActual, a, numGroups)
     if (invReason !== null) {
-      return 'round ' + (i + 1) + ' ' + invReason
+      return "round " + (i + 1) + " " + invReason
     }
     // return how many players left so that np is updated for next itr
     np = numGroups * a
@@ -114,13 +128,12 @@ const invalid = function (np: number, grs: number[], adv: number[], limit: numbe
   // last round and limit checks
   const invFinReason = finalInvalid(np, limit, grs[grs.length - 1])
   if (invFinReason !== null) {
-    return 'final round ' + invFinReason
+    return "final round " + invFinReason
   }
 
   // nothing found - ok to create
   return null
 }
-
 
 const mId = function (r: number, m: number) {
   return new Id(r, m)
@@ -146,7 +159,7 @@ class Id implements TournamentId {
   }
 
   toString() {
-    return 'R' + this.r + ' M' + this.m
+    return "R" + this.r + " M" + this.m
   }
 }
 
@@ -175,7 +188,7 @@ export class FFA extends Tournament {
     //create matches
     const matches = makeMatches(numPlayers, opts.sizes, opts.advancers)
 
-    super('FFA', numPlayers, matches)
+    super("FFA", numPlayers, matches)
     this.limit = opts.limit
     this.advs = opts.advancers
     this.sizes = opts.sizes
@@ -183,11 +196,11 @@ export class FFA extends Tournament {
     this.lowerScoreIsBetter = opts.lowerScoreIsBetter
   }
 
-  static restore(numPlayers: number, opts: FFAOpts, state: StateElt[], data?: { id: Id, data: never }[]) {
+  static restore(numPlayers: number, opts: FFAOpts, state: StateElt[], data?: { id: Id; data: never }[]) {
     const trn = new FFA(numPlayers, opts)
     // score the tournament from the valid score calls in state that we generate
     state.forEach(function (o) {
-      if (o.type === 'score') {
+      if (o.type === "score") {
         trn.score(o.id!, o.score!)
       }
     })
@@ -209,7 +222,7 @@ export class FFA extends Tournament {
       // will he advance to nextRound ?
       const adv = this.advs[m.id.r - 1]
       if (sorted(m).slice(0, adv).indexOf(playerId) >= 0) {
-        return { s: 1, r: m.id.r + 1 }; // TODO: no toString representation for this
+        return { s: 1, r: m.id.r + 1 } // TODO: no toString representation for this
       }
     }
   }
@@ -217,7 +230,7 @@ export class FFA extends Tournament {
   protected progress(match: Match): void {
     const adv = this.advs[match.id.r - 1] || 0
     const currRnd = this.findMatches({ r: match.id.r })
-    if (currRnd.every(it => it.m) && adv > 0) {
+    if (currRnd.every((it) => it.m) && adv > 0) {
       this.prepRound(currRnd, this.findMatches({ r: match.id.r + 1 }), adv)
     }
   }
@@ -237,15 +250,15 @@ export class FFA extends Tournament {
       sortedScore.reverse()
     }
     if (adv > 0 && adv < sortedScore.length && sortedScore[adv] === sortedScore[adv - 1]) {
-      return 'scores must unambiguous decide who advances'
+      return "scores must unambiguous decide who advances"
     }
     if (!adv && this.limit > 0) {
       // number of groups in last round is the match number of the very last match
       // because of the ordering this always works!
       const lastNG = this.matches[this.matches.length - 1].id.m
-      const cutoff = this.limit / lastNG; // NB: lastNG divides limit (from finalInvalid)
+      const cutoff = this.limit / lastNG // NB: lastNG divides limit (from finalInvalid)
       if (sortedScore[cutoff] === sortedScore[cutoff - 1]) {
-        return 'scores must decide who advances in final round with limits'
+        return "scores must decide who advances in final round with limits"
       }
     }
     return null
@@ -254,21 +267,22 @@ export class FFA extends Tournament {
   protected stats(resAry: Result[], m: Match): Result[] {
     if (m.m) {
       const adv = this.advs[m.id.r - 1] || 0
-      zip(m.p, m.m).sort(this.compareScore).forEach((t, j, top) => {
-        const p = resultEntry(resAry, t[0])
-        p.for! += this.lowerScoreIsBetter ? (Math.abs(top[0][1] - t[1])) : t[1]
-        p.matches += 1
-        p.against! += this.lowerScoreIsBetter ? t[1] : (Math.abs(top[0][1] - t[1])); // difference with winner
-        if (j < adv) {
-          p.wins += 1
-        }
-      })
+      zip(m.p, m.m)
+        .sort(this.compareScore)
+        .forEach((t, j, top) => {
+          const p = resultEntry(resAry, t[0])
+          p.for! += this.lowerScoreIsBetter ? Math.abs(top[0][1] - t[1]) : t[1]
+          p.matches += 1
+          p.against! += this.lowerScoreIsBetter ? t[1] : Math.abs(top[0][1] - t[1]) // difference with winner
+          if (j < adv) {
+            p.wins += 1
+          }
+        })
     }
     return resAry
   }
 
   protected sort(resAry: Result[]): Result[] {
-
     const limit = this.limit
     const advs = this.advs
     const sizes = this.sizes
@@ -276,30 +290,32 @@ export class FFA extends Tournament {
 
     // gradually improve scores for each player by looking at later and later rounds
     this.rounds().forEach((rnd, k) => {
-      const rndPs = flatten(rnd.map(it => it.p)).filter(gt(NONE))
+      const rndPs = flatten(rnd.map((it) => it.p)).filter(gt(NONE))
       rndPs.forEach(function (p) {
-        resultEntry(resAry, p).pos = rndPs.length; // tie players that got here
+        resultEntry(resAry, p).pos = rndPs.length // tie players that got here
       })
 
-      const isFinal = (k === maxround - 1)
+      const isFinal = k === maxround - 1
       const adv = advs[k] || 0
-      const wlim = (limit > 0 && isFinal) ? limit / rnd.length : adv
-      const nonAdvancers: Result[][] = replicate(sizes[k] - adv, () => []); // all in final
+      const wlim = limit > 0 && isFinal ? limit / rnd.length : adv
+      const nonAdvancers: Result[][] = replicate(sizes[k] - adv, () => []) // all in final
       // collect non-advancers - and set wins
-      rnd.filter(it => it.m).forEach((m) => {
-        const startIdx = isFinal ? 0 : adv
-        const top = zip(m.p, m.m!).sort(this.compareScore).slice(startIdx)
-        matchTieCompute(top, startIdx, function (p, pos) {
-          const resEl = resultEntry(resAry, p)
-          if (pos <= wlim || (pos === 1 && !adv)) {
-            resEl.wins += 1
-          }
-          if (isFinal) {
-            resEl.gpos = pos; // for rawPositions
-          }
-          nonAdvancers[pos - adv - 1].push(resEl)
+      rnd
+        .filter((it) => it.m)
+        .forEach((m) => {
+          const startIdx = isFinal ? 0 : adv
+          const top = zip(m.p, m.m!).sort(this.compareScore).slice(startIdx)
+          matchTieCompute(top, startIdx, function (p, pos) {
+            const resEl = resultEntry(resAry, p)
+            if (pos <= wlim || (pos === 1 && !adv)) {
+              resEl.wins += 1
+            }
+            if (isFinal) {
+              resEl.gpos = pos // for rawPositions
+            }
+            nonAdvancers[pos - adv - 1].push(resEl)
+          })
         })
-      })
 
       // nonAdvancers will be tied between the round based on their mpos
       let posctr = adv * rnd.length + 1
@@ -316,7 +332,7 @@ export class FFA extends Tournament {
 
   rawPositions(res: Result[]) {
     if (!this.isDone()) {
-      throw new Error('cannot tiebreak a FFA tournament until it is finished')
+      throw new Error("cannot tiebreak a FFA tournament until it is finished")
     }
     const maxround = this.sizes.length
     const finalRound = this.findMatches({ r: maxround })
@@ -329,7 +345,6 @@ export class FFA extends Tournament {
       return seedAry
     })
     return posAry
-
   }
 
   prepRound(currRnd: Match[], nxtRnd: Match[], adv: number) {
@@ -339,25 +354,23 @@ export class FFA extends Tournament {
 
     // now flatten and sort across matches
     // this essentially re-seeds players for the next round
-    const top = flatten(rawTop).sort(this.compareScore).map(it => it[0])
+    const top = flatten(rawTop)
+      .sort(this.compareScore)
+      .map((it) => it[0])
 
     // re-find group size from maximum length of zeroed player array in next round
-    const grs = maximum(nxtRnd.map(it => it.p.length))
+    const grs = maximum(nxtRnd.map((it) => it.p.length))
 
     // set all next round players with the fairly grouped set
     group(top.length, grs).forEach((group, k) => {
       // replaced nulled out player array with seeds mapped to corr. top placers
       nxtRnd[k].p = group.map((seed) => {
-        return top[seed - 1]; // NB: top is zero indexed
+        return top[seed - 1] // NB: top is zero indexed
       })
     })
   }
 
   private compareMulti = (x: Result, y: Result) => {
-    return (x.pos - y.pos) ||
-      ((y.for! - y.against!) - (x.for! - x.against!)) ||
-      (y.for! - x.for!) ||
-      (x.seed - y.seed)
+    return x.pos - y.pos || y.for! - y.against! - (x.for! - x.against!) || y.for! - x.for! || x.seed - y.seed
   }
 }
-

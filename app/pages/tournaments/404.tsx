@@ -3,14 +3,10 @@ import { getLan } from "~/lib/persistence/lan.server"
 import { requireUserLoggedIn } from "~/lib/session.server"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  return [
-    { title: data?.lanName + " - Tournoi inconnu" }
-  ]
+  return [{ title: data?.lanName + " - Tournoi inconnu" }]
 }
 
-export async function loader({
-  request
-}: LoaderFunctionArgs): Promise<{
+export async function loader({ request }: LoaderFunctionArgs): Promise<{
   lanName: string
 }> {
   await requireUserLoggedIn(request)
@@ -18,7 +14,9 @@ export async function loader({
 }
 
 export default function TournamentNotFound() {
-  return <div className='grow is-flex-row has-background-secondary-level justify-center align-center'>
-    404 — Tournament not found
-  </div>
+  return (
+    <div className="grow is-flex-row has-background-secondary-level justify-center align-center">
+      404 — Tournament not found
+    </div>
+  )
 }

@@ -24,17 +24,23 @@ export const group = function (numPlayers: number, groupSize: number) {
 
   // remove non-present players and sort by seeding number
   return groupList.map(function (g) {
-    return g.sort(function (x, y) {
-      return x - y
-    }).filter(function (p) {
-      return p <= numPlayers
-    })
+    return g
+      .sort(function (x, y) {
+        return x - y
+      })
+      .filter(function (p) {
+        return p <= numPlayers
+      })
   })
 }
 
-export const minimalGroupSize = function (numPlayers: number, groupSize: number, numGroups: number = Math.ceil(numPlayers / groupSize)) {
+export const minimalGroupSize = function (
+  numPlayers: number,
+  groupSize: number,
+  numGroups: number = Math.ceil(numPlayers / groupSize)
+) {
   while (numGroups * groupSize - numPlayers >= numGroups) {
-    groupSize -= 1; // while all groups have 1 free slot
+    groupSize -= 1 // while all groups have 1 free slot
   }
   return groupSize
 }

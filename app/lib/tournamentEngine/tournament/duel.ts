@@ -2,11 +2,10 @@ import { even, gt, odd } from "./interlude/interlude"
 import { Match } from "./match"
 import { Result, StateElt, Tournament, Id as TournamentId, TournamentOpts, resultEntry } from "./tournament"
 
-const WB = 1
-  , LB = 2
-  , WO = -1
-  , NONE = 0
-
+const WB = 1,
+  LB = 2,
+  WO = -1,
+  NONE = 0
 
 // shortcut to create a match id as duel tourneys are very specific about locations
 const gId = function (b: number, r: number, m: number) {
@@ -36,7 +35,7 @@ const elimination = function (size: number, p: number, last: number, isLong: boo
         matches.push({ id: gId(LB, r, g), p: blank() })
       }
     }
-    matches.push({ id: gId(LB, 2 * p - 1, 1), p: blank() }); // grand final match 1
+    matches.push({ id: gId(LB, 2 * p - 1, 1), p: blank() }) // grand final match 1
   }
   if (isLong) {
     // bronze final if last === WB, else grand final match 2
@@ -44,7 +43,7 @@ const elimination = function (size: number, p: number, last: number, isLong: boo
   }
   // sort so they can be scored in order
   return matches.sort((g1, g2) => {
-    return (g1.id.s - g2.id.s) || (g1.id.r - g2.id.r) || (g1.id.m - g2.id.m)
+    return g1.id.s - g2.id.s || g1.id.r - g2.id.r || g1.id.m - g2.id.m
   })
 }
 
@@ -58,19 +57,19 @@ const seeds = function (i: number, p: number): [number, number] {
 // helpers to initialize duel tournaments
 // http://clux.org/entries/view/2407
 const evenSeed = function (i: number, p: number) {
-  const k = Math.floor(Math.log(i) / Math.log(2))
-    , r = i - Math.pow(2, k)
+  const k = Math.floor(Math.log(i) / Math.log(2)),
+    r = i - Math.pow(2, k)
   if (r === 0) {
     return Math.pow(2, p - k)
   }
-  const nr = (i - 2 * r).toString(2).split('').reverse().join('')
-  return (parseInt(nr, 2) << p - nr.length) + Math.pow(2, p - k - 1)
+  const nr = (i - 2 * r).toString(2).split("").reverse().join("")
+  return (parseInt(nr, 2) << (p - nr.length)) + Math.pow(2, p - k - 1)
 }
 
 // mark players that had to be added to fit model as WO's
 const woMark = function (ps: [number, number], size: number) {
   return ps.map(function (p) {
-    return (p > size) ? WO : p
+    return p > size ? WO : p
   })
 }
 
@@ -83,9 +82,9 @@ const lbPos = function (p: number, maxr: number) {
   // where k(maxr) = floor(roundDiff/2)
   // works upto and including LB final (gf players must be positioned manually)
   const metric = 2 * p - maxr
-  const k = Math.floor(metric / 2) - 1; // every other doubles
+  const k = Math.floor(metric / 2) - 1 // every other doubles
   if (k < 0) {
-    throw new Error('lbPos model works for k>=0 only')
+    throw new Error("lbPos model works for k>=0 only")
   }
   const ck = Math.pow(2, k) * (metric % 2)
   return Math.pow(2, k + 1) + 1 + ck
@@ -98,14 +97,14 @@ const wbPos = function (p: number, maxr: number) {
 }
 
 const placement = function (last: number, p: number, maxr: number) {
-  return (last === LB) ? lbPos(p, maxr) : wbPos(p, maxr)
+  return last === LB ? lbPos(p, maxr) : wbPos(p, maxr)
 }
 
 // helper to mix down progression to reduce chances of replayed matches
 const mixLbGames = function (p: number, round: number, game: number) {
   // we know round <= p
   const numGames = Math.pow(2, p - round)
-  const midPoint = Math.floor(Math.pow(2, p - round - 1)); // midPoint 0 in finals
+  const midPoint = Math.floor(Math.pow(2, p - round - 1)) // midPoint 0 in finals
 
   // reverse the match list map
   const reversed = odd(Math.floor(round / 2))
@@ -114,9 +113,9 @@ const mixLbGames = function (p: number, round: number, game: number) {
 
   if (partitioned) {
     if (reversed) {
-      return (game > midPoint) ? numGames - game + midPoint + 1 : midPoint - game + 1
+      return game > midPoint ? numGames - game + midPoint + 1 : midPoint - game + 1
     }
-    return (game > midPoint) ? game - midPoint : game + midPoint
+    return game > midPoint ? game - midPoint : game + midPoint
   }
   return reversed ? numGames - game + 1 : game
 }
@@ -138,7 +137,7 @@ class Id implements TournamentId {
   }
 
   toString() {
-    return (this.s === WB ? 'WB' : 'LB') + ' R' + this.r + ' M' + this.m
+    return (this.s === WB ? "WB" : "LB") + " R" + this.r + " M" + this.m
   }
 }
 
@@ -159,11 +158,11 @@ export class Duel extends Tournament {
   private lowerScoreIsBetter: boolean
   private scoreComparator: (m1: number, m2: number) => boolean
 
-  static restore(numPlayers: number, opts: DuelOpts, state: StateElt[], data?: { id: Id, data: never }[]) {
+  static restore(numPlayers: number, opts: DuelOpts, state: StateElt[], data?: { id: Id; data: never }[]) {
     const trn = new Duel(numPlayers, opts)
     // score the tournament from the valid score calls in state that we generate
     state.forEach((o) => {
-      if (o.type === 'score') {
+      if (o.type === "score") {
         trn.score(o.id!, o.score!)
       }
     })
@@ -176,13 +175,13 @@ export class Duel extends Tournament {
   }
 
   /** Creates a new Duel.
- *  - nb_players: from 4 to 1024, optimal number is a power of two
- *  - options:
- *      - last?: set to Duel.LB for double elimination
- *      - short?: if set to true,
- *          - removes bronze final (3 and 4 are tied in 3rd place)
- *          - removes double grand final in double elimination (winner of LB can win grand final in one match)
- */
+   *  - nb_players: from 4 to 1024, optimal number is a power of two
+   *  - options:
+   *      - last?: set to Duel.LB for double elimination
+   *      - short?: if set to true,
+   *          - removes bronze final (3 and 4 are tied in 3rd place)
+   *          - removes double grand final in double elimination (winner of LB can win grand final in one match)
+   */
   constructor(numPlayers: number, opts: DuelOpts) {
     //init default
     opts.last = opts.last || WB
@@ -190,10 +189,10 @@ export class Duel extends Tournament {
     //check params
     const isLong = !opts.short
     if ((!isLong && numPlayers < 2) || (isLong && numPlayers < 4) || numPlayers > 1024) {
-      throw new Error('numPlayers must be >= ' + (isLong ? 4 : 2) + ' and <= 1024')
+      throw new Error("numPlayers must be >= " + (isLong ? 4 : 2) + " and <= 1024")
     }
     if ([WB, LB].indexOf(opts.last) < 0) {
-      throw new Error('last elimination bracket must be either WB or LB')
+      throw new Error("last elimination bracket must be either WB or LB")
     }
 
     //create matches
@@ -201,12 +200,13 @@ export class Duel extends Tournament {
     const matches = elimination(numPlayers, p, opts.last, isLong)
 
     super("Duel", numPlayers, matches)
-    this.isLong = isLong; // isLong for WB => hasBF, isLong for LB => hasGf2
+    this.isLong = isLong // isLong for WB => hasBF, isLong for LB => hasGf2
     this.last = opts.last
     this.downMix = opts.downMix! && opts.last > WB
     this.p = p
     this.lowerScoreIsBetter = opts.lowerScoreIsBetter
-    this.scoreComparator = opts.lowerScoreIsBetter ? (m1: number, m2: number) => m1 < m2 : (m1: number, m2: number) => m1 > m2
+    this.scoreComparator =
+      opts.lowerScoreIsBetter ? (m1: number, m2: number) => m1 < m2 : (m1: number, m2: number) => m1 > m2
 
     const scorer = this.woScore.bind(this, this.progress.bind(this))
     this.findMatches({ s: WB, r: 1 }).forEach(scorer)
@@ -217,11 +217,11 @@ export class Duel extends Tournament {
 
   protected progress(match: Match): void {
     // 1. calculate winner and loser for progression
-    let w = (this.scoreComparator(match.m![0], match.m![1])) ? match.p[0] : match.p[1]
-      , l = (this.scoreComparator(match.m![0], match.m![1])) ? match.p[1] : match.p[0]
+    let w = this.scoreComparator(match.m![0], match.m![1]) ? match.p[0] : match.p[1],
+      l = this.scoreComparator(match.m![0], match.m![1]) ? match.p[1] : match.p[0]
     // in double elimination, the double final should be propagated to with zeroes
     // unless we actually need it (underdog won gfg1 forcing the gfg2 decider)
-    const isShortLbGf = (match.id.s === LB && match.id.r === 2 * this.p - 1 && this.isLong)
+    const isShortLbGf = match.id.s === LB && match.id.r === 2 * this.p - 1 && this.isLong
     if (isShortLbGf && w === match.p[0]) {
       w = l = 0
     }
@@ -244,19 +244,19 @@ export class Duel extends Tournament {
       return "cannot override score in walkover'd match"
     }
     if (score[0] === score[1]) {
-      return 'cannot draw a duel'
+      return "cannot draw a duel"
     }
     return null
   }
 
   protected safe(match: Match): boolean {
     // ensure matches [right, down, down ∘ right] are all unplayed (ignoring WO)
-    const r = this.right(match.id)
-      , d = this.down(match.id)
-      , rm = r && this.findMatch(r[0])
-      , dm = d && this.findMatch(d[0])
-      , dr = dm && this.right(dm.id) // right from down
-      , drm = dr && this.findMatch(dr[0])
+    const r = this.right(match.id),
+      d = this.down(match.id),
+      rm = r && this.findMatch(r[0]),
+      dm = d && this.findMatch(d[0]),
+      dr = dm && this.right(dm.id), // right from down
+      drm = dr && this.findMatch(dr[0])
 
     return [rm, dm, drm].every(function (next) {
       // safe iff (match not there, or unplayed, or contains WO markers)
@@ -270,29 +270,30 @@ export class Duel extends Tournament {
   }
 
   protected stats(res: Result[], g: Match): Result[] {
-    const isLong = this.isLong
-      , last = this.last
-      , p = this.p
-      , isBf = isLong && last === WB && g.id.s === LB
-      , isWbGf = last === WB && g.id.s === WB && g.id.r === p
-      , isLbGfs = last === LB && g.id.s === LB && g.id.r >= 2 * p - 1
-      , isLongSemi = isLong && last === WB && g.id.s === WB && g.id.r === p - 1
-      , canPosition = !isBf && !isWbGf && !isLbGfs && !isLongSemi
-      , maxr = (g.id.s < last) ? this.down(g.id)![0].r : g.id.r
+    const isLong = this.isLong,
+      last = this.last,
+      p = this.p,
+      isBf = isLong && last === WB && g.id.s === LB,
+      isWbGf = last === WB && g.id.s === WB && g.id.r === p,
+      isLbGfs = last === LB && g.id.s === LB && g.id.r >= 2 * p - 1,
+      isLongSemi = isLong && last === WB && g.id.s === WB && g.id.r === p - 1,
+      canPosition = !isBf && !isWbGf && !isLbGfs && !isLongSemi,
+      maxr = g.id.s < last ? this.down(g.id)![0].r : g.id.r
 
     // position players based on reaching the match
     g.p.filter(gt(0)).forEach(function (s) {
-      resultEntry(res, s).pos = canPosition ?
-        placement(last, p, maxr) : // estimate from minimally achieved last round
-        2 + Number(isBf || isLongSemi) * 2; // finals are 2 or 4 initially
+      resultEntry(res, s).pos =
+        canPosition ?
+          placement(last, p, maxr) // estimate from minimally achieved last round
+        : 2 + Number(isBf || isLongSemi) * 2 // finals are 2 or 4 initially
     })
 
     // compute stats for played matches - ignore WOs (then p found in next)
     if (g.p.indexOf(WO) < 0 && g.m) {
       // when we have scores, we have a winner and a loser
-      const p0 = resultEntry(res, g.p[0])
-        , p1 = resultEntry(res, g.p[1])
-        , w = this.scoreComparator(g.m[0], g.m[1]) ? p0 : p1
+      const p0 = resultEntry(res, g.p[0]),
+        p1 = resultEntry(res, g.p[1]),
+        w = this.scoreComparator(g.m[0], g.m[1]) ? p0 : p1
 
       // inc wins
       w.wins += 1
@@ -315,16 +316,16 @@ export class Duel extends Tournament {
 
   // find the match and position a winner should move "right" to in the current bracket
   public right(id: Id): [Id, number] | null {
-    const b = id.s
-      , r = id.r
-      , g = id.m
-      , p = this.p
+    const b = id.s,
+      r = id.r,
+      g = id.m,
+      p = this.p
 
     // cases where progression stops for winners
-    const isFinalSe = (this.last === WB && r === p)
-      , isFinalDe = (this.last === LB && b === LB && r === 2 * p)
-      , isBronze = (this.last === WB && b === LB)
-      , isShortLbGf = (b === LB && r === 2 * p - 1 && !this.isLong)
+    const isFinalSe = this.last === WB && r === p,
+      isFinalDe = this.last === LB && b === LB && r === 2 * p,
+      isBronze = this.last === WB && b === LB,
+      isShortLbGf = b === LB && r === 2 * p - 1 && !this.isLong
 
     if (isFinalSe || isFinalDe || isBronze || isShortLbGf) {
       return null
@@ -336,21 +337,19 @@ export class Duel extends Tournament {
     }
 
     // for LB positioning
-    const ghalf = (b === LB && odd(r)) ? g : Math.floor((g + 1) / 2)
+    const ghalf = b === LB && odd(r) ? g : Math.floor((g + 1) / 2)
 
     let pos
     if (b === WB) {
-      pos = (g + 1) % 2; // normal WB progression
+      pos = (g + 1) % 2 // normal WB progression
     }
     // LB progression
     else if (r >= 2 * p - 2) {
-      pos = (r + 1) % 2; // LB final winner -> bottom & GF(1) underdog winner -> top
-    }
-    else if (r === 1) {
+      pos = (r + 1) % 2 // LB final winner -> bottom & GF(1) underdog winner -> top
+    } else if (r === 1) {
       // unless downMix, LBR1 winners move inversely to normal progression
       pos = this.downMix ? 1 : g % 2
-    }
-    else {
+    } else {
       // winner from LB always bottom in odd rounds, otherwise normal progression
       pos = odd(r) ? 1 : (g + 1) % 2
     }
@@ -361,13 +360,14 @@ export class Duel extends Tournament {
 
   // find the match and position a loser should move "down" to in the current bracket
   public down(id: Id): [Id, number] | null {
-    const b = id.s
-      , r = id.r
-      , g = id.m
-      , p = this.p
+    const b = id.s,
+      r = id.r,
+      g = id.m,
+      p = this.p
 
     // knockouts / special finals
-    if (b >= this.last) { // greater than case is for BF in long single elimination
+    if (b >= this.last) {
+      // greater than case is for BF in long single elimination
       if (b === WB && this.isLong && r === p - 1) {
         // if bronze final, move loser to "LBR1" at mirror pos of WBGF
         return [gId(LB, 1, 1), (g + 1) % 2]
@@ -391,25 +391,25 @@ export class Duel extends Tournament {
     }
 
     // normal  LB drops: on top for (r>2) and (r<=2 if odd g) to match bracket movement
-    const pos = (r > 2 || odd(g)) ? 0 : 1
+    const pos = r > 2 || odd(g) ? 0 : 1
     return [gId(LB, (r - 1) * 2, g), pos]
   }
 
   // given a direction (one of the above two), move an 'advancer' to that location
   private inserter(progress: [Id, number] | null, adv: number) {
     if (progress) {
-      const id = progress[0]
-        , pos = progress[1]
-        , insertM = this.findMatch(id)
+      const id = progress[0],
+        pos = progress[1],
+        insertM = this.findMatch(id)
 
       if (!insertM) {
-        throw new Error('tournament corrupt: ' + id + ' not found!')
+        throw new Error("tournament corrupt: " + id + " not found!")
       }
 
       insertM.p[pos] = adv
       if (insertM.p[(pos + 1) % 2] === WO) {
-        insertM.m = (pos) ? [0, 1] : [1, 0]; // set WO map scores
-        return insertM.id; // this id was won by adv on WO, inform
+        insertM.m = pos ? [0, 1] : [1, 0] // set WO map scores
+        return insertM.id // this id was won by adv on WO, inform
       }
     }
   }
@@ -419,7 +419,7 @@ export class Duel extends Tournament {
     const idx = m.p.indexOf(WO)
     if (idx >= 0) {
       // set scores manually to avoid the `_verify` walkover scoring restriction
-      m.m = (idx === 0) ? [0, 1] : [1, 0]
+      m.m = idx === 0 ? [0, 1] : [1, 0]
       if (this.lowerScoreIsBetter) {
         m.m = m.m.reverse()
       }
@@ -427,4 +427,3 @@ export class Duel extends Tournament {
     }
   }
 }
-

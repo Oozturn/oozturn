@@ -8,25 +8,23 @@ import { getUserById, updateUser } from "~/lib/persistence/users.server"
 import { User } from "~/lib/types/user"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  return [
-    { title: data?.lanName + " - Première connexion" }
-  ]
+  return [{ title: data?.lanName + " - Première connexion" }]
 }
 
 export async function loader({ request }: LoaderFunctionArgs): Promise<{
-  lanName: string,
+  lanName: string
   user: User
 }> {
   const user = await getUserById(await requireUserLoggedIn(request))
-  if (!user) throw redirect('/login')
+  if (!user) throw redirect("/login")
   // if (user.team && user.seat) throw redirect('/')
   return { lanName: getLan().name, user: user }
 }
 
-export async function action({ request, }: ActionFunctionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   const body = await request.formData()
-  updateUser(String(body.get('userId')), { team: String(body.get('team')), seat: String(body.get('seat')) })
-  return redirect('/')
+  updateUser(String(body.get("userId")), { team: String(body.get("team")), seat: String(body.get("seat")) })
+  return redirect("/")
 }
 
 export default function LoginStepUsername() {
@@ -49,7 +47,9 @@ function FirstLoginForm() {
   return (
     <div className="is-flex-col align-center justify-center">
       <div className="is-flex-col align-center gap-5 p-4 has-background-secondary-level " style={{ maxWidth: "50vw" }}>
-        <div className="has-text-centered is-size-3">Bienvenue, <i style={{ color: "var(--accent-primary-color)" }}>{user.username}</i> ! </div>
+        <div className="has-text-centered is-size-3">
+          Bienvenue, <i style={{ color: "var(--accent-primary-color)" }}>{user.username}</i> !{" "}
+        </div>
         <div>
           <div>Pour commencer, renseigne ton équipe et ta place :</div>
           <Form ref={formRef} method="post" className="is-flex-col gap-6 is-full-width align-stretch">
@@ -58,7 +58,8 @@ function FirstLoginForm() {
               <div className="is-flex is-flex align-start gap-2" style={{ maxWidth: "402px" }}>
                 <div>Équipe :</div>
                 <div className="is-flex-col grow no-basis">
-                  <input id="team"
+                  <input
+                    id="team"
                     name="team"
                     className="input grow no-basis has-text-centered has-background-primary-level"
                     type="text"
@@ -66,8 +67,13 @@ function FirstLoginForm() {
                     onChange={(e) => setTeam(e.target.value)}
                     placeholder="Équipe"
                     required
-                    title="Utilisé pour calculer le score de ton équipe à cette LAN. Te foire pas sur l&apos;orthographe."
-                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById("seat")?.focus() } }}
+                    title="Utilisé pour calculer le score de ton équipe à cette LAN. Te foire pas sur l'orthographe."
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault()
+                        document.getElementById("seat")?.focus()
+                      }
+                    }}
                   />
                 </div>
               </div>
@@ -76,7 +82,8 @@ function FirstLoginForm() {
               <div className="is-flex is-flex align-start gap-2" style={{ maxWidth: "402px" }}>
                 <div>Place :</div>
                 <div className="is-flex-col grow no-basis">
-                  <input id="seat"
+                  <input
+                    id="seat"
                     name="seat"
                     className="input grow no-basis has-text-centered has-background-primary-level"
                     type="text"
@@ -85,20 +92,23 @@ function FirstLoginForm() {
                     placeholder="Place"
                     required
                     title="Utilisé pour te retrouver facilement lors des duels. Devrait être de la forme 'A12'. Demande à un admin si tu trouves pas l'info."
-                    onKeyDown={(e) => { if (e.key === 'Enter') { formRef.current && (formRef.current as HTMLFormElement).submit() } }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        formRef.current && (formRef.current as HTMLFormElement).submit()
+                      }
+                    }}
                   />
                 </div>
               </div>
             </div>
-            {(!!team && !!seat) ?
+            {!!team && !!seat ?
               <CustomButton
                 colorClass="has-background-secondary-accent"
                 customClasses="is-align-self-flex-end"
                 callback={handleSubmit}
                 contentItems={["Enregistrer"]}
               />
-              :
-              <CustomButton
+            : <CustomButton
                 colorClass="has-background-primary-level"
                 customClasses="is-align-self-flex-end"
                 callback={() => navigate("/")}
@@ -107,7 +117,7 @@ function FirstLoginForm() {
             }
           </Form>
         </div>
-      </div >
-    </div >
+      </div>
+    </div>
   )
 }

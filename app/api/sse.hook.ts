@@ -3,7 +3,13 @@ import { useRevalidator } from "@remix-run/react"
 import { useEffect } from "react"
 import { useEventSource } from "remix-utils/sse/react"
 import { useSettings } from "~/lib/components/contexts/SettingsContext"
-import { EVENT_UPDATE_LAN, EVENT_UPDATE_TOURNAMENT, EVENT_UPDATE_TOURNAMENTS, EVENT_UPDATE_USERS, TOURNAMENT_UPDATE_TYPES } from "~/lib/events/types"
+import {
+  EVENT_UPDATE_LAN,
+  EVENT_UPDATE_TOURNAMENT,
+  EVENT_UPDATE_TOURNAMENTS,
+  EVENT_UPDATE_USERS,
+  TOURNAMENT_UPDATE_TYPES
+} from "~/lib/events/types"
 
 export function useRevalidateOnGlobalTournamentUpdate() {
   const revalidator = useRevalidator()
@@ -11,7 +17,7 @@ export function useRevalidateOnGlobalTournamentUpdate() {
 
   useEffect(() => {
     if (!evtData) return
-    const [, updateType,] = JSON.parse(evtData)
+    const [, updateType] = JSON.parse(evtData)
     if (updateType == TOURNAMENT_UPDATE_TYPES.UPDATE_BRACKET) return
     if (revalidator.state === "idle") {
       revalidator.revalidate()
@@ -83,4 +89,3 @@ export function useRevalidateOnUsersUpdate() {
     }
   }, [updateTime])
 }
-

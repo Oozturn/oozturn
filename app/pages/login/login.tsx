@@ -8,9 +8,7 @@ import { useRef, useState } from "react"
 import { CustomButton } from "~/lib/components/elements/custom-button"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  return [
-    { title: data?.lanName + " - Connexion" }
-  ]
+  return [{ title: data?.lanName + " - Connexion" }]
 }
 
 export async function loader(): Promise<{
@@ -19,7 +17,7 @@ export async function loader(): Promise<{
   return { lanName: getLan().name }
 }
 
-export async function action({ request, }: ActionFunctionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   const body = await request.formData()
   return await doLogin(String(body.get("username")))
 }
@@ -38,11 +36,10 @@ function LoginForm() {
   async function handleSubmit() {
     if (!formRef.current) return
     setAnimateLogo(true)
-    const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+    const delay = (ms: number) => new Promise((res) => setTimeout(res, ms))
     const form = formRef.current as HTMLFormElement
     await delay(2000)
     form.submit()
-
   }
 
   return (
@@ -51,7 +48,9 @@ function LoginForm() {
         <LogoUnfolded animate={animateLogo} />
       </div>
       <div className="is-flex-col align-center gap-5 p-4 has-background-secondary-level " style={{ maxWidth: "50vw" }}>
-        <div className="has-text-centered is-size-3">Bienvenue à la LAN <i style={{ color: "var(--accent-primary-color)" }}>{lan.name}</i> ! </div>
+        <div className="has-text-centered is-size-3">
+          Bienvenue à la LAN <i style={{ color: "var(--accent-primary-color)" }}>{lan.name}</i> !{" "}
+        </div>
         <Form ref={formRef} method="post" className="is-flex-col gap-6 is-full-width align-stretch">
           <div className="is-flex-col align-center gap-2">
             <div>Pour te connecter, entre ton pseudo ici :</div>
@@ -69,7 +68,12 @@ function LoginForm() {
               autoFocus
               maxLength={15}
               title="15 caractères max. N'ajoute pas ton tag d'équipe, ce sera fait plus tard"
-              onKeyDown={(e) => { if(e.key === 'Enter'){e.preventDefault(); !!username && handleSubmit()} }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault()
+                  !!username && handleSubmit()
+                }
+              }}
             />
           </div>
           <CustomButton
@@ -85,7 +89,10 @@ function LoginForm() {
         </Form>
       </div>
       {actionResult?.error && (
-        <p className="has-text-danger" style={{ position: "absolute", bottom: "-2rem", width:"500%", textAlign: "center" }}>
+        <p
+          className="has-text-danger"
+          style={{ position: "absolute", bottom: "-2rem", width: "500%", textAlign: "center" }}
+        >
           {actionResult.error}
         </p>
       )}

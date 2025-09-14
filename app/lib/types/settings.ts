@@ -1,33 +1,32 @@
-
 interface SecuritySettings {
-	newUsersByAdmin: boolean
-	authentication: boolean
-	securePassword: boolean
-	useHttpOnly: boolean
-	allOpponentsScore: boolean | "duel_only"
+  newUsersByAdmin: boolean
+  authentication: boolean
+  securePassword: boolean
+  useHttpOnly: boolean
+  allOpponentsScore: boolean | "duel_only"
 }
 
 interface NotificationsSettings {
-	tournamentStartStop: boolean
+  tournamentStartStop: boolean
 }
 
 // Maybe this could be a user setting ?
 interface AutoRefreshSettings {
-	tournaments: boolean
-	users: boolean
+  tournaments: boolean
+  users: boolean
 }
 
 interface QoLanSettings {
-	placedPlayers: boolean
+  placedPlayers: boolean
 }
 
 export interface Settings {
-	security: SecuritySettings,
-	notifications: NotificationsSettings,
-	autoRefresh: AutoRefreshSettings,
-	qoLan: QoLanSettings
+  security: SecuritySettings
+  notifications: NotificationsSettings
+  autoRefresh: AutoRefreshSettings
+  qoLan: QoLanSettings
 }
 
 export interface CredentialsSettings {
-	adminPasswordHash: string
+  adminPasswordHash: string
 }
