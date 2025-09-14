@@ -1,9 +1,6 @@
 import { ActionFunctionArgs } from "@remix-run/node";
-import { json, redirect } from "@remix-run/react";
-import { createWriteStream } from "fs";
+import { redirect } from "@remix-run/react";
 import { mkdir } from "fs/promises";
-import { get } from "https"
-import { logger } from "~/lib/logging/logging";
 import { getUserId, requireUserAdmin } from "~/lib/session.server";
 import crypto from 'crypto'
 import sharp from "sharp";
@@ -27,10 +24,16 @@ export async function action({ request }: ActionFunctionArgs) {
     const tournamentBracketSettings = JSON.parse(String(formData.get("tournamentBracketSettings"))) as BracketSettings[]
     const tournamentHasImage = formData.get("tournamentHasImage") === "true"
 
+    // eslint doesn't want declarations in case blocks
+    let tournamentSettings: TournamentSettings
+    let tournamentProperties: TournamentProperties
+    let partialTournamentSettings: Partial<TournamentSettings>
+    let partialTournamentProperties: Partial<TournamentProperties>
+
     switch (intent) {
         case "createTournament":
-            const tournamentSettings = JSON.parse(String(formData.get("tournamentSettings"))) as TournamentSettings
-            const tournamentProperties = JSON.parse(String(formData.get("tournamentProperties"))) as TournamentProperties
+            tournamentSettings = JSON.parse(String(formData.get("tournamentSettings"))) as TournamentSettings
+            tournamentProperties = JSON.parse(String(formData.get("tournamentProperties"))) as TournamentProperties
             if (tournamentImageFile) {
                 const filename = await storePicture(tournamentImageFile)
                 tournamentProperties.picture = filename
@@ -39,8 +42,8 @@ export async function action({ request }: ActionFunctionArgs) {
             newTournament(tournamentId, tournamentProperties, tournamentSettings, tournamentBracketSettings)
             return redirect("/tournaments/" + tournamentId)
         case "updateTournament":
-            const partialTournamentSettings = JSON.parse(String(formData.get("tournamentSettings"))) as Partial<TournamentSettings>
-            const partialTournamentProperties = JSON.parse(String(formData.get("tournamentProperties"))) as Partial<TournamentProperties>
+            partialTournamentSettings = JSON.parse(String(formData.get("tournamentSettings"))) as Partial<TournamentSettings>
+            partialTournamentProperties = JSON.parse(String(formData.get("tournamentProperties"))) as Partial<TournamentProperties>
             if (tournamentImageFile) {
                 const filename = await storePicture(tournamentImageFile)
                 partialTournamentProperties.picture = filename
@@ -66,7 +69,7 @@ const TOURNAMENT_IMAGES_FOLDER = "uploads/tournaments"
 async function storePicture(file: File): Promise<string> {
     const inputBuffer = Buffer.from(await file.arrayBuffer())
     const hashSum = crypto.createHash('md5')
-    hashSum.update(inputBuffer)
+    hashSum.update(new Uint8Array(inputBuffer))
     const hex = hashSum.digest('hex')
     const filename = `${hex}.webp`
     console.log("storing picture " + file.name + " as " + filename)

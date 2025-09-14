@@ -13,9 +13,9 @@ declare global {
 
 const tournamentsFilePath = path.join(dbFolderPath, 'tournaments.json')
 
-function scoresReviver(key: string, value: any) {
+function scoresReviver(key: string, value: unknown) {
     if (key === "score" && Array.isArray(value)) {
-        return value.map((score: any) => (score === null ? undefined : score))
+        return (value as Array<unknown>).map((score: unknown) => (score === null ? undefined : score))
     }
     return value
 }

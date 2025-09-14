@@ -116,7 +116,7 @@ export default function LoginStepNewPassword() {
                 placeholder="Mot de passe"
                 required
                 maxLength={18}
-                onKeyDown={(e) => { if (e.key === 'Enter') {  !!password ? formRef.current && (formRef.current as HTMLFormElement).submit() : e.preventDefault() } }}
+                onKeyDown={(e) => { if (e.key === 'Enter') {  !!password && password == confirmPassword ? formRef.current && (formRef.current as HTMLFormElement).submit() : e.preventDefault() } }}
               />
               <div className="pr-2" onMouseEnter={() => setShowConfirm(true)} onMouseLeave={() => setShowConfirm(false)}><EyeSVG /></div>
             </div>

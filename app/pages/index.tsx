@@ -69,7 +69,7 @@ function IndexTournamentTile({ tournament, userId }: { tournament: TournamentInf
   return (
 
     <Link to={`/tournaments/${tournament.id}`} className="homeTournamentBox is-clickable p-0">
-      <img className='is-full-height is-full-width' src={tournament.picture ? `/tournaments/${tournament.picture}` : "/none.webp"}
+      <img className='is-full-height is-full-width' alt="" src={tournament.picture ? `/tournaments/${tournament.picture}` : "/none.webp"}
         style={{ position: "absolute", objectFit: "cover", backgroundImage: "var(--generic-game-image)", backgroundSize: "cover", backgroundPosition: "center" }}
       />
       <div className={`tournamentName ${tournament.status == TournamentStatus.Done && 'over'}`}>{tournament.name}</div>

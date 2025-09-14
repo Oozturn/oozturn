@@ -80,7 +80,7 @@ function NotificationCenter() {
                 <div id="waitingMatchesList" className="is-flex align-stretch gap-1">
                 {playableMatches.map((match) => (
                     <Link key={match.tournamentId + '_' + IdToString(match.matchId)} to={`/tournaments/${match.tournamentId}`} className="m-2 is-flex align-center gap-1 fade-on-mouse-out">
-                        <span>//</span>
+                        <span>{'//'}</span>
                         <span className="is-uppercase">{tournaments.find(t => t.id == match.tournamentId)?.name}</span> - Match {IdToString(match.matchId)}
                     </Link>
                 ))}

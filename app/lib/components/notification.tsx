@@ -38,6 +38,7 @@ export function NotificationNode() {
     }
     else
       toast.error(message)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [message])
 
 

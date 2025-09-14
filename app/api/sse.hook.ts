@@ -33,6 +33,20 @@ export function useRevalidateOnTournamentUpdate(tournamentId: string) {
   }, [evtData])
 }
 
+export function useRevalidateOnListedTournamentUpdate(tournamentIds: string[]) {
+  const revalidator = useRevalidator()
+  const evtData = useEventSource("/sse", { event: EVENT_UPDATE_TOURNAMENT })
+
+  useEffect(() => {
+    if (!evtData) return
+    const [, , updatedId] = JSON.parse(evtData)
+    if (!tournamentIds.includes(updatedId)) return
+    if (revalidator.state === "idle") {
+      revalidator.revalidate()
+    }
+  }, [evtData])
+}
+
 export function useRevalidateOnTournamentsUpdate() {
   const revalidator = useRevalidator()
   const updateTime = useEventSource("/sse", { event: EVENT_UPDATE_TOURNAMENTS })

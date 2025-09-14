@@ -339,6 +339,7 @@ function MatchTile({ matchId }: { matchId: Id }) {
         } else {
             setErrors(errors.filter(e => !(e.matchID == fetcherData.matchID && e.opponent == fetcherData.opponent)))
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fetcherData])
 
 

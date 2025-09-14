@@ -23,7 +23,7 @@ import { notifyError } from "~/lib/components/notification"
 import { PlayableMatch, TournamentInfo, TournamentStatus } from "~/lib/tournamentEngine/types"
 import { getAllPlayableMatches } from "~/lib/runtimeGlobals/playableMatches.server"
 import { IdToString } from "~/lib/utils/tournaments"
-import { useRevalidateOnTournamentUpdate } from "~/api/sse.hook"
+import { useRevalidateOnListedTournamentUpdate } from "~/api/sse.hook"
 import { UsersList } from "~/lib/components/elements/users-list"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -327,7 +327,7 @@ export function SectionOnGoingMatches({ isActive }: { isActive: boolean }) {
     const navigate = useNavigate()
     const tournamentsWaitingForValidation = tournaments.filter(t => t.status == TournamentStatus.Validating)
     const playableTournaments = Array.from(new Set(playableMatches.map(pm => pm.tournamentId).map(tid => tournaments.find(t => t.id == tid)))) as TournamentInfo[]
-    playableTournaments.forEach(pt => useRevalidateOnTournamentUpdate(pt.id))
+    useRevalidateOnListedTournamentUpdate(playableTournaments.map(pt => pt.id))
 
     return <div className={`is-clipped has-background-secondary-level px-4 is-flex-col ${isActive ? "grow no-basis" : ""}`}>
         <div className="is-title medium is-uppercase py-2 px-1 is-clickable" {...clickorkey(() => setActiveSection("ongoingMatches"))} style={{ flex: "none" }}>
