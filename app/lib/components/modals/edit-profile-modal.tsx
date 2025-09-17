@@ -12,6 +12,7 @@ import { clickorkey } from "~/lib/utils/clickorkey"
 import { CustomButton } from "../elements/custom-button"
 import { Intents } from "~/api/api"
 import { notifyError } from "../notification"
+import { useTranslation } from "react-i18next"
 
 interface EditProfileModalProps {
   show: boolean
@@ -29,6 +30,7 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
   const fetcherUpdateAvatar = useFetcher()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   if (!show || !user) {
     return null
@@ -60,19 +62,19 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
           <div className="has-background-primary-accent pl-1 mx-4"></div>
           <div>
             <div className="is-flex-col gap-2">
-              <div className="is-title big">PROFIL</div>
+              <div className="is-title big">{t("preferences.profil")}</div>
               <div className="is-flex align-center gap-2">
-                <div>Nom du joueur :</div>
+                <div>{t("preferences.nom_joueur")}</div>
                 <div className="has-text-weight-semibold">{user.username}</div>
               </div>
               <div className="is-flex align-center gap-2">
-                <div>Adresse IP :</div>
+                <div>{t("preferences.adresse_ip")}</div>
                 <div className="has-text-weight-semibold">{user.ip || "127.0.0.1"}</div>
               </div>
               <fetcherUpdateTeam.Form method="POST" action="/api">
                 <input type="hidden" name="intent" value={Intents.UPDATE_TEAM} />
                 <div className="is-flex is-flex align-start gap-2" style={{ maxWidth: "402px" }}>
-                  <div>Équipe :</div>
+                  <div>{t("equipe_colon")}</div>
                   <div className="is-flex-col grow no-basis">
                     <input id="field"
                       name="team"
@@ -80,14 +82,14 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
                       defaultValue={user.team}
                       {...autoSubmit(fetcherUpdateTeam)}
                     />
-                    <div className="is-size-7 mt-1">Utilisé pour calculer le score de ton équipe à cette LAN. Te foire pas sur l&apos;orthographe.</div>
+                    <div className="is-size-7 mt-1">{t("preferences.equipe_hint")}</div>
                   </div>
                 </div>
               </fetcherUpdateTeam.Form>
               <fetcherUpdateSeat.Form method="POST" action="/api">
                 <input type="hidden" name="intent" value={Intents.UPDATE_SEAT} />
                 <div className="is-flex is-flex align-start gap-2" style={{ maxWidth: "402px" }}>
-                  <div>Place :</div>
+                  <div>{t("place_colon")}</div>
                   <div className="is-flex-col grow no-basis">
                     <input id="field"
                       name="seat"
@@ -95,29 +97,29 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
                       defaultValue={user.seat}
                       {...autoSubmit(fetcherUpdateSeat)}
                     />
-                    <div className="is-size-7 mt-1">Utilisé pour te retrouver facilement lors des duels. Devrait être de la forme "A12". Demande à un admin si tu trouves pas où t'es assis.</div>
+                    <div className="is-size-7 mt-1">{t("preferences.place_hint")}</div>
                   </div>
                 </div>
               </fetcherUpdateSeat.Form>
               {settings.security.authentication &&
-                <CustomButton callback={handleChangePassword} colorClass="has-background-secondary-accent" contentItems={["Changer mdp"]} />
+                <CustomButton tooltip={t("bouton_tooltips.changer_mdp")} callback={handleChangePassword} colorClass="has-background-secondary-accent" contentItems={[t("boutons.changer_mdp")]} />
               }
             </div>
             <div className="m-5"></div>
             <div className="is-flex-col gap-2">
-              <div className="is-title big">PERSONNALISATION</div>
+              <div className="is-title big">{t("preferences.personalisation")}</div>
               <div className="is-flex align-center gap-2">
-                <div>Thème :</div>
+                <div>{t("preferences.theme")}</div>
                 <CustomRadio setter={setModeLocalStorage} variable={modeLocalStorage} items={modesList.map(mode => { return { label: mode.name, value: mode.name } })} />
               </div>
               <div className="is-flex align-center gap-2">
-                <div>Couleurs d&apos;accent :</div>
+                <div>{t("preferences.couleur_accent")}</div>
                 {accentsList.map(accent =>
-                  <div key={accent.name} title={accent.name} className={`is-clickable accentPicker mx-1 ${accentLocalStorage == accent.name ? 'is-active' : ''}`} {...clickorkey(() => setAccentLocalStorage(accent.name))} style={{ background: `linear-gradient(117.5deg, ${accent.primary} 50%, ${accent.secondary} 50%)` }}></div>
+                  <div key={accent.name} title={t(`accent.${accent.name}`)} className={`is-clickable accentPicker mx-1 ${accentLocalStorage == accent.name ? 'is-active' : ''}`} {...clickorkey(() => setAccentLocalStorage(accent.name))} style={{ background: `linear-gradient(117.5deg, ${accent.primary} 50%, ${accent.secondary} 50%)` }}></div>
                 )}
               </div>
               <div className="is-flex-col gap-2">
-                <div>Avatar :</div>
+                <div>{t("preferences.avatar")}</div>
                 <div className="is-flex align-end gap-4">
                   <div className="is-clickable" {...clickorkey(() => { fileInputRef.current && fileInputRef.current.click() })}>
                     <UserAvatar username={user.username} avatar={user.avatar} size={196} />
@@ -128,7 +130,7 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
                         <input type="hidden" name="intent" value={Intents.REMOVE_AVATAR} />
                         <button type="submit"
                           className="customButton fade-on-mouse-out is-unselectable has-background-primary-accent is-clickable">
-                          Supprimer l&apos;avatar
+                          {t("boutons.supprimer_avatar")}
                         </button>
                       </fetcherRemoveAvatar.Form>
                     }
@@ -139,7 +141,7 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
                       <button
                         onClick={event => { event.preventDefault(); fileInputRef.current?.click() }}
                         className="customButton fade-on-mouse-out is-unselectable has-background-secondary-accent is-clickable">
-                        {user.avatar ? "Changer d'avatar" : "Nouvel avatar"}
+                        {user.avatar ? t("boutons.changer_avatar") : t("boutons.nouvel_avatar")}
                       </button>
                     </fetcherUpdateAvatar.Form>
                   </div>

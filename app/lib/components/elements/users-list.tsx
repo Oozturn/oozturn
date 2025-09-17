@@ -23,6 +23,7 @@ export function UsersList({admin = false}: { admin?: boolean }) {
     const users = useUsers()
     const settings = useSettings()
     const tournaments = useTournaments()
+    const { t } = useTranslation();
     useRevalidateOnUsersUpdate()
 
     const [showAddUsers, setShowAddUsers] = useState(false)
@@ -35,7 +36,6 @@ export function UsersList({admin = false}: { admin?: boolean }) {
     }
 
     const fetcher = useFetcher()
-    const { t } = useTranslation();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const leaderboard: any[] = []
@@ -73,8 +73,8 @@ export function UsersList({admin = false}: { admin?: boolean }) {
 
     return <div className="has-background-secondary-level usersList is-full-height is-flex-col pr-2 p-4 gap-3">
         <div className="is-flex justify-space-between align-center">
-            <div className="is-title medium">{t("joueurs")}</div>
-            {admin && <CustomButton customClasses="small-button" colorClass="has-background-primary-accent" callback={() => setShowAddUsers(true)} contentItems={[SmallCrossSVG(), "Add users"]} />}
+            <div className="is-title medium">{t("joueur_pluriel")}</div>
+            {admin && <CustomButton tooltip={t("bouton_tooltips.ajout_utilisateurs")} customClasses="small-button" colorClass="has-background-primary-accent" callback={() => setShowAddUsers(true)} contentItems={[SmallCrossSVG(), t("boutons.ajout_utilisateurs")]} />}
         </div>
         <CustomModalBinary
             show={!!userInEdit}
@@ -85,8 +85,8 @@ export function UsersList({admin = false}: { admin?: boolean }) {
             }}
             content={
                 <div className="grow is-flex-col align-stretch p2 gap-2">
-                    <div className="">Nouveau pseudo pour {userInEdit?.username} :</div>
-                    <input type="text" placeholder="New username" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} />
+                    <div className="">{t("popups.renommer_utilisateur", { user: userInEdit?.username })}</div>
+                    <input type="text" placeholder={t("popups.renommer_utilisateur_placeholder")} value={newUsername} onChange={(e) => setNewUsername(e.target.value)} />
                 </div>
             }
         />
@@ -95,7 +95,7 @@ export function UsersList({admin = false}: { admin?: boolean }) {
             onHide={() => setShowAddUsers(false)}
             content={
                 <div className="grow is-flex-col align-stretch">
-                    <div className="">Liste ici les noms des utilisateurs à ajouter (un par ligne) :</div>
+                    <div className="">{t("popups.liste_ici_new_users")}</div>
                     {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
                     <textarea autoFocus rows={10} onChange={e => setNewUsers(e.target.value)} />
                 </div>
@@ -104,7 +104,6 @@ export function UsersList({admin = false}: { admin?: boolean }) {
             onConfirm={addUsers}
         />
         <div className="UserTilesContainer is-flex-col p-0 m-0 is-scrollable pr-2">
-            {/* <div className="is-flex align-center justify-center has-background-primary-accent fade-on-mouse-out is-clickable is-unselectable" style={{minHeight:"40px"}} {...clickorkey(() => setShowAddUsers(true))}>Ajouter des joueurs</div> */}
             {users && users.sort((a, b) => a.username.toLowerCase().localeCompare(b.username.toLowerCase())).map(user =>
                 <div key={user.id} className={`userTile is-flex-col is-clickable ${activeUser == user.id ? 'is-active' : ''}`} onMouseEnter={() => setHooveredUser(user.id)} onMouseLeave={() => setHooveredUser("")}>
                     <div className="is-flex justify-space-between align-center">
@@ -124,21 +123,20 @@ export function UsersList({admin = false}: { admin?: boolean }) {
                     </div>
                     <div className='userTooltip is-flex pl-3' {...clickorkey(() => setActiveUser(activeUser == user.id ? '' : user.id))}>
                         <div className='is-flex-col'>
-                            <div>Place: {user.seat || "non placé"}</div>
-                            {/* <div>IP: {user.ip || 'inconnue'}</div> */}
-                            <div>Tournois: {tournaments?.filter(tournament => tournament.players.find(player => player.userId == user.id)).length || 0}</div>
-                            <div>Points: {leaderboard?.find(pscore => pscore.player.id == user.id)?.points || 0}</div>
+                            <div>{t("place_colon")} {user.seat || t("non_place")}</div>
+                            <div>{t("tournois_colon")} {tournaments?.filter(tournament => tournament.players.find(player => player.userId == user.id)).length || 0}</div>
+                            <div>{t("points_colon")} {leaderboard?.find(pscore => pscore.player.id == user.id)?.points || 0}</div>
                         </div>
                     </div>
                 </div>
             )}
         </div>
         <Menu id="usersMenu" animation="slide" >
-            <Item id="renameUser" onClick={handleMenuItemClick}>Renommer</Item>
+            <Item id="renameUser" onClick={handleMenuItemClick}>{t("boutons.menu_renommer")}</Item>
             {settings.security.authentication &&
-                <Item id="resetPassword" onClick={handleMenuItemClick}>Réinitialiser le mot de passe</Item>
+                <Item id="resetPassword" onClick={handleMenuItemClick}>{t("boutons.menu_reinitialiser_mdp")}</Item>
             }
-            <Item id="deleteUser" onClick={handleMenuItemClick}>Supprimer</Item>
+            <Item id="deleteUser" onClick={handleMenuItemClick}>{t("boutons.menu_supprimer")}</Item>
 
         </Menu>
     </div>

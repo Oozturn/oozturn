@@ -1,9 +1,10 @@
 import en from "~/locales/en";
 import fr from "~/locales/fr";
+import xx from "~/locales/xx";
 
 // This is the list of languages your application supports,
 // the fallback is always the last
-export const supportedLngs = ["fr", "en"];
+export const supportedLngs = ["xx", "en", "fr"];
 
 // This is the language you want to use in case
 // if the user preferred language is not in the supportedLngs
@@ -19,4 +20,5 @@ export const defaultNS = "translation";
 export const resources = {
   fr: { translation: fr },
   en: { translation: en },
+  xx: { translation: xx }
 };

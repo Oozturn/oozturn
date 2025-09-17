@@ -4,17 +4,17 @@ export enum AchievementType {
 
     // players
 
-    tournamentWinner = "Tournament Winner",   // most won tournaments
-    efficientWinner = "Efficient Winner",    // ratio wonTournaments/playedTournaments
-    neverFirst = "L'éternel second", // most second places
-    worstPlayerEver = "Worst Player Ever", // worst in global leaderboard
-    chiefWinner = "Chief Winner",    // best ratio
-    chiefLooser = "Chief Looser",    // worst ratio
-    compulsivePlayer = "Compulsive Player",   // most played matches
-    david = "David",  // wins against better seed
+    tournamentWinner = "achievements.tournamentWinner",   // most won tournaments
+    efficientWinner = "achievements.efficientWinner",    // ratio wonTournaments/playedTournaments
+    neverFirst = "achievements.neverFirst", // most second places
+    worstPlayerEver = "achievements.worstPlayerEver", // worst in global leaderboard
+    chiefWinner = "achievements.chiefWinner",    // best ratio
+    chiefLooser = "achievements.chiefLooser",    // worst ratio
+    compulsivePlayer = "achievements.compulsivePlayer",   // most played matches
+    david = "achievements.david",  // wins against better seed
     // Duel
-    underPressure = "Under Pressure",  // most second chances
-    tryHarder = "Try Harder",  // most hard victories
+    underPressure = "achievements.underPressure",  // most second chances
+    tryHarder = "achievements.tryHarder",  // most hard victories
 
     // teams
 
@@ -33,27 +33,27 @@ export interface Achievement {
 }
 
 export const AchievementDecriptors = new Map<AchievementType, string>([
-    [AchievementType.tournamentWinner, "La chèvre."],
-    [AchievementType.efficientWinner, "L'important, c'est de bien choisir ses combats."],
-    [AchievementType.neverFirst, "Le faiseur de héros."],
-    [AchievementType.worstPlayerEver, "Le meilleur dans son domaine."],
-    [AchievementType.chiefWinner, "Un dueliste acharné."],
-    [AchievementType.chiefLooser, "Le meilleur adversaire."],
-    [AchievementType.compulsivePlayer, "L'accro."],
-    [AchievementType.david, "Toujours sous-estimé, jamais égalé."],
-    [AchievementType.underPressure, "C'était pas loin, hein ?"],
-    [AchievementType.tryHarder, "GG, belle remontada."],
+    [AchievementType.tournamentWinner, "achievements.tournamentWinner_desc"],
+    [AchievementType.efficientWinner, "achievements.efficientWinner_desc"],
+    [AchievementType.neverFirst, "achievements.neverFirst_desc"],
+    [AchievementType.worstPlayerEver, "achievements.worstPlayerEver_desc"],
+    [AchievementType.chiefWinner, "achievements.chiefWinner_desc"],
+    [AchievementType.chiefLooser, "achievements.chiefLooser_desc"],
+    [AchievementType.compulsivePlayer, "achievements.compulsivePlayer_desc"],
+    [AchievementType.david, "achievements.david_desc"],
+    [AchievementType.underPressure, "achievements.underPressure_desc"],
+    [AchievementType.tryHarder, "achievements.tryHarder_desc"],
 ])
 
 export const AchievementValueDecriptor = new Map<AchievementType, { valueDescription: string, valueUseBest: boolean, title?: string }>([
-    [AchievementType.tournamentWinner, { valueDescription: "Tournois gagnés", valueUseBest: true }],
-    [AchievementType.efficientWinner, { valueDescription: "Ratio tournois gagnés/joués", valueUseBest: true }],
-    [AchievementType.neverFirst, { valueDescription: "Secondes places", valueUseBest: true }],
-    [AchievementType.worstPlayerEver, { valueDescription: "Points au classement global", valueUseBest: false }],
-    [AchievementType.chiefWinner, { valueDescription: "Points marqués/encaissés (normalisé)", valueUseBest: true, title: "0, t'as pris tarif.\n1, t'as mis cher à ton adversaire." }],
-    [AchievementType.chiefLooser, { valueDescription: "Points marqués/encaissés (normalisé)", valueUseBest: false, title: "0, t'as pris tarif.\n1, t'as mis cher à ton adversaire." }],
-    [AchievementType.compulsivePlayer, { valueDescription: "Matchs joués", valueUseBest: true }],
-    [AchievementType.david, { valueDescription: "Victoires contre des meilleurs joueurs", valueUseBest: true, title: "On regarde le seed.\nS'il est aléatoire bah... tant pis..." }],
-    [AchievementType.underPressure, { valueDescription: "Finales depuis le looser bracket", valueUseBest: true }],
-    [AchievementType.tryHarder, { valueDescription: "Tournois gagnés depuis le looser bracket", valueUseBest: true }],
+    [AchievementType.tournamentWinner, { valueDescription: "achievements.tournamentWinner_value_desc", valueUseBest: true }],
+    [AchievementType.efficientWinner, { valueDescription: "achievements.efficientWinner_value_desc", valueUseBest: true }],
+    [AchievementType.neverFirst, { valueDescription: "achievements.neverFirst_value_desc", valueUseBest: true }],
+    [AchievementType.worstPlayerEver, { valueDescription: "achievements.worstPlayerEver_value_desc", valueUseBest: false }],
+    [AchievementType.chiefWinner, { valueDescription: "achievements.chiefWinner_value_desc", valueUseBest: true, title: "0, t'as pris tarif.\n1, t'as mis cher à ton adversaire." }],
+    [AchievementType.chiefLooser, { valueDescription: "achievements.chiefLooser_value_desc", valueUseBest: false, title: "0, t'as pris tarif.\n1, t'as mis cher à ton adversaire." }],
+    [AchievementType.compulsivePlayer, { valueDescription: "achievements.compulsivePlayer_value_desc", valueUseBest: true }],
+    [AchievementType.david, { valueDescription: "achievements.david_value_desc", valueUseBest: true, title: "On regarde le seed.\nS'il est aléatoire bah... tant pis..." }],
+    [AchievementType.underPressure, { valueDescription: "achievements.underPressure_value_desc", valueUseBest: true }],
+    [AchievementType.tryHarder, { valueDescription: "achievements.tryHarder_value_desc", valueUseBest: true }],
 ])

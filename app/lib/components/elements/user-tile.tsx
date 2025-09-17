@@ -4,7 +4,6 @@ import { AvatarComponent } from "avatar-initials"
 import { accentsList } from "../data/themes"
 import useLocalStorageState from "use-local-storage-state"
 import { ShinySVG } from "../data/svg-container"
-import { useStats } from "../contexts/StatsContext"
 
 interface UserTileProps {
     userId: string
@@ -69,50 +68,5 @@ export function FakeUserTileRectangle({ userName, initial, teamName, colorClass,
         </div>
         <div style={{ maxWidth: maxUsernameLength + "px", overflow: "hidden", textOverflow: "ellipsis" }}>{userName}</div>
         {teamName && <div className='fade-text' style={{ maxWidth: maxTeamLength + "px", overflow: "hidden", textOverflow: "ellipsis", textWrap: "nowrap" }}>[{teamName}]</div>}
-    </div>
-}
-
-interface UserTileUsersPageProps extends UserTileProps {
-    tournaments: number
-    points: number
-    leaderboardPlace: number
-}
-export function UserTileUsersPage({ userId, tournaments, points, leaderboardPlace }: UserTileUsersPageProps) {
-    const user = useUsers().find(user => (user.id == userId) || (user.username == userId))
-    const userStats = useStats().usersStats.find(us => us.userId == userId)
-    if (!user) return null
-
-    const [avatarHeight, minWidth] = [150, 260]
-
-    const title = userStats ?
-        "Tournois gagnés : " + String(userStats.wonTournaments)
-        + "\nMeilleure position : " + String(userStats.bestTournamentPosition)
-        + "\nPoints au classement global : " + String(userStats.globalTournamentPoints)
-        + "\nPoints marqués/encaissés (normalisé) : " + String(userStats.pointsRatio.toFixed(2))
-        + "\nMatchs joués : " + String(userStats.playedMatches)
-        : undefined
-
-    return <div key={user.id} className="is-flex-col no-basis grow gap-2 p-3 align-stretch is-unselectable has-background-secondary-level" style={{ minWidth: minWidth }} title={title}>
-        <div className='is-flex justify-center'>
-            <UserAvatar username={user.username} avatar={user.avatar} size={avatarHeight} />
-        </div>
-        <div className="is-flex-col grow gap-1 justify-center" style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
-            <div className="is-title medium is-flex justify-center">{user.username}</div>
-            {user.team && <div className='fade-text is-flex justify-center'>[{user.team}]</div>}
-            <div className="is-flex-col align-stretch grow justify-center">
-                <div className="is-flex gap-2 ">
-                    <div className="has-text-right is-one-fifth">{tournaments}</div>
-                    <div className="">tournois participés</div>
-                </div>
-                <div className="is-flex gap-2 ">
-                    <div className="has-text-right is-one-fifth">{points}</div>
-                    <div className="">Points gagnés</div>
-                </div>
-                <div className="is-flex">
-                    <div className="has-text-right is-one-fifth">{leaderboardPlace}</div>
-                    <div className=""><sup>{["ère", "nde"][leaderboardPlace - 1] ?? "ème"}</sup> place</div>
-                </div>
-            </div>
-        </div>
     </div>
 }

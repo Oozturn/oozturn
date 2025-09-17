@@ -49,7 +49,7 @@ export default function Navbar() {
                 <div className={`navbar-menu ${showMobileNav && "is-active"}`}>
                     <div className="navbar-end">
                         {user?.isAdmin && <Link className={`navbar-item is-title medium is-uppercase is-tab px-0 mx-3 ${current_page == "/admin" ? 'is-active' : ''}`} to="/admin">{t("navbar.admin")}</Link>}
-                        {user && <Link className={`navbar-item is-title medium is-uppercase is-tab px-0 mx-3 ${current_page == "/" ? 'is-active' : ''}`} to="/">{t("navbar.acceuil")}</Link>}
+                        {user && <Link className={`navbar-item is-title medium is-uppercase is-tab px-0 mx-3 ${current_page == "/" ? 'is-active' : ''}`} to="/">{t("navbar.accueil")}</Link>}
                         {user && <Link className={`navbar-item is-title medium is-uppercase is-tab px-0 mx-3 ${current_page == "/info" ? 'is-active' : ''}`} to="/info">{t("navbar.infos")}</Link>}
                         {user && <Link className={`navbar-item is-title medium is-uppercase is-tab px-0 mx-3 ${current_page == "/results" ? 'is-active' : ''}`} to="/results">{t("navbar.resultats")}</Link>}
                         <div className="navbar-item m-4"></div>
@@ -69,6 +69,7 @@ export default function Navbar() {
 function NotificationCenter() {
     const playableMatches = usePlayableMatches()
     const tournaments = useTournaments()
+    const {t} = useTranslation()
 
     if (playableMatches.length == 0) {
         return null
@@ -78,12 +79,12 @@ function NotificationCenter() {
         <div className="navbar-notifications fade-on-mouse-out navbar-item p-0 m-0 is-flex-col align-stretch">
             <div className="grow is-flex justify-center align-center"><NotifySVG /></div>
             <div className="navbarNotificationCenter has-background-secondary-level is-flex-col align-stretch">
-                <div id="waitingMatchesTitle" className="is-flex align-center justify-center p-2 is-uppercase has-background-primary-accent has-text-weight-semibold">Matchs en attente</div>
+                <div id="waitingMatchesTitle" className="is-flex align-center justify-center p-2 pl-5 is-uppercase has-background-primary-accent has-text-weight-semibold">{t("navbar.matchs_en_attente")}</div>
                 <div id="waitingMatchesList" className="is-flex align-stretch gap-1">
                 {playableMatches.map((match) => (
                     <Link key={match.tournamentId + '_' + IdToString(match.matchId)} to={`/tournaments/${match.tournamentId}`} className="m-2 is-flex align-center gap-1 fade-on-mouse-out">
                         <span>//</span>
-                        <span className="is-uppercase">{tournaments.find(t => t.id == match.tournamentId)?.name}</span> - Match {IdToString(match.matchId)}
+                        <span className="is-uppercase">{tournaments.find(t => t.id == match.tournamentId)?.name}</span> - {t("navbar.match_id", { matchId: IdToString(match.matchId) })}
                     </Link>
                 ))}
                 </div>
@@ -136,7 +137,7 @@ function UserProfile() {
                         {userStats &&
                             <div className="is-flex points align-start">
                                 <div>{userStats.globalTournamentPoints || 0}</div>
-                                <div className="is-size-7 p-1">pts</div>
+                                <div className="is-size-7 p-1">{t("points_abr")}</div>
                             </div>
                         }
                     </div>

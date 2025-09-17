@@ -8,6 +8,7 @@ import { checkPassword, hasPassword } from "~/lib/persistence/password.server"
 import { getUserFromRequest, updateSessionWithPasswordAuth } from "~/lib/session.server"
 import { notifyError } from "~/lib/components/notification"
 import { User } from "~/lib/types/user"
+import { Trans, useTranslation } from "react-i18next"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -60,6 +61,7 @@ export default function LoginStepPassword() {
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const formRef = useRef(null)
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (actionResult?.errors?.password) {
@@ -74,10 +76,14 @@ export default function LoginStepPassword() {
         <LogoUnfolded animate={true} folded={true} />
       </div>
       <div className="is-flex-col align-center gap-5 p-4 has-background-secondary-level " style={{ maxWidth: "50vw" }}>
-        <div className="has-text-centered is-size-3">Bienvenue <i style={{ color: "var(--accent-primary-color)" }}>{user.username}</i> ! </div>
+        <div className='has-text-centered is-size-3 cap-first'>
+          <Trans i18nKey="login.bienvenue_user" values={{ user: user.username }}>
+            bienvenue <i className="has-text-primary-accent">{user.username}</i> !
+          </Trans>
+        </div>
         <Form ref={formRef} method="post" className="is-flex-col gap-6 is-full-width align-stretch">
           <div className="is-flex-col align-stretch gap-2">
-            <div>Mot de passe :</div>
+            <div>{t("login.mdp_colon")}</div>
             <div className="is-flex align-center gap-2 has-background-primary-level">
               <input
                 id="password"
@@ -86,7 +92,7 @@ export default function LoginStepPassword() {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Mot de passe"
+                placeholder={t("login.mdp_placeholder")}
                 required
                 // eslint-disable-next-line jsx-a11y/no-autofocus
                 autoFocus
@@ -100,7 +106,7 @@ export default function LoginStepPassword() {
             colorClass="has-background-secondary-accent"
             customClasses="is-align-self-flex-end"
             callback={() => formRef.current && (formRef.current as HTMLFormElement).submit()}
-            contentItems={["Se connecter"]}
+            contentItems={[t("login.se_connecter")]}
           />
         </Form>
       </div>

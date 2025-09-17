@@ -25,7 +25,7 @@ export enum BracketStatus {
 export enum BracketType {
 	Duel = "Duel",
 	FFA = "FFA",
-	GroupStage = "Round robin",
+	GroupStage = "RoundRobin",
 }
 
 /** Concatenation of all supported bracket type options */

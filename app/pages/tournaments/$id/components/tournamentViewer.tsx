@@ -17,8 +17,10 @@ import { range } from "~/lib/utils/ranges"
 import { DebouncedInputNumber } from "~/lib/components/elements/debounced-input"
 import { useUsers } from "~/lib/components/contexts/UsersContext"
 import { useSettings } from "~/lib/components/contexts/SettingsContext"
+import { useTranslation } from "react-i18next"
 
 export function TournamentViewer() {
+    const { t } = useTranslation()
     const tournament = useTournament()
     const [width, setWidth] = useState(0)
     const [height, setHeight] = useState(0)
@@ -66,12 +68,12 @@ export function TournamentViewer() {
             {tournamentWideView.includes(tournament.id) ?
                 <div className="is-flex align-center gap-1">
                     <FitSVG />
-                    <p>Réduire</p>
+                    <p>{t("tournoi.reduire")}</p>
                 </div>
                 :
                 <div className="is-flex align-center gap-1">
                     <FitSVG />
-                    <p>Agrandir</p>
+                    <p>{t("tournoi.agrandir")}</p>
                 </div>
             }
         </div>
@@ -122,8 +124,8 @@ export function TournamentViewer() {
                         <div id='OpponentInfos' className='is-flex-col p-4 gap-4 is-relative'>
                             <div className='is-title medium has-text-primary-accent'>{user.username}</div>
                             <div className='pl-2 is-flex-col gap-1'>
-                                <div className="is-flex align-center gap-2"><GroupSVG />{user.team ? user.team : "Solo"}</div>
-                                <div className="is-flex align-center gap-2"><MapPinSVG /> {user.seat ? user.seat : "Not set"}</div>
+                                <div className="is-flex align-center gap-2"><GroupSVG />{user.team ? user.team : t("solo")}</div>
+                                <div className="is-flex align-center gap-2"><MapPinSVG /> {user.seat ? user.seat : t("non_renseigne")}</div>
                             </div>
                         </div>
                     </div>
@@ -136,11 +138,11 @@ export function TournamentViewer() {
         >
             <div className='is-flex align-center gap-1'>
                 <div className="is-flex align-center"><ZoomInSVG />/<ZoomOutSVG /></div>
-                <div>Molette</div>
+                <div>{t("tournoi.molette")}</div>
             </div>
             <div className='is-flex align-center gap-1'>
                 <PanSVG />
-                <div>Cliquer-glisser</div>
+                <div>{t("tournoi.cliquer_glisser")}</div>
             </div>
         </div>
     </div>
@@ -172,6 +174,7 @@ function BracketViewer({ bracket }: { bracket: number }) {
 
 function SectionViewer({ bracket, section }: { bracket: number, section: number }) {
     const tournament = useTournament()
+    const { t } = useTranslation()
     if (tournament.bracketSettings[bracket].type == BracketType.GroupStage) {
         return <GroupStageSectionViewer bracket={bracket} section={section} />
     }
@@ -180,11 +183,11 @@ function SectionViewer({ bracket, section }: { bracket: number, section: number 
     const rounds = Array.from(new Set(matches.map(match => match.id.r)))
 
     const sectionName = (() => {
-        if (tournament.bracketsCount == 2 && bracket == 0) return 'Poule ' + section
+        if (tournament.bracketsCount == 2 && bracket == 0) return t('tournoi.poule_nb', { number: section })
         if (tournament.bracketSettings[bracket].type == BracketType.FFA) return ''
-        if (section == Duel.WB) return 'Tableau Principal'
-        if (tournament.bracketSettings[bracket].last == Duel.LB) return 'Rattrapage'
-        return 'Petite finale'
+        if (section == Duel.WB) return t('tournoi.tableau_principal')
+        if (tournament.bracketSettings[bracket].last == Duel.LB) return t('tournoi.rattrapage')
+        return t('tournoi.petite_finale')
     })()
 
     return (
@@ -207,6 +210,7 @@ function GroupStageSectionViewer({ bracket, section }: { bracket: number, sectio
     const matches = useTournament().matches.filter(match => match.bracket == bracket && match.id.s == section)
     const user = useUser()
     const { hightlightOpponent, setHightlightOpponent } = useContext(HightlightOpponentContext)
+    const { t } = useTranslation()
 
     const players = new Set<string>()
     matches.flatMap(m => m.opponents).forEach(opponent => opponent && players.add(opponent))
@@ -241,10 +245,10 @@ function GroupStageSectionViewer({ bracket, section }: { bracket: number, sectio
 
     return (
         <div className="is-flex-col gap-5 align-center">
-            <div className="is-title medium">Poule {section}</div>
+            <div className="is-title medium">{t('tournoi.poule_nb', { number: section })}</div>
             {results && <div className="is-flex-row has-background-secondary-level gap-3 p-1 has-text-centered mb-5">
                 <div className="is-flex-col gap-1" style={{ width: 245 }}>
-                    <div className="has-text-weight-semibold mb-2">Joueurs</div>
+                    <div className="has-text-weight-semibold mb-2">{t('joueur_pluriel')}</div>
                     {results.map(res => <div key={"id_" + res.id} onMouseEnter={() => setHightlightOpponent(res.id || "")} onMouseLeave={() => setHightlightOpponent("")}>{tournament.settings.useTeams ?
                         <FakeUserTileRectangle userName={res.id} height={32} initial={res.id[0]} maxLength={245} colorClass={getOpponentColorClass(res.id)} />
                         :
@@ -252,24 +256,24 @@ function GroupStageSectionViewer({ bracket, section }: { bracket: number, sectio
                     }</div>)}
                 </div>
                 <div className="is-flex-col gap-1">
-                    <div className="has-text-weight-semibold mb-2">V</div>
+                    <div className="has-text-weight-semibold mb-2">{t("tournoi.v_victoire")}</div>
                     {results.map(res => <div key={"v_" + res.id} style={{ height: 32 }} onMouseEnter={() => setHightlightOpponent(res.id || "")} onMouseLeave={() => setHightlightOpponent("")}>{res.wins}</div>)}
                 </div>
                 <div className="is-flex-col gap-1">
-                    <div className="has-text-weight-semibold mb-2">N</div>
+                    <div className="has-text-weight-semibold mb-2">{t("tournoi.n_nul")}</div>
                     {results.map(res => <div key={"v_" + res.id} style={{ height: 32 }} onMouseEnter={() => setHightlightOpponent(res.id || "")} onMouseLeave={() => setHightlightOpponent("")}>{res.draws || 0}</div>)}
                 </div>
                 <div className="is-flex-col gap-1">
-                    <div className="has-text-weight-semibold mb-2">D</div>
+                    <div className="has-text-weight-semibold mb-2">{t("tournoi.d_defaite")}</div>
                     {results.map(res => <div key={"v_" + res.id} style={{ height: 32 }} onMouseEnter={() => setHightlightOpponent(res.id || "")} onMouseLeave={() => setHightlightOpponent("")}>{res.losses || 0}</div>)}
                 </div>
                 <div className="has-background-grey mb-1 mt-4" style={{ width: 2 }}></div>
                 <div className="is-flex-col gap-1">
-                    <div className="has-text-weight-semibold mb-2">Score</div>
+                    <div className="has-text-weight-semibold mb-2">{t('score')}</div>
                     {results.map(res => <div key={"v_" + res.id} style={{ height: 32 }} onMouseEnter={() => setHightlightOpponent(res.id || "")} onMouseLeave={() => setHightlightOpponent("")}>{getScore(res)}</div>)}
                 </div>
                 <div className="is-flex-col gap-1">
-                    <div className="has-text-weight-semibold mb-2">Place</div>
+                    <div className="has-text-weight-semibold mb-2">{t('place_singulier')}</div>
                     {results.map((res, i) => <div key={"v_" + res.id} style={{ height: 32 }} className={
                         ((tournament.bracketsCount == 2 && bracket == 0) ?
                             qualifiedPlayers.includes(res.id || "")
@@ -304,13 +308,14 @@ function RoundViewer({ bracket, section, round }: { bracket: number, section: nu
 }
 
 function FinaleViewer({ bracket }: { bracket: number }) {
+    const { t } = useTranslation()
     const matches = useTournament().matches.filter(match => match.bracket == bracket && match.isFinale)
     if (matches.length == 0) return null
 
     return (
         <div className="is-flex-col gap-1 justify-center">
             <div className="is-flex-row gap-3 justify-space-around is-relative">
-                <div className="pr-5 is-title medium" style={{ position: "absolute", left: "2rem", top: "-2.5rem" }}>Finale</div>
+                <div className="pr-5 is-title medium" style={{ position: "absolute", left: "2rem", top: "-2.5rem" }}>{t('tournoi.finale')}</div>
                 {matches.map(match =>
                     <MatchTile key={bracket + '.' + IdToString(match.id)} matchId={match.id} />
                 )}
@@ -332,7 +337,7 @@ function MatchTile({ matchId }: { matchId: Id }) {
     useEffect(() => {
         if (!fetcherData || fetcherData.type != MatchesIntents.SCORE || !fetcherData.matchID || !fetcherData.opponent) return
         if (fetcherData.error) {
-            if(!errors.some(e => e.matchID == fetcherData.matchID && e.opponent == fetcherData.opponent)) {
+            if (!errors.some(e => e.matchID == fetcherData.matchID && e.opponent == fetcherData.opponent)) {
                 setErrors([...errors, { matchID: fetcherData.matchID, opponent: fetcherData.opponent }])
             }
         } else {

@@ -1,18 +1,19 @@
 import { globalTournamentPoints } from "~/lib/types/lan"
 import { MicroButton } from "./custom-button";
+import { useTranslation } from "react-i18next";
 
 interface ShowGlobalTournamentPointsProps {
     points: globalTournamentPoints
 }
 export function ShowGlobalTournamentPoints({ points }: ShowGlobalTournamentPointsProps) {
-
+    const {t} = useTranslation()
     const leadersMap = getLeadersMap(points);
-    const defaultPointRange = `${points.leaders.length <= 4 ? points.leaders.length + 1 : Math.pow(2, points.leaders.length - 2) + 1} et +`
+    const defaultPointRange = `${points.leaders.length <= 4 ? points.leaders.length + 1 : Math.pow(2, points.leaders.length - 2) + 1} +`
 
     return <div className='globalTournamentOptions is-flex-row gap-1'>
         <div className='is-flex-col'>
-            <div className='is-flex justify-end align-center'>Place :</div>
-            <div className='is-flex justify-end align-center'>Points :</div>
+            <div className='is-flex justify-end align-center'>{t("place_colon")}</div>
+            <div className='is-flex justify-end align-center'>{t("points_colon")}</div>
         </div>
         {Array.from(leadersMap.entries()).map(([key, pts], index) =>
             <div key={index} className="rankPoints is-flex-col">
@@ -32,14 +33,14 @@ interface EditGlobalTournamentPointsProps {
     updatePoints: (points: globalTournamentPoints) => void
 }
 export function EditGlobalTournamentPoints({ points, updatePoints }: EditGlobalTournamentPointsProps) {
-
+    const {t} = useTranslation()
     const leadersMap = getLeadersMap(points);
-    const defaultPointRange = `${points.leaders.length <= 4 ? points.leaders.length + 1 : Math.pow(2, points.leaders.length - 2) + 1} et +`
+    const defaultPointRange = `${points.leaders.length <= 4 ? points.leaders.length + 1 : Math.pow(2, points.leaders.length - 2) + 1} +`
 
     return <div className='globalTournamentOptions editing is-flex-row gap-3 '>
         <div className='is-flex-col'>
-            <div className='is-flex justify-end align-center'>Place :</div>
-            <div className='is-flex justify-end align-center'>Points :</div>
+            <div className='is-flex justify-end align-center'>{t("place_colon")}</div>
+            <div className='is-flex justify-end align-center'>{t("points_colon")}</div>
         </div>
         {Array.from(leadersMap.entries()).map(([key, pts], index) =>
             <div key={index} className="rankPoints is-flex-col align-center">

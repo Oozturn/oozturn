@@ -23,6 +23,7 @@ import { getUserFromRequest, getUserId } from "~/lib/session.server"
 import { User } from "~/lib/types/user"
 import { UserTileRectangle } from "~/lib/components/elements/user-tile"
 import { clickorkey } from "~/lib/utils/clickorkey"
+import { Trans, useTranslation } from "react-i18next"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
@@ -112,18 +113,18 @@ export async function action({ request }: ActionFunctionArgs) {
                 break
             case MatchesIntents.SCORE:
                 scoreMatch(jsonData.tournamentId as string, jsonData.matchID as string, jsonData.opponent as string, jsonData.score as number | null, await getUserFromRequest(request) as User)
-                return json({error: null, type: MatchesIntents.SCORE, matchID: jsonData.matchID as string, opponent: jsonData.opponent as string})
+                return json({ error: null, type: MatchesIntents.SCORE, matchID: jsonData.matchID as string, opponent: jsonData.opponent as string })
             default:
                 break
         }
     } catch (error) {
         const userId = await getUserId(request) as string
         EventServerError(userId, intent + ": " + error as string)
-        if(intent == MatchesIntents.SCORE) {
-            return json({error: "Error while scoring match", type: MatchesIntents.SCORE, matchID: jsonData.matchID as string, opponent: jsonData.opponent as string})
+        if (intent == MatchesIntents.SCORE) {
+            return json({ error: "Error while scoring match", type: MatchesIntents.SCORE, matchID: jsonData.matchID as string, opponent: jsonData.opponent as string })
         }
     }
-    return json({error: null})
+    return json({ error: null })
 }
 
 export enum TournamentManagementIntents {
@@ -158,6 +159,7 @@ export enum MatchesIntents {
 export default function TournamentPage() {
     const { tournament } = useLoaderData<typeof loader>()
     const [tournamentWideView,] = useLocalStorageState<string[]>("tournamentWideView", { defaultValue: [] })
+    const { t } = useTranslation()
 
 
     useRevalidateOnTournamentUpdate(tournament.id)
@@ -223,7 +225,7 @@ export default function TournamentPage() {
         <TournamentContext.Provider value={tournament}>
             <div className="is-flex-col grow gap-3">
                 <div className="is-title big is-uppercase has-background-secondary-level p-2 px-4">
-                    Tournoi {tournament.properties.name}
+                    {t("tournoi.tournoi_nom", { tournamentName: tournament.properties.name })}
                 </div>
                 <div className="has-background-secondary-level is-flex-row grow p-3 gap-6">
                     {!tournamentWideView.includes(tournament.id) && <div className="is-flex-col is-relative gap-2" style={{ width: "30%", minWidth: "30%", maxWidth: "30%" }}>
@@ -244,12 +246,12 @@ export default function TournamentPage() {
                                     <>
                                         <CustomButton
                                             callback={toggleBalanceTournament}
-                                            tooltip={tournament.status == TournamentStatus.Open ? "Empêcher les joueurs d'interragir avec le tournoi, pour pouvoir les re-seeder" : "Réouvrir le tournoi aux joueurs"}
-                                            contentItems={[tournament.status == TournamentStatus.Open ? LockSVG() : UnlockSVG(), "Inscriptions"]}
+                                            tooltip={tournament.status == TournamentStatus.Open ? t("bouton_tooltips.lock_inscriptions") : t("bouton_tooltips.unlock_inscriptions")}
+                                            contentItems={[tournament.status == TournamentStatus.Open ? LockSVG() : UnlockSVG(), t("boutons.lock_inscriptions")]}
                                             colorClass='has-background-primary-level' />
                                         {canAddPlayers && <PlayersSelector />}
                                         {/**  DEV ONLY  */}
-                                        {process.env.NODE_ENV === "development" && canAddPlayers && <CustomButton callback={addFakePlayer} contentItems={["Add player"]} colorClass='has-background-primary' />}
+                                        {process.env.NODE_ENV === "development" && canAddPlayers && <CustomButton tooltip={t("bouton_tooltips.ajouter_joueur")} callback={addFakePlayer} contentItems={[t("boutons.ajouter_joueur")]} colorClass='has-background-primary' />}
                                         {/**  DEV ONLY  */}
                                     </>
                                     :
@@ -258,9 +260,9 @@ export default function TournamentPage() {
                                 <>
                                     <div></div>
                                     {tournament.players.find(player => player.userId == user.id) ?
-                                        <CustomButton callback={leaveTournament} contentItems={[LeaveSVG(), "Quitter"]} colorClass='has-background-secondary-accent' />
+                                        <CustomButton callback={leaveTournament} contentItems={[LeaveSVG(), t("boutons.quitter")]} colorClass='has-background-secondary-accent' />
                                         :
-                                        <CustomButton callback={joinTournament} active={canAddPlayers} contentItems={[ParticipateSVG(), "Participer"]} colorClass='has-background-primary-accent' />
+                                        <CustomButton callback={joinTournament} active={canAddPlayers} contentItems={[ParticipateSVG(), t("boutons.participer")]} colorClass='has-background-primary-accent' />
                                     }
                                 </>
                             </div>
@@ -276,6 +278,7 @@ export default function TournamentPage() {
 
 
 function PlayersSelector() {
+    const { t } = useTranslation()
     const { tournament } = useLoaderData<typeof loader>()
     const fetcher = useFetcher()
     const [showAddPlayers, setShowAddPlayers] = useState(false)
@@ -316,13 +319,13 @@ function PlayersSelector() {
         )
     }
 
-    return <><CustomButton callback={showModal} contentItems={["Add players"]} colorClass="has-background-primary-level" />
+    return <><CustomButton tooltip={t("bouton_tooltips.ajouter_joueurs")} callback={showModal} contentItems={[t("boutons.ajouter_joueurs")]} colorClass="has-background-primary-level" />
         <CustomModalBinary
             show={showAddPlayers}
             onHide={() => setShowAddPlayers(false)}
             content={
                 <div className="grow is-flex-col align-stretch p-1" style={{ maxHeight: "60vh" }}>
-                    <div className="mb-3">Sélectionne les joueurs à inscrire au tournoi:</div>
+                    <div className="mb-3">{t("popups.selectionne_joueurs")}</div>
                     <div className="is-flex wrap gap-3 is-scrollable has-background-primary-level p-2">
                         {playersList.map(player =>
                             <div key={player.id}
@@ -347,6 +350,7 @@ function TournamentCommands() {
     const user = useUser()
     const fetcher = useFetcher()
     const navigate = useNavigate()
+    const { t } = useTranslation()
 
     const [showConfirmStart, setShowConfirmStart] = useState(false)
     const [showConfirmStop, setShowConfirmStop] = useState(false)
@@ -424,23 +428,23 @@ function TournamentCommands() {
     }
     const items: { content: ReactNode[], callback: CallableFunction }[] = []
     if (![TournamentStatus.Done, TournamentStatus.Validating].includes(tournament.status))
-        items.push({ content: [SubsribedSVG(), "Éditer"], callback: editTournament })
+        items.push({ content: [SubsribedSVG(), t("boutons.editer")], callback: editTournament })
     if ([TournamentStatus.Open, TournamentStatus.Balancing].includes(tournament.status))
-        items.push({ content: [BinSVG(), "Annuler"], callback: () => setShowConfirmCancel(true) })
+        items.push({ content: [BinSVG(), t("boutons.annuler")], callback: () => setShowConfirmCancel(true) })
     if (![TournamentStatus.Open, TournamentStatus.Balancing, TournamentStatus.Done].includes(tournament.status))
-        items.push({ content: [RollBackSVG(), "Redémarrer"], callback: () => setShowConfirmStop(true) })
+        items.push({ content: [RollBackSVG(), t("boutons.redemarrer")], callback: () => setShowConfirmStop(true) })
     if ([TournamentStatus.Running, TournamentStatus.Paused].includes(tournament.status) && showFFbutton)
-        items.push({ content: tournament.status == TournamentStatus.Running ? [LockSVG(), "Verrouiller"] : [StartSVG(), "Déverrouiller"], callback: togglePause })
+        items.push({ content: tournament.status == TournamentStatus.Running ? [LockSVG(), t("boutons.verrouiller")] : [StartSVG(), t("boutons.deverrouiller")], callback: togglePause })
 
     return <div className='is-flex justify-end gap-3'>
         {showFFbutton && <>
-            <CustomButton callback={() => setShowConfirmForfeit(true)} contentItems={[ForfeitSVG(), "Abandonner"]} colorClass='has-background-primary-accent' />
-            <CustomModalBinary show={showConfirmForfeit} onHide={() => setShowConfirmForfeit(false)} content={"Es-tu sûr de vouloir abandonner ?"} cancelButton={true} onConfirm={forfeit} />
+            <CustomButton callback={() => setShowConfirmForfeit(true)} contentItems={[ForfeitSVG(), t("boutons.abandonner")]} colorClass='has-background-primary-accent' />
+            <CustomModalBinary show={showConfirmForfeit} onHide={() => setShowConfirmForfeit(false)} content={t("popups.abandonner")} cancelButton={true} onConfirm={forfeit} />
         </>}
         {user.isAdmin && <>
-            {[TournamentStatus.Open, TournamentStatus.Balancing].includes(tournament.status) && <CustomButton callback={() => setShowConfirmStart(true)} contentItems={[StartSVG(), "Démarrer"]} colorClass='has-background-primary-accent' />}
-            {[TournamentStatus.Validating].includes(tournament.status) && <CustomButton callback={() => setShowConfirmValidate(true)} contentItems={[ThumbUpSVG(), "Valider"]} colorClass='has-background-primary-accent' />}
-            {[TournamentStatus.Running, TournamentStatus.Paused].includes(tournament.status) && !showFFbutton && <CustomButton callback={togglePause} contentItems={tournament.status == TournamentStatus.Running ? [LockSVG(), "Verrouiller"] : [StartSVG(), "Déverrouiller"]} colorClass='has-background-primary-accent' />}
+            {[TournamentStatus.Open, TournamentStatus.Balancing].includes(tournament.status) && <CustomButton callback={() => setShowConfirmStart(true)} contentItems={[StartSVG(), t("boutons.demarrer")]} colorClass='has-background-primary-accent' />}
+            {[TournamentStatus.Validating].includes(tournament.status) && <CustomButton callback={() => setShowConfirmValidate(true)} contentItems={[ThumbUpSVG(), t("boutons.valider")]} colorClass='has-background-primary-accent' />}
+            {[TournamentStatus.Running, TournamentStatus.Paused].includes(tournament.status) && !showFFbutton && <CustomButton callback={togglePause} contentItems={tournament.status == TournamentStatus.Running ? [LockSVG(), t("boutons.verrouiller")] : [StartSVG(), t("boutons.deverrouiller")]} colorClass='has-background-primary-accent' />}
             <Dropdown
                 trigger={
                     <SquareButton contentItems={[MoreSVG()]} colorClass='has-background-primary-level' />}
@@ -449,10 +453,10 @@ function TournamentCommands() {
                 align="right"
                 direction="top"
             />
-            <CustomModalBinary show={showConfirmCancel} onHide={() => setShowConfirmCancel(false)} content={"Es-tu sûr de vouloir annuler ce tournoi ?"} cancelButton={true} onConfirm={cancelTournament} />
-            <CustomModalBinary show={showConfirmStart} onHide={() => setShowConfirmStart(false)} content={<>Es-tu sûr de vouloir démarrer ce tournoi ? {tournament.settings.useTeams ? <><br />Les équipes vides et les joueurs sans équipes seront retirés du tournoi.</> : ""}</>} cancelButton={true} onConfirm={startTournament} />
-            <CustomModalBinary show={showConfirmStop} onHide={() => setShowConfirmStop(false)} content={<>Es-tu sûr de vouloir démarrer ce tournoi ?<br />Tu pourras éditer {tournament.settings.useTeams ? "les équipes et " : ""}les inscriptions, mais toute la progression sera perdue !</>} cancelButton={true} onConfirm={stopTournament} />
-            <CustomModalBinary show={showConfirmValidate} onHide={() => setShowConfirmValidate(false)} content={<>Es-tu sûr de vouloir valider {tournament.bracketsCount == 2 ? "cette phase" : "ce tournoi"} ?</>} cancelButton={true} onConfirm={validateTournament} />
+            <CustomModalBinary show={showConfirmCancel} onHide={() => setShowConfirmCancel(false)} content={t("popups.annuler_tournoi")} cancelButton={true} onConfirm={cancelTournament} />
+            <CustomModalBinary show={showConfirmStart} onHide={() => setShowConfirmStart(false)} content={<>{t("popups.demarrer_tournoi")} {tournament.settings.useTeams ? <><br />{t("popups.demarrer_tournoi_equipes_vides")}</> : ""}</>} cancelButton={true} onConfirm={startTournament} />
+            <CustomModalBinary show={showConfirmStop} onHide={() => setShowConfirmStop(false)} content={<Trans i18nKey="popups.redemarrer_tournoi" />} cancelButton={true} onConfirm={stopTournament} />
+            <CustomModalBinary show={showConfirmValidate} onHide={() => setShowConfirmValidate(false)} content={tournament.bracketsCount == 2 ? <Trans i18nKey="popups.valider_phase" /> : <Trans i18nKey="popups.valider_tournoi" />} cancelButton={true} onConfirm={validateTournament} />
         </>}
     </div>
 }

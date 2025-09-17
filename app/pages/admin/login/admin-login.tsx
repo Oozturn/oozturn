@@ -6,6 +6,7 @@ import { getLan } from "~/lib/persistence/lan.server"
 import { useEffect, useState } from "react"
 import { notifyError } from "~/lib/components/notification"
 import { EyeSVG } from "~/lib/components/data/svg-container"
+import { useTranslation } from "react-i18next"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
@@ -38,13 +39,14 @@ export default function AdminLogin() {
 }
 
 function AdminLoginNoPassword() {
+    const { t } = useTranslation()
     return (
         <div className="is-flex-col is-full-height align-center justify-center">
             <div className="is-flex-col align-center gap-3 has-background-secondary-level p-4">
                 <div className="is-title big">404</div>
-                <div className="is-title medium">Mot de passe administrateur non renseigné</div>
+                <div className="is-title medium">{t("admin.mdp_non_renseigne")}</div>
             </div>
-            <div className="">Contacte un vrai admin pour qu&apos;il résolve le problème</div>
+            <div className="">{t("admin.contacter_admin")}</div>
         </div >
     )
 }
@@ -52,23 +54,24 @@ function AdminLoginNoPassword() {
 function AdminLoginForm() {
     const actionResult = useActionData<typeof action>()
     const [showPassword, setShowPassword] = useState(false)
+    const { t } = useTranslation()
 
     useEffect(() => {
         if (actionResult?.error) {
-            notifyError("Raté. Mais c'était bien tenté.")
+            notifyError(t("admin.mauvais_mdp"))
             return
         }
     }, [actionResult])
     return (
         <div className="is-flex-col is-full-height align-center justify-center">
             <Form method="POST" className="p-4 has-background-secondary-level is-flex-col align-center gap-4 is-relative">
-                <div>Mot de passe administrateur</div>
+                <div>{t("admin.mdp_admin")}</div>
                 <div className="is-flex align-center gap-2 has-background-primary-level">
                     {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
-                    <input id='password' name="password" autoFocus className="input is-radiusless has-background-primary-level" type={showPassword ? "text" : "password"} placeholder="Mot de passe" required />
+                    <input id='password' name="password" autoFocus className="input is-radiusless has-background-primary-level" type={showPassword ? "text" : "password"} placeholder={t("login.mdp_placeholder")} required />
                     <div className="pr-2" onMouseEnter={() => setShowPassword(true)} onMouseLeave={() => setShowPassword(false)}><EyeSVG /></div>
                 </div>
-                <button type='submit' className="customButton has-background-primary-accent is-clickable">Soumettre</button>
+                <button type='submit' className="customButton has-background-primary-accent is-clickable">{t("boutons.confirmer")}</button>
             </Form >
         </div >
     )

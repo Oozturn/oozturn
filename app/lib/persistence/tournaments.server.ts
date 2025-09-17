@@ -13,7 +13,10 @@ declare global {
 
 const tournamentsFilePath = path.join(dbFolderPath, 'tournaments.json')
 
-function scoresReviver(key: string, value: any) {
+function reviver(key: string, value: any) {
+    // migration
+    if (value === "Round robin") return "RoundRobin"
+    //scores
     if (key === "score" && Array.isArray(value)) {
         return value.map((score: any) => (score === null ? undefined : score))
     }
@@ -28,7 +31,7 @@ subscribeObjectManager("tournaments", {
 
         if (fs.existsSync(tournamentsFilePath)) {
             logger.info("Loading tournaments from persistence")
-            global.tournaments = (JSON.parse(fs.readFileSync(tournamentsFilePath, 'utf-8'), scoresReviver) as TournamentStorage[]).map(ts => TournamentEngine.fromStorage(ts))
+            global.tournaments = (JSON.parse(fs.readFileSync(tournamentsFilePath, 'utf-8'), reviver) as TournamentStorage[]).map(ts => TournamentEngine.fromStorage(ts))
             // start tournaments in running state
         } else {
             logger.info("Initialize tournaments")
@@ -50,7 +53,7 @@ export function getTournaments(): TournamentInfo[] {
     return global.tournaments.map(t => t.getInfo())
 }
 
-export function newTournament(tournamentId: string, properties: TournamentProperties, settings:TournamentSettings, bracketSettings: BracketSettings[]) {
+export function newTournament(tournamentId: string, properties: TournamentProperties, settings: TournamentSettings, bracketSettings: BracketSettings[]) {
     if (global.tournaments.find(t => t.getId() == tournamentId)) throw new Error(`Tournament ${tournamentId} already exists`)
     global.tournaments.push(TournamentEngine.create(tournamentId, properties, settings, bracketSettings))
     EventUpdateTournaments()

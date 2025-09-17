@@ -15,6 +15,7 @@ import { getAchievements } from "~/lib/runtimeGlobals/achievements.server"
 import { Achievement } from "~/lib/types/achievements"
 import { useLoaderData } from "@remix-run/react"
 import { statsSorter } from "~/lib/utils/sorters"
+import { useTranslation } from "react-i18next"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
@@ -48,6 +49,7 @@ function PlayersLeaderboard() {
     const usersStats = useStats().usersStats
     const users = useUsers()
     const lan = useLan()
+    const { t } = useTranslation()
     return (
         <div className="leaderboard is-flex-col has-background-secondary-level grow no-basis">
             <div className="is-flex-col is-scrollable gap-2 p-2 mx-1 grow">
@@ -57,7 +59,7 @@ function PlayersLeaderboard() {
                     return <ResultTile key={us.userId} place={index + 1} user={user} stats={us} />
                 })}
             </div>
-            {lan.showPartialResults && <div className='bottomListInfo'>Résultats partiels pris en compte</div>}
+            {lan.showPartialResults && <div className='bottomListInfo'>{t("results.resultats_partiels")}</div>}
         </div>
     )
 }
@@ -66,6 +68,7 @@ function TeamsLeaderboard() {
     const teamsStats = useStats().teamsStats
     const lan = useLan()
     const [activeTeam, setActiveResult] = useState("")
+    const { t } = useTranslation()
     return (
         <div className="leaderboard is-flex-col has-background-secondary-level grow no-basis">
             <div className="is-flex-col is-scrollable gap-2 p-2 mx-1">
@@ -75,7 +78,7 @@ function TeamsLeaderboard() {
                     })}
                 </ResultSelectContext.Provider>
             </div>
-            {lan.weightTeamsResults && <div className='bottomListInfo'>Résultats d&apos;équipe pondérés en fonction du nombre de joueurs</div>}
+            {lan.weightTeamsResults && <div className='bottomListInfo'>{t("results.resultats_ponderes")}</div>}
         </div>
     )
 }
@@ -90,6 +93,7 @@ interface ResultPlayerTileProps {
 function ResultTile({ place, user, teamName, stats, showInfo }: ResultPlayerTileProps) {
     const teamMembers = useUsers().filter(user => user.team == teamName)
     const { setActiveResult } = useResultSelect()
+    const { t } = useTranslation()
     if (!user && !teamName) return null
     const points = stats.globalTournamentPoints == Math.trunc(stats.globalTournamentPoints) ? stats.globalTournamentPoints : stats.globalTournamentPoints.toFixed(1)
     return (
@@ -121,7 +125,7 @@ function ResultTile({ place, user, teamName, stats, showInfo }: ResultPlayerTile
                 <div className='has-text-right' style={{
                     color: ["var(--accent-primary-color)", "var(--accent-secondary-color)", "var(--grey)"][place - 1] || "var(--text-color)"
                 }}>
-                    {points} Pts
+                    {points} {t("points_abr")}
                 </div>
             </div>
             {teamName &&
@@ -132,8 +136,8 @@ function ResultTile({ place, user, teamName, stats, showInfo }: ResultPlayerTile
                         paddingLeft: 1
                     }}></div>
                     <div className="">
-                        <div className='tournamentsCount fade-text'>Participations aux tournois : {stats.playedTournaments}</div>
-                        <div className='teamMembersTitle fade-text'>Membres :</div>
+                        <div className='tournamentsCount fade-text'>{t("results.participations_tournois", { nbTournois: stats.playedTournaments })}</div>
+                        <div className='teamMembersTitle fade-text'>{t("results.membres_colon")} </div>
                         <div className="pl-5">
                             {teamMembers.map(member =>
                                 <UserTileRectangle key={member.username} userId={member.id} showTeam={false} />
@@ -148,9 +152,10 @@ function ResultTile({ place, user, teamName, stats, showInfo }: ResultPlayerTile
 
 function Achievements() {
     const { achievements } = useLoaderData<typeof loader>()
+    const { t } = useTranslation()
 
     return <div className="is-flex-col has-background-secondary-level grow no-basis">
-        <div className="is-title big p-2 has-text-centered">Achievements</div>
+        <div className="is-title big p-2 has-text-centered">{t("results.achievements")}</div>
         <div className="is-flex-col is-scrollable gap-2 p-2 mx-1 grow gap-5">
             {achievements.map(achievement => {
                 if (!achievement.active || !achievement.userId || !achievement.value) return null

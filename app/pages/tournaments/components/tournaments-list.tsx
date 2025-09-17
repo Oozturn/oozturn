@@ -4,10 +4,12 @@ import { useUser } from "~/lib/components/contexts/UserContext"
 import { TournamentStatus } from "~/lib/tournamentEngine/types"
 import { useRevalidateOnGlobalTournamentUpdate } from "~/api/sse.hook"
 import { SubsribedSVG } from "~/lib/components/data/svg-container"
+import { useTranslation } from "react-i18next"
 
 
 export default function TournamentsList() {
     useRevalidateOnGlobalTournamentUpdate()
+    const {t} = useTranslation()
 
     const user = useUser()
     const tournaments = useTournaments()
@@ -16,7 +18,7 @@ export default function TournamentsList() {
         <div className="tournamentsList is-flex is-flex-direction-column is-scrollable">
             {user.isAdmin &&
                 <NavLink to="/tournaments/new" className={({ isActive }) => `tournamentTile has-background-secondary-level is-clickable ${isActive ? 'is-active' : ''}`}>
-                    <div className='tournamentName' >NOUVEAU TOURNOI</div>
+                    <div className='tournamentName uppercase'>{t("tournoi.nouveau")}</div>
                 </NavLink>
             }
 
@@ -35,11 +37,9 @@ export default function TournamentsList() {
                             <SubsribedSVG />
                         </div>
                     }
-                    {tournament.status == TournamentStatus.Balancing && <div className='tournamentState'>En préparation</div>}
-                    {tournament.status == TournamentStatus.Paused && <div className='tournamentState'>En pause</div>}
-                    {tournament.status == TournamentStatus.Running && <div className='tournamentState'>En cours</div>}
-                    {tournament.status == TournamentStatus.Validating && <div className='tournamentState'>En validation</div>}
-                    {tournament.status == TournamentStatus.Done && <div className='tournamentState'>Terminé</div>}
+                    {tournament.status != TournamentStatus.Open &&
+                        <div className='tournamentState'>{t(`tournoi.${tournament.status}`)}</div>
+                    }
                     {tournament.picture != undefined && <div className='tournamentTilebackground'></div>}
                 </NavLink>
             )}

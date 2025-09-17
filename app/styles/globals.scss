@@ -650,23 +650,14 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
 }
 
 @keyframes notifBlink {
-    0% {
+    0%, 10.1% {
         right: -15%;
         background-color: var(--accent-primary-color);
     }
-    10%{
+    10%, 20%, 100%{
         right: -80%;
         background-color: transparent;
     }
-    10.1% {
-        right: -15%;
-        background-color: var(--accent-primary-color);
-    }
-    20%, 100%{
-        right: -80%;
-        background-color: transparent;
-    }
-    
 }
 
 .navbar-notifications {
@@ -925,29 +916,29 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
     z-index: 2;
     position: absolute;
     top: 134px;
-    right:-115px;
-    transition: .2s ease-in-out;
-    width: 150px;
+    right: 0;
     height: 37px;
+    background-color: var(--accent-primary-color);
     &.mini {
         top: 50px;
-        right: 0px;
         width: 27px;
         height: 20px;
         svg {
+            padding-top: 1px;
             width: 25px;
             height: 18px;
         }
         &:before {
             width: 15px;
+            left: -5px;
         }
     }
     &:before {
         z-index: -1;
         content:'';
         position: absolute;
-        right: 20px;
-        width: 150px;
+        left: -15px;
+        width: 50px;
         height: 100%;
         background-color: var(--accent-primary-color);
         -webkit-transform: skewX(-27.5deg);
@@ -955,8 +946,14 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
         -ms-transform: skewX(-27.5deg);
         transform: skewX(-27.5deg);
     }
-    &:not(.mini):hover {
-        right: -45px;
+    div {
+        max-width: 0px;
+        transition: .2s ease-in-out;
+        padding-right: 0;
+    }
+    &:not(.mini):hover div {
+        padding-right: .5rem;
+        max-width: 150px;
         transition: .2s ease-in-out;
     }
 }
@@ -1109,7 +1106,7 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
     min-width: $tournament-side-list-width;
     max-width: $tournament-side-list-width;
     gap: 1rem;
-    padding: 0 2px;
+    padding: 2px;
     .tournamentTile {
         position: relative;
         flex: 0 0 81px;
@@ -1285,5 +1282,5 @@ input[type=number] {
 }
 
 .cap-first::first-letter {
-  text-transform: uppercase;
+  text-transform: uppercase !important;
 }

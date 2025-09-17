@@ -15,6 +15,8 @@ import { useFetcher } from "@remix-run/react"
 import { TeamsManagementIntents, TournamentManagementIntents } from "../tournament"
 import { BracketType, Player, Team, TournamentStatus } from "~/lib/tournamentEngine/types"
 import { clickorkey } from "~/lib/utils/clickorkey"
+import { useTranslation } from "react-i18next"
+import { useUsers } from "~/lib/components/contexts/UsersContext"
 
 
 
@@ -25,6 +27,7 @@ export function OpponentsListSolo() {
     const fetcher = useFetcher()
     const [draggingPlayer, setDraggingPlayer] = useState<string | null>(null)
     const [sortablePlayers, setSortablePlayers] = useState<(Player & { id: string })[]>([])
+    const { t } = useTranslation()
 
     useEffect(() => {
         setSortablePlayers(tournament.players.map(player => {
@@ -79,7 +82,7 @@ export function OpponentsListSolo() {
                     <UserTileRectangle userId={draggingPlayer} colorClass={draggingPlayer == user.id ? 'has-background-primary-accent' : "has-background-secondary-level"} />
                     : null}
             </DragOverlay>
-            <div className='is-title medium is-uppercase'>Inscrits</div>
+            <div className='is-title medium is-uppercase'>{t("inscrit_pluriel")}</div>
             <DndContext
                 onDragStart={onDragStart}
                 onDragEnd={onDragEnd}
@@ -101,7 +104,7 @@ export function OpponentsListSolo() {
                         </div>
                     </div>
                     {user.isAdmin && tournament.status == TournamentStatus.Balancing &&
-                        <div className='bottomListInfo'>Déplace les joueurs pour définir leur seed</div>
+                        <div className='bottomListInfo'>{t("tournoi.deplace_joueurs_pour_seed")}</div>
                     }
                 </div>
             </DndContext>
@@ -110,6 +113,7 @@ export function OpponentsListSolo() {
 }
 
 export function OpponentsListTeam() {
+    const { t } = useTranslation()
     const tournament = useTournament()
     const user = useUser()
     const fetcher = useFetcher()
@@ -237,12 +241,12 @@ export function OpponentsListTeam() {
                     <div className='is-flex align-stretch pt-5 pl-5 pb-4'>
                         <div className="has-background-primary-accent pl-1 mt-1 mx-4"></div>
                         <div>
-                            <div className='is-title medium is-uppercase mb-5'>Nouvelle équipe</div>
+                            <div className='is-title medium is-uppercase mb-5'></div>
                             <div className="is-flex align-center gap-3">
-                                <div>Nom de l&apos;équipe : </div>
+                                <div>{t("popups.nom_equipe_colon")}</div>
                                 <div>
                                     {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
-                                    <input className='input' maxLength={30} autoFocus type="text" placeholder="Nom de l'équipe" value={newTeamName} onChange={(e) => { setNewTeamName(e.target.value) }} onKeyDown={(e) => e.key == "Enter" && newTeam()} />
+                                    <input className='input' maxLength={30} autoFocus type="text" placeholder={t("popups.nom_equipe_placeholder")} value={newTeamName} onChange={(e) => { setNewTeamName(e.target.value) }} onKeyDown={(e) => e.key == "Enter" && newTeam()} />
                                 </div>
                             </div>
                         </div>
@@ -254,9 +258,9 @@ export function OpponentsListTeam() {
             />
             <div className='is-flex-col grow gap-2'>
                 <div className='is-flex justify-space-between align-center'>
-                    <div className='is-title medium is-uppercase'>équipes</div>
+                    <div className='is-title medium is-uppercase'>{t("equipe_pluriel")}</div>
                     {(user.isAdmin || (tournament.settings.usersCanCreateTeams && notInTeamPlayers.includes(user.id) && tournament.status == TournamentStatus.Open)) && canAddTeam &&
-                        <CustomButton callback={() => setShowNewTeam(true)} contentItems={[SubsribedSVG(), "New team"]} customClasses='small-button' colorClass='has-background-primary-accent' />
+                        <CustomButton callback={() => setShowNewTeam(true)} contentItems={[SubsribedSVG(), t("boutons.nouvelle_equipe")]} customClasses='small-button' colorClass='has-background-primary-accent' />
                     }
                 </div>
                 <div className='is-flex-col grow has-background-primary-level'>
@@ -282,7 +286,7 @@ export function OpponentsListTeam() {
                         </div>
                     </div>
                     {user.isAdmin && tournament.status == TournamentStatus.Balancing &&
-                        <div className='bottomListInfo'>Déplace les équipes pour définir leur seed</div>
+                        <div className='bottomListInfo'>{t("tournoi.deplace_equipes_pour_seed")}</div>
                     }
                 </div>
                 <PlayerWithoutTeamArea />
@@ -301,6 +305,8 @@ function TournamentInfoPlayersWhileRunning() {
     const tournament = useTournament()
     const fetcher = useFetcher()
     const user = useUser()
+    const users = useUsers()
+    const { t } = useTranslation()
 
     const toggleForfeit = (userId: string) => {
         fetcher.submit(
@@ -324,15 +330,16 @@ function TournamentInfoPlayersWhileRunning() {
     })
 
     return (<div className="is-flex-col gap-2" style={{ height: 300 }}>
-        <div className="is-title medium">Joueurs en tournoi</div>
+        <div className="is-title medium">{t("tournoi.joueurs_tournoi")}</div>
         <div className="is-flex-col gap-1 p-2 has-background-primary-level is-scrollable grow justify-start align-stretch">
             {[...players.values()].sort().map((playerId, index) => {
                 const hasFF = !!tournament.players.find(p => p.userId == playerId)?.isForfeit
+                const playerName = users.find(u => u.id == playerId)?.username
                 return <Fragment key={playerId}>
                     <div className="is-flex-row gap-3">
                         <UserTileRectangle userId={playerId} height={32} showTeam={false} />
                         {user.isAdmin && <div className="grow is-flex justify-end">
-                            <SquareButton height={32} contentItems={[hasFF ? RollBackSVG() : ForfeitSVG()]} callback={() => toggleForfeit(playerId)} colorClass={hasFF ? "has-background-secondary-level" : "has-background-secondary-accent"} />
+                            <SquareButton height={32} tooltip={hasFF ? t("bouton_tooltips.unforfait_joueur", { playerName: playerName }) : t("bouton_tooltips.forfait_joueur", { playerName: playerName })} contentItems={[hasFF ? RollBackSVG() : ForfeitSVG()]} callback={() => toggleForfeit(playerId)} colorClass={hasFF ? "has-background-secondary-level" : "has-background-secondary-accent"} />
                         </div>}
                     </div>
                     {user.isAdmin && !((tournament.results?.length || 0) - 1 == index) &&
@@ -347,9 +354,10 @@ function TournamentInfoPlayersOnceDone() {
     const tournament = useTournament()
     useFetcher()
     useUser()
+    const { t } = useTranslation()
 
     return (<div className="is-flex-col gap-2 no-basis" style={{ height: 300 }}>
-        <div className="is-title medium">Résultats du tournoi</div>
+        <div className="is-title medium">{t("tournoi.resultats_tournoi")}</div>
         <div className="is-flex-col gap-1 p-2 has-background-primary-level is-scrollable grow justify-start align-stretch">
             {tournament.results?.map((result, index) => <Fragment key={result.userId}>
                 <div className="is-flex-row gap-3 mr-2">
@@ -383,6 +391,7 @@ function TeamTile({ team, seed, draggedPlayer, addPlayerToTeam, removePlayerFrom
     const { setNodeRef } = useDroppable({
         id: "team_" + team.name,
     })
+    const { t } = useTranslation()
 
     const isFull = !(tournament.settings.useTeams && tournament.settings.teamsMaxSize && team.members.length < tournament.settings.teamsMaxSize)
     const couldJoin = !team.members.includes(user.id)
@@ -416,8 +425,8 @@ function TeamTile({ team, seed, draggedPlayer, addPlayerToTeam, removePlayerFrom
                 <div className='is-uppercase grow no-basis' style={{ textOverflow: "ellipsis", overflow: "hidden" }}>{seed ? String(seed) + " - " : ""}{team.name}</div>
                 {user.isAdmin &&
                     <div className='is-flex-row align-center gap-1'>
-                        <div className='is-clickable is-flex fade-on-mouse-out' {...clickorkey(() => setShowRenameTeam(true))}><SubsribedSVG /></div>
-                        <div className='is-clickable is-flex fade-on-mouse-out' {...clickorkey(() => setShowDeleteTeam(true))}><BinSVG /></div>
+                        <div title={t("bouton_tooltips.renommer_equipe", { teamName: team.name })} className='is-clickable is-flex fade-on-mouse-out' {...clickorkey(() => setShowRenameTeam(true))}><SubsribedSVG /></div>
+                        <div title={t("bouton_tooltips.supprimer_equipe", { teamName: team.name })} className='is-clickable is-flex fade-on-mouse-out' {...clickorkey(() => setShowDeleteTeam(true))}><BinSVG /></div>
                         <CustomModalBinary
                             show={showRenameTeam}
                             onHide={() => setShowRenameTeam(false)}
@@ -426,12 +435,12 @@ function TeamTile({ team, seed, draggedPlayer, addPlayerToTeam, removePlayerFrom
                                 <div className='is-flex align-stretch pt-5 pl-5 pb-4'>
                                     <div className="has-background-primary-accent pl-1 mt-2 mx-4"></div>
                                     <div>
-                                        <div className='is-title medium is-uppercase mb-5 mt-1'>Renommer l&apos;équipe {team.name}</div>
+                                        <div className='is-title medium is-uppercase mb-5 mt-1'>{t("popups.renommer_equipe", { teamName: team.name })}</div>
                                         <div className="is-flex align-center gap-3">
-                                            <div>Nom de l&apos;équipe : </div>
+                                            <div>{t("popups.nom_equipe_colon")}</div>
                                             <div>
                                                 {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
-                                                <input className='input' maxLength={30} autoFocus type="text" placeholder="Nom de l'équipe" value={teamName} onChange={(e) => { setTeamName(e.target.value); }} onKeyDown={(e) => { if (e.key === 'Enter') renameTeam(team.name, teamName) }} />
+                                                <input className='input' maxLength={30} autoFocus type="text" placeholder={t("popups.nom_equipe_placeholder")} value={teamName} onChange={(e) => { setTeamName(e.target.value); }} onKeyDown={(e) => { if (e.key === 'Enter') renameTeam(team.name, teamName) }} />
                                             </div>
                                         </div>
                                     </div>
@@ -443,7 +452,7 @@ function TeamTile({ team, seed, draggedPlayer, addPlayerToTeam, removePlayerFrom
                         <CustomModalBinary
                             show={showDeleteTeam}
                             onHide={() => setShowDeleteTeam(false)}
-                            content={`Es-tu sûr de vouloir supprimer l'équipe ${team.name} ?`}
+                            content={t("popups.supprimer_equipe_confirmation", { teamName: team.name })}
                             cancelButton={true}
                             onConfirm={() => removeTeam(team.name)}
                         />
@@ -459,6 +468,7 @@ function TeamTile({ team, seed, draggedPlayer, addPlayerToTeam, removePlayerFrom
                                     userId={player}
                                     command={removePlayerFromTeams}
                                     commandSymbol={<RollBackSVG />}
+                                    commandTooltip={t("bouton_tooltips.retirer_joueur_equipe")}
                                     isShiny={index == 0}
                                     isDraggable={true}
                                     baseColor={tournament.status == TournamentStatus.Balancing ? "has-background-grey" : undefined} />
@@ -471,12 +481,12 @@ function TeamTile({ team, seed, draggedPlayer, addPlayerToTeam, removePlayerFrom
                 {tournament.status == TournamentStatus.Open &&
                     (team.members.includes(user.id) ?
                         <div className='is-flex justify-center align-center is-unselectable px-4 py-2 is-clickable has-background-secondary-accent' {...clickorkey(() => removePlayerFromTeams(user.id))}>
-                            <div className=''>Quitter l&apos;équipe</div>
+                            <div className=''>{t("tournoi.quitter_equipe")}</div>
                         </div>
                         :
                         (!isFull && couldJoin ?
                             <div className='is-flex justify-center align-center is-unselectable px-4 py-2 is-clickable has-background-primary-accent' {...clickorkey(() => addPlayerToTeam(user.id, team.name))}>
-                                <div className=''>Rejoindre l&apos;équipe</div>
+                                <div className=''>{t("tournoi.rejoindre_equipe")}</div>
                             </div>
                             :
                             null
@@ -512,6 +522,7 @@ function PlayerWithoutTeamArea() {
     const { setNodeRef } = useDroppable({
         id: 'no-team',
     })
+    const { t } = useTranslation()
 
     if (!tournament.teams) return null
     const teams = tournament.teams
@@ -560,14 +571,14 @@ function PlayerWithoutTeamArea() {
     return (
         <>
             <div className='is-flex align-center justify-space-between '>
-                <div className='is-title medium is-uppercase'>Joueurs sans équipe</div>
+                <div className='is-title medium is-uppercase'>{t("tournoi.joueurs_sans_equipe")}</div>
                 {user.isAdmin && <div className='is-flex'>
                     {notInTeamPlayers.length > 0 ?
-                        <CustomButton callback={distributePlayers} tooltip='Répartir les joueurs sans équipe' contentItems={[DistributeSVG(), "Distribuer"]} customClasses='small-button px-1 ml-3' colorClass='has-background-primary-level' />
+                        <CustomButton callback={distributePlayers} tooltip={t("bouton_tooltips.distribuer")} contentItems={[DistributeSVG(), t("boutons.distribuer")]} customClasses='small-button px-1 ml-3' colorClass='has-background-primary-level' />
                         :
-                        <CustomButton callback={balancePlayers} tooltip='Équilibrer les équipes' contentItems={[BalanceSVG(), "Équilibrer"]} customClasses='small-button px-1 ml-3' colorClass='has-background-primary-level' />
+                        <CustomButton callback={balancePlayers} tooltip={t("bouton_tooltips.equilibrer")} contentItems={[BalanceSVG(), t("boutons.equilibrer")]} customClasses='small-button px-1 ml-3' colorClass='has-background-primary-level' />
                     }
-                    <CustomButton callback={randomizePlayers} tooltip='Mélanger les joueurs dans des équipes' contentItems={[RandomSVG(), "Mélanger"]} customClasses='small-button px-2 ml-3' colorClass='has-background-primary-level' />
+                    <CustomButton callback={randomizePlayers} tooltip={t("bouton_tooltips.melanger")} contentItems={[RandomSVG(), t("boutons.melanger")]} customClasses='small-button px-2 ml-3' colorClass='has-background-primary-level' />
                 </div>}
             </div>
             <div ref={setNodeRef} className='is-flex-col grow has-background-primary-level' style={{ minHeight: '10%', maxHeight: '15%' }}>
@@ -576,7 +587,7 @@ function PlayerWithoutTeamArea() {
                         {notInTeamPlayers.map(player =>
                             <div key={player} className="grow">
                                 <Draggable id={player} data={{ noTeam: true }}>
-                                    <PlayerTileWithCommands userId={player} command={removeUserFromTournament} commandSymbol={<BinSVG />} isDraggable={true} />
+                                    <PlayerTileWithCommands userId={player} command={removeUserFromTournament} commandSymbol={<BinSVG />} isDraggable={true} commandTooltip={t("bouton_tooltips.desinscrire_tournoi")} />
                                 </Draggable>
                             </div>
                         )}
@@ -592,19 +603,20 @@ interface PlayerTileWithCommandsProps {
     userId: string
     command: (userId: string) => void
     commandSymbol: JSX.Element
+    commandTooltip?: string
     seed?: number
     isDraggable?: boolean
     baseColor?: string
     isShiny?: boolean
 }
-function PlayerTileWithCommands({ userId, command, commandSymbol, isDraggable, baseColor, seed, isShiny }: PlayerTileWithCommandsProps) {
+function PlayerTileWithCommands({ userId, command, commandSymbol, commandTooltip, isDraggable, baseColor, seed, isShiny }: PlayerTileWithCommandsProps) {
     const [hooveredPlayer, setHooveredPlayer] = useState(false)
     const user = useUser()
 
     return <div className={`is-flex align-center grow ${isDraggable ? 'is-draggable' : ''} ${userId == user.id ? 'has-background-primary-accent' : baseColor ? baseColor : "has-background-secondary-level"}`} onMouseEnter={() => setHooveredPlayer(true)} onMouseLeave={() => setHooveredPlayer(false)}>
         <UserTileRectangle userId={userId} initial={seed ? String(seed) : undefined} isShiny={isShiny} />
         {user.isAdmin &&
-            <div className="is-flex align-center is-clickable" style={{ width: "20px" }} {...clickorkey(() => command(userId))}>
+            <div title={commandTooltip} className="is-flex align-center is-clickable" style={{ width: "20px" }} {...clickorkey(() => command(userId))}>
                 {hooveredPlayer && commandSymbol}
             </div>
         }

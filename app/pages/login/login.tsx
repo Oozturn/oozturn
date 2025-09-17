@@ -6,7 +6,7 @@ import { useLan } from "~/lib/components/contexts/LanContext"
 import { getLan } from "~/lib/persistence/lan.server"
 import { useRef, useState } from "react"
 import { CustomButton } from "~/lib/components/elements/custom-button"
-import { useTranslation } from "react-i18next"
+import { Trans, useTranslation } from "react-i18next"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -53,7 +53,11 @@ function LoginForm() {
         <LogoUnfolded animate={animateLogo} />
       </div>
       <div className="is-flex-col align-center gap-5 p-4 has-background-secondary-level " style={{ maxWidth: "50vw" }}>
-        <div className="has-text-centered is-size-3 cap-first">{t("login.bienvenue_a_la_lan")}<i style={{ color: "var(--accent-primary-color)" }}>{lan.name}</i> ! </div>
+        <div className='has-text-centered is-size-3 cap-first'>
+          <Trans i18nKey="login.bienvenue_a_la_lan" values={{ lanName: lan.name }}>
+            Bienvenue à la LAN <i className="has-text-primary-accent">{lan.name}</i> !
+          </Trans>
+        </div>
         <Form ref={formRef} method="post" className="is-flex-col gap-6 is-full-width align-stretch">
           <div className="is-flex-col align-center gap-2">
             <div className="cap-first">{t("login.entrer_pseudo")} :</div>
@@ -71,7 +75,7 @@ function LoginForm() {
               autoFocus
               maxLength={15}
               title={t("login.pseudo_hint")}
-              onKeyDown={(e) => { if(e.key === 'Enter'){e.preventDefault(); !!username && handleSubmit()} }}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); !!username && handleSubmit() } }}
             />
           </div>
           <CustomButton
@@ -81,13 +85,10 @@ function LoginForm() {
             callback={handleSubmit}
             contentItems={[t("login.se_connecter")]}
           />
-          {/* <div className="">
-            <button type='submit' disabled={animateLogo} className={`customButton fade-on-mouse-out is-unselectable has-background-secondary-accent is-pulled-right ${animateLogo ? "fade-text has-background-primary-level" : ""}`}>Se connecter</button>
-          </div> */}
         </Form>
       </div>
       {actionResult?.error && (
-        <p className="has-text-danger" style={{ position: "absolute", bottom: "-2rem", width:"500%", textAlign: "center" }}>
+        <p className="has-text-danger" style={{ position: "absolute", bottom: "-2rem", width: "500%", textAlign: "center" }}>
           {actionResult.error}
         </p>
       )}

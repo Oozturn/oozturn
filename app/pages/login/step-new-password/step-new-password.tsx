@@ -10,7 +10,7 @@ import { useSettings } from "~/lib/components/contexts/SettingsContext"
 import { notifyError } from "~/lib/components/notification"
 import { EyeSVG, InfoSVG } from "~/lib/components/data/svg-container"
 import { User } from "~/lib/types/user"
-import { useTranslation } from "react-i18next"
+import { Trans, useTranslation } from "react-i18next"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -64,6 +64,7 @@ export default function LoginStepNewPassword() {
   const formRef = useRef(null)
   const settings = useSettings()
   const { t } = useTranslation();
+  
   useEffect(() => {
     if (actionResult?.errors?.password) {
       notifyError(actionResult.errors.password)
@@ -74,13 +75,23 @@ export default function LoginStepNewPassword() {
   return (
     <div className="is-flex-col align-center justify-center is-relative">
       <div className="is-flex-col align-center gap-5 p-4 has-background-secondary-level " style={{ maxWidth: "50vw" }}>
-        <div className="has-text-centered is-size-3 cap-first">{state?.edit ? t("login_password.titre_mdp_modification") : t("login_password.titre_mdp_creation")}, <i style={{ color: "var(--accent-primary-color)" }}>{username}</i> ! </div>
+        <div className='has-text-centered is-size-3 cap-first'>
+          {state?.edit ?
+          <Trans i18nKey="login.titre_mdp_modification" values={{ user: username }} >
+            crée ton mot de passe <i className="has-text-primary-accent">{username}</i> !
+          </Trans>
+          :
+          <Trans i18nKey="login.titre_mdp_creation" values={{ user: username }} >
+            modifie ton mot de passe <i className="has-text-primary-accent">{username}</i> !
+          </Trans>
+          }
+        </div>
         <Form ref={formRef} method="post" className="is-flex-col gap-4 is-full-width align-stretch">
           <div className="is-flex-col align-stretch gap-2">
             <div className="is-flex align-center justify-center gap-2">
-              <div className="cap-first">{t("login_password.mdp_creation")} :</div>
+              <div className="cap-first">{t("login.mdp_creation")} :</div>
               {settings.security.securePassword &&
-                <div title={t("login_password.mdp_hint")}>
+                <div title={t("login.mdp_hint")}>
                   <InfoSVG />
                 </div>
               }
@@ -93,19 +104,19 @@ export default function LoginStepNewPassword() {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder={t("login_password.mdp_placeholder")}
+                placeholder={t("login.mdp_placeholder")}
                 required
                 // eslint-disable-next-line jsx-a11y/no-autofocus
                 autoFocus
                 maxLength={18}
-                title={settings.security.securePassword ? t("login_password.mdp_regle_secure") : t("login_password.mdp_regle")}
+                title={settings.security.securePassword ? t("login.mdp_regle_secure") : t("login.mdp_regle")}
                 onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); !!password && document.getElementById("confirmPassword")?.focus() } }}
               />
               <div className="pr-2" onMouseEnter={() => setShowPassword(true)} onMouseLeave={() => setShowPassword(false)}><EyeSVG /></div>
             </div>
           </div>
           <div className="is-flex-col align-stretch gap-2">
-            <div className="has-text-centered cap-first">{t("login_password.confirm_mdp")}:</div>
+            <div className="has-text-centered cap-first">{t("login.confirm_mdp")}:</div>
             <div className="is-flex align-center gap-2 has-background-primary-level">
               <input
                 id="confirmPassword"
@@ -114,7 +125,7 @@ export default function LoginStepNewPassword() {
                 type={showConfirm ? "text" : "password"}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder={t("login_password.mdp_placeholder")}
+                placeholder={t("login.mdp_placeholder")}
                 required
                 maxLength={18}
                 onKeyDown={(e) => { if (e.key === 'Enter') {  !!password ? formRef.current && (formRef.current as HTMLFormElement).submit() : e.preventDefault() } }}

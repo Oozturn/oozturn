@@ -6,7 +6,7 @@ import { CustomButton } from "~/lib/components/elements/custom-button"
 import { requireUserLoggedIn } from "~/lib/session.server"
 import { getUserById, updateUser } from "~/lib/persistence/users.server"
 import { User } from "~/lib/types/user"
-import { useTranslation } from "react-i18next"
+import { Trans, useTranslation } from "react-i18next"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -50,9 +50,13 @@ function FirstLoginForm() {
   return (
     <div className="is-flex-col align-center justify-center">
       <div className="is-flex-col align-center gap-5 p-4 has-background-secondary-level " style={{ maxWidth: "50vw" }}>
-        <div className="has-text-centered is-size-3">{t("first_login.bienvenue")}, <i style={{ color: "var(--accent-primary-color)" }}>{user.username}</i> ! </div>
+        <div className='has-text-centered is-size-3 cap-first'>
+          <Trans i18nKey="login.bienvenue_user" values={{ user: user.username }}>
+            Bienvenue <i className="has-text-primary-accent">{user.username}</i> !
+          </Trans>
+        </div>
         <div>
-          <div className="cap-first">{t("first_login.equipe_et_place")} :</div>
+          <div className="cap-first">{t("login.equipe_et_place")} :</div>
           <Form ref={formRef} method="post" className="is-flex-col gap-6 is-full-width align-stretch">
             <input type="hidden" name="userId" value={user.id} />
             <div>
@@ -67,7 +71,7 @@ function FirstLoginForm() {
                     onChange={(e) => setTeam(e.target.value)}
                     placeholder={t("equipe")}
                     required
-                    title={t("first_login.equipe_hint")}
+                    title={t("login.equipe_hint")}
                     onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById("seat")?.focus() } }}
                   />
                 </div>
@@ -75,7 +79,7 @@ function FirstLoginForm() {
             </div>
             <div>
               <div className="is-flex is-flex align-start gap-2" style={{ maxWidth: "402px" }}>
-                <div>{t("Place")} :</div>
+                <div>{t("place_colon")}</div>
                 <div className="is-flex-col grow no-basis">
                   <input id="seat"
                     name="seat"
@@ -85,7 +89,7 @@ function FirstLoginForm() {
                     onChange={(e) => setSeat(e.target.value)}
                     placeholder="Place"
                     required
-                    title={t("first_login.place_hint")}
+                    title={t("login.place_hint")}
                     onKeyDown={(e) => { if (e.key === 'Enter') { formRef.current && (formRef.current as HTMLFormElement).submit() } }}
                   />
                 </div>

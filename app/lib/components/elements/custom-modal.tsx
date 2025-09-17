@@ -2,10 +2,11 @@ import { ReactNode } from "react"
 import { CloseCrossSVG } from "../data/svg-container"
 import { CustomButton } from "./custom-button"
 import { clickorkey } from "~/lib/utils/clickorkey"
+import { useTranslation } from "react-i18next"
 
 export function ModalLayout({ show, contentSlot, buttonsSlot, onHide }:
   { show: boolean, contentSlot: ReactNode, buttonsSlot: ReactNode, onHide: () => void }) {
-
+  const { t } = useTranslation()
   if (!show) {
     return null
   }
@@ -15,7 +16,7 @@ export function ModalLayout({ show, contentSlot, buttonsSlot, onHide }:
       <div className="modal-background" {...clickorkey(onHide)}></div>
       <div className="modal-content">
         <div className="customModal">
-          <div className="close is-clickable fade-on-mouse-out" {...clickorkey(onHide)}>
+          <div title={t("bouton_tooltips.fermer")} className="close is-clickable fade-on-mouse-out" {...clickorkey(onHide)}>
             <CloseCrossSVG />
           </div>
           {contentSlot}
@@ -49,6 +50,7 @@ interface CustomModalProps extends BaseModalProps {
 }
 
 export function CustomModal({ show, onHide, content, modalButtons }: CustomModalProps) {
+  const { t } = useTranslation()
 
   if (!show) {
     return null
@@ -59,7 +61,7 @@ export function CustomModal({ show, onHide, content, modalButtons }: CustomModal
       <div className="modal-background" {...clickorkey(onHide)}></div>
       <div className="modal-content">
         <div className="customModal">
-          <div className="close is-clickable fade-on-mouse-out" {...clickorkey(onHide)}>
+          <div title={t("bouton_tooltips.fermer")} className="close is-clickable fade-on-mouse-out" {...clickorkey(onHide)}>
             <CloseCrossSVG />
           </div>
           {content}
@@ -90,10 +92,11 @@ interface CustomModalBinaryProps extends BaseModalProps {
 }
 
 export function CustomModalBinary({ show, onHide, content, cancelButton, onConfirm, confirmCondition, cantConfirmTooltip }: CustomModalBinaryProps) {
+  const { t } = useTranslation()
 
   const buttons: ModalButtonsProps[] = []
-  cancelButton && buttons.push({ Callback: onHide, Content: ["Annuler"], Classes: "has-background-primary-level" })
-  buttons.push({ Callback: onConfirm, Content: ["Confirmer"], ColorClass: "has-background-primary-accent", Condition: confirmCondition, cantConfirmTooltip: cantConfirmTooltip })
+  cancelButton && buttons.push({ Callback: onHide, Content: [t("boutons.annuler")], Classes: "has-background-primary-level" })
+  buttons.push({ Callback: onConfirm, Content: [t("boutons.confirmer")], ColorClass: "has-background-primary-accent", Condition: confirmCondition, cantConfirmTooltip: cantConfirmTooltip })
 
   return <CustomModal
     show={show}

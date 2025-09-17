@@ -7,13 +7,14 @@ import { Link, useNavigate } from "@remix-run/react";
 import { SSE_NOTIFICATION_MESSAGE_EVENT } from "~/api/sse";
 import { useLan } from "./contexts/LanContext";
 import { useIconUrl } from "./tools/user-theme";
+import { useTranslation } from "react-i18next";
 
 export function NotificationNode() {
   const message = useEventSource("/sse", { event: SSE_NOTIFICATION_MESSAGE_EVENT })
   const lan = useLan()
   const iconUrl = useIconUrl()
   const navigate = useNavigate()
-
+  const {t} = useTranslation()
 
   useEffect(() => {
     if (!message) return
@@ -21,14 +22,14 @@ export function NotificationNode() {
     if (["startTournament", "endTournament"].includes(messageType)) {
       const { id, name } = JSON.parse(data) as { id: string, name: string }
       toast.info(
-        <Link to={"/tournaments/" + id}>Le tournoi {name} vient de {messageType == "startTournament" ? "démarrer" : "s'achever"} !</Link>,
+        <Link to={"/tournaments/" + id}>{t("notification.start_stop_tournoi", { name: name, action: messageType == "startTournament" ? "démarrer" : "s'achever" })}</Link>,
         {
           toastId: time
         }
       )
-      const notification = notifyBrowser(lan.name, iconUrl, `Le tournoi ${name} vient de ${messageType == "startTournament" ? "démarrer" : "s'achever"} !`, time)
+      const notification = notifyBrowser(lan.name, iconUrl, t("notification.start_stop_tournoi", { name: name, action: messageType == "startTournament" ? "démarrer" : "s'achever" }), time)
       if (notification) {
-        notification.onclick = () => {console.log("click!");navigate("/tournaments/" + id)}
+        notification.onclick = () => {navigate("/tournaments/" + id)}
       }
     }
     else if (messageType == "error") {
@@ -69,7 +70,6 @@ export function notifyInfo(message: string) {
 function notifyBrowser(title: string, icon: string, body: string, id: string): Notification | void {
 
   function emitNotification() {
-    // const notification = new Notification(title, {tag: id})
     return new Notification(title, { badge: icon, body: body, tag: id, icon: icon })
   }
 

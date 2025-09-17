@@ -25,7 +25,7 @@ import { getAllPlayableMatches } from "~/lib/runtimeGlobals/playableMatches.serv
 import { IdToString } from "~/lib/utils/tournaments"
 import { useRevalidateOnTournamentUpdate } from "~/api/sse.hook"
 import { UsersList } from "~/lib/components/elements/users-list"
-import { useTranslation } from "react-i18next"
+import { Trans, useTranslation } from "react-i18next"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
@@ -154,12 +154,12 @@ export function SectionLanSettings({ isActive }: { isActive: boolean }) {
     const lan = useLan()
     const fileInputRef = useRef<HTMLInputElement>(null)
     const fetcherUpdateMap = useFetcher()
-    const { t } = useTranslation();
+    const { t } = useTranslation()
 
     async function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
         if (e.target.files) {
             if (e.target.files[0].size > 5 * 1024 * 1024) {
-                notifyError("Avatar is too big (5MB max.)")
+                notifyError(t("errors.fichier_trop_volumineux", { maxWeight: "5MB" }))
                 return
             }
             fetcherUpdateMap.submit(e.currentTarget.form, { method: "POST" })
@@ -168,12 +168,12 @@ export function SectionLanSettings({ isActive }: { isActive: boolean }) {
 
     return <div className={`is-clipped has-background-secondary-level px-4 is-flex-col ${isActive ? "grow no-basis" : ""}`}>
         <div className="is-title medium is-uppercase py-2 px-1 is-clickable" {...clickorkey(() => setActiveSection("lanSettings"))}>
-            Paramètres de la LAN
+            {t("admin.parametres_lan")}
         </div>
         <div className="is-flex-col gap-4" style={{ maxHeight: isActive ? undefined : 0 }}>
             {/* LAN Name */}
             <fetcher.Form className="is-flex gap-3" method="POST">
-                <div className='has-text-right is-one-fifth'>Nom de la LAN :</div>
+                <div className='has-text-right is-one-fifth'>{t("admin.nom_lan")}</div>
                 <div className="grow">
                     <input type="hidden" name="intent" value={AdminIntents.UPDATE_LAN} />
                     <input id="field"
@@ -186,7 +186,7 @@ export function SectionLanSettings({ isActive }: { isActive: boolean }) {
             </fetcher.Form>
             {/* MOTD */}
             <fetcher.Form className="is-flex gap-3" method="POST">
-                <div className='has-text-right is-one-fifth'>{t("Mot_du_jour")} :</div>
+                <div className='has-text-right is-one-fifth'>{t("admin.mot_du_jour")}</div>
                 <div className="grow">
                     <input type="hidden" name="intent" value={AdminIntents.UPDATE_LAN} />
                     <textarea id="field"
@@ -200,12 +200,12 @@ export function SectionLanSettings({ isActive }: { isActive: boolean }) {
             <div></div>  {/* Spacer */}
             {/* Start date */}
             <div className="is-flex gap-3">
-                <div className='has-text-right is-one-fifth'>Début de la LAN :</div>
+                <div className='has-text-right is-one-fifth'>{t("admin.debut_lan")}</div>
                 <div className='is-flex grow gap-3'>
                     <CustomSelect
                         variable={lan.startDate.day}
                         setter={(v: string) => updateLan("lan_start_date", JSON.stringify({ ...lan.startDate, day: v }))}
-                        items={range(0, 6, 1).map(d => { return { label: Days[d], value: d } })}
+                        items={range(0, 6, 1).map(d => { return { label: t(Days[d]), value: d } })}
                         customClass='is-one-fifth'
                         itemsToShow={7}
                     />
@@ -219,13 +219,13 @@ export function SectionLanSettings({ isActive }: { isActive: boolean }) {
             </div>
             {/* End date */}
             <div className="is-flex gap-3">
-                <div className='has-text-right is-one-fifth'>Fin de la LAN :</div>
+                <div className='has-text-right is-one-fifth'>{t("admin.fin_lan")}</div>
                 <div className='is-flex grow gap-3'>
                     <input type="hidden" name="intent" value={AdminIntents.UPDATE_LAN} />
                     <CustomSelect
                         variable={lan.endDate.day}
                         setter={(v: string) => updateLan("lan_end_date", JSON.stringify({ ...lan.endDate, day: v }))}
-                        items={[...range(lan.startDate.day + 1, 6, 1), ...range(0, lan.startDate.day - 1, 1)].map(d => { return { label: Days[d], value: d } })}
+                        items={[...range(lan.startDate.day + 1, 6, 1), ...range(0, lan.startDate.day - 1, 1)].map(d => { return { label: t(Days[d]), value: d } })}
                         customClass='is-one-fifth'
                     />
                     <CustomSelect
@@ -238,12 +238,12 @@ export function SectionLanSettings({ isActive }: { isActive: boolean }) {
             </div>
             {/* Lan map */}
             <div className="is-flex gap-3 align-center">
-                <div className='has-text-right is-one-fifth'>Plan de la LAN :</div>
+                <div className='has-text-right is-one-fifth'>{t("admin.plan_lan")}</div>
                 <fetcherUpdateMap.Form method="post" encType="multipart/form-data">
                     <input name="intent" type="hidden" hidden value={AdminIntents.UPLOAD_MAP} />
                     <input name="map" type="file" hidden ref={fileInputRef} id="selectMapInput" accept="image/jpeg,image/png,image/webp,image/gif"
                         onChange={handleFileChange} />
-                    <CustomButton callback={() => fileInputRef.current?.click()} contentItems={["Choisir une image"]} />
+                    <CustomButton callback={() => fileInputRef.current?.click()} contentItems={[t("admin.plan_choisir_image")]} />
                 </fetcherUpdateMap.Form>
             </div>
         </div>
@@ -254,18 +254,20 @@ export function SectionTournamentsSettings({ isActive }: { isActive: boolean }) 
     const { setActiveSection } = useAdminSection()
     const navigate = useNavigate()
     const tournaments = useTournaments()
+    const { t } = useTranslation()
+
 
     return <div className={`is-clipped has-background-secondary-level px-4 is-flex-col ${isActive ? "grow no-basis" : ""}`}>
         <div className="is-title medium is-uppercase py-2 px-1 is-clickable" {...clickorkey(() => setActiveSection("tournamentsSettings"))} style={{ flex: "none" }}>
-            Tournois
+            {t("admin.parametres_tournois")}
         </div>
         <div className="is-flex-col gap-4 is-scrollable" style={isActive ? { marginBottom: "1rem" } : { maxHeight: 0 }}>
             {/* LAN tournaments */}
             <div className="is-flex gap-3 ">
-                <div className="has-text-right is-one-fifth mt-4">Tournois de la LAN :</div>
+                <div className="has-text-right is-one-fifth mt-4">{t("admin.tournois_lan")}</div>
                 <div id="tournamentsList" className="is-flex wrap grow gap-1 p-2 has-background-primary-level is-scrollable">
                     <div className="is-flex">
-                        <CustomButton customClasses="grow" contentItems={["New tournament"]} colorClass="has-background-secondary-accent" callback={() => { navigate("/tournaments/new") }}></CustomButton>
+                        <CustomButton customClasses="grow" contentItems={[t("admin.nouveau_tournoi")]} colorClass="has-background-secondary-accent" callback={() => { navigate("/tournaments/new") }}></CustomButton>
                     </div>
                     {tournaments.map(tournament =>
                         <CustomButton key={tournament.id} customClasses="grow" contentItems={[tournament.name]} colorClass="has-background-secondary-level" callback={() => { navigate("/tournaments/" + tournament.id) }} />
@@ -280,42 +282,47 @@ export function SectionTournamentsSettings({ isActive }: { isActive: boolean }) 
 export function SectionGlobalTournamentSettings({ isActive }: { isActive: boolean }) {
     const { setActiveSection, updateLan } = useAdminSection()
     const lan = useLan()
+    const { t } = useTranslation()
 
     return <div className={`is-clipped has-background-secondary-level px-4 is-flex-col ${isActive ? "grow no-basis" : ""}`}>
         <div className="is-title medium is-uppercase py-2 px-1 is-clickable" {...clickorkey(() => setActiveSection("globalTournamentSettings"))} style={{ flex: "none" }}>
-            Tournoi global et résultats
+            {t("admin.tournoi_global_et_resultats")}
         </div>
         <div className="is-flex-col gap-4" style={{ maxHeight: isActive ? undefined : 0 }}>
             <div className="is-flex gap-3">
-                <div className="has-text-right is-one-fifth">Points par défaut :</div>
+                <div className="has-text-right is-one-fifth">{t("admin.points_par_defaut")} :</div>
                 <div className="is-flex-col gap-2">
                     <EditGlobalTournamentPoints points={lan.globalTournamentDefaultPoints} updatePoints={(pts) => updateLan("lan_globalTournamentDefaultPoints", JSON.stringify(pts))
                     } />
-                    <div className='is-size-7 no-basis grow'>Dans ce tableau, indique le nombre de points que les joueurs recevront à chaque tournoi en fonction de leur classement.</div>
+                    <div className='is-size-7 no-basis grow'>{t("admin.points_par_defaut_description")}</div>
                 </div>
             </div>
             <div></div>  {/* Spacer */}
             <div className='is-flex gap-3'>
                 <CustomCheckbox variable={lan.showPartialResults} customClass='mt-2 justify-flex-end is-one-fifth' setter={(value: boolean) => updateLan("lan_showPartialResults", JSON.stringify(value))} />
                 <div className='is-flex-col'>
-                    <div>Résultats provisoires</div>
-                    <div className='is-size-7 no-basis grow'>En choisissant <i>oui</i>, les résultats des tournois seront calculés et mis à jour à chaque match.<br />Chaque participant aura le minimum de points possible en fonction de ses matchs terminés.</div>
+                    <div>{t("admin.resultats_provisoires")}</div>
+                    <div className='is-size-7 no-basis grow'>
+                        <Trans i18nKey="admin.resultats_provisoires_description" />
+                    </div>
                 </div>
             </div>
             <div className='is-flex gap-3'>
                 <CustomCheckbox variable={lan.showTeamsResults} customClass='mt-2 justify-flex-end is-one-fifth' setter={(value: boolean) => updateLan("lan_showTeamsResults", JSON.stringify(value))} />
-                <div>Afficher le classement par équipes</div>
+                <div>{t("admin.afficher_classement_par_equipes")}</div>
             </div>
             <div className='is-flex gap-3'>
                 <CustomCheckbox variable={lan.weightTeamsResults} customClass='mt-2 justify-flex-end is-one-fifth' setter={(value: boolean) => updateLan("lan_weightTeamsResults", JSON.stringify(value))} />
                 <div className='is-flex-col'>
-                    <div>Classement d&apos;équipe pondéré</div>
-                    <div className='is-size-7 no-basis grow'>Sélectionne <i>oui</i> pour pondérer les scores d&apos;équipe en fonction du nombre de joueurs qui la composent. Dans le cas contraire, bien sûr, sélectionne <i>non</i>.</div>
+                    <div>{t("admin.classement_equipe_pondere")}</div>
+                    <div className='is-size-7 no-basis grow'>
+                        <Trans i18nKey="admin.classement_equipe_pondere_description" />
+                    </div>
                 </div>
             </div>
             <div className='is-flex gap-3 align-center'>
                 <CustomCheckbox variable={lan.showAchievements} customClass='justify-flex-end is-one-fifth' setter={(value: boolean) => updateLan("lan_showAchievements", JSON.stringify(value))} />
-                <div>Afficher les achievements</div>
+                <div>{t("admin.afficher_les_achievements")}</div>
                 <AchievementSelector />
             </div>
         </div>
@@ -327,6 +334,7 @@ export function SectionOnGoingMatches({ isActive }: { isActive: boolean }) {
     const { playableMatches } = useLoaderData<typeof loader>()
     const tournaments = useTournaments()
     const navigate = useNavigate()
+    const { t } = useTranslation()
     const tournamentsWaitingForValidation = tournaments.filter(t => t.status == TournamentStatus.Validating)
     const playableTournaments = tournaments.filter(t => playableMatches.map(pm => pm.tournamentId).includes(t.id))
     playableTournaments.forEach(pt => useRevalidateOnTournamentUpdate(pt.id))
@@ -337,13 +345,13 @@ export function SectionOnGoingMatches({ isActive }: { isActive: boolean }) {
 
     return <div className={`is-clipped has-background-secondary-level px-4 is-flex-col ${isActive ? "grow no-basis" : ""}`}>
         <div className="is-title medium is-uppercase py-2 px-1 is-clickable" {...clickorkey(() => setActiveSection("ongoingMatches"))} style={{ flex: "none" }}>
-            Tournois et matchs en cours
+            {t("admin.tournois_et_matchs_en_cours")}
         </div>
         <div className="is-flex-col gap-4 align-stretch is-scrollable" style={{ maxHeight: isActive ? undefined : 0 }} >
-            {playableTournaments.length == 0 && tournamentsWaitingForValidation.length == 0 && <div className="p-3">Aucun tournoi en cours</div>}
+            {playableTournaments.length == 0 && tournamentsWaitingForValidation.length == 0 && <div className="p-3">{t("admin.aucun_tournoi_en_cours")}</div>}
             {/* Tournaments waiting for validation */}
             {tournamentsWaitingForValidation.length > 0 && <div className="is-flex gap-3 ">
-                <div className="has-text-right is-one-fifth mt-4">Tournois à valider :</div>
+                <div className="has-text-right is-one-fifth mt-4">{t("admin.tournois_a_valider")} :</div>
                 <div className="is-flex wrap grow gap-1 p-2 has-background-primary-level is-scrollable">
                     {tournamentsWaitingForValidation.map(tournament =>
                         <CustomButton key={tournament.id} customClasses="grow" contentItems={[tournament.name]} colorClass="has-background-secondary-level" callback={() => { navigate("/tournaments/" + tournament.id) }} />
@@ -353,18 +361,18 @@ export function SectionOnGoingMatches({ isActive }: { isActive: boolean }) {
             </div>}
             {/* Matches waiting for a score */}
             {playableTournaments.length > 0 && <div className="is-flex gap-3">
-                <div className="has-text-right is-one-fifth mt-4">Matchs en cours :</div>
+                <div className="has-text-right is-one-fifth mt-4">{t("admin.matchs_en_cours")} :</div>
                 <div className="is-flex-col grow gap-2 p-2 has-background-primary-level align-stretch">
                     {playableTournaments.map(tournament =>
                         <div key={tournament.id} className="is-flex-col gap-1">
                             <Link to={"/tournaments/" + tournament.id} className="is-uppercase has-background-secondary-level p-1 has-text-weight-semibold fade-on-mouse-out">{tournament.name}</Link>
                             <div className="is-flex wrap grow gap-1">
                                 {playableMatches.filter(pm => pm.tournamentId == tournament.id).map(pMatch => {
-                                    return <Link key={IdToString(pMatch.matchId)} to={"/tournaments/" + tournament.id} className="grow is-flex-col align-center customButton gap-1 fade-on-mouse-out is-unselectable has-background-secondary-level" style={{ height: "80px", maxWidth:"33%" }}>
-                                        <div>Match {IdToString(pMatch.matchId)}</div>
+                                    return <Link key={IdToString(pMatch.matchId)} to={"/tournaments/" + tournament.id} className="grow is-flex-col align-center customButton gap-1 fade-on-mouse-out is-unselectable has-background-secondary-level" style={{ height: "80px", maxWidth: "33%" }}>
+                                        <div>{t("admin.match", { matchId: IdToString(pMatch.matchId) })}</div>
                                         {pMatch.opponents.length == 2 ?
                                             <div className="is-flex gap-2"><span className="has-text-primary-accent">{pMatch.opponents[0]}</span> VS <span className="has-text-secondary-accent">{pMatch.opponents[1]}</span></div>
-                                            : <div>FFA</div>
+                                            : <div>{t("admin.match_type.ffa")}</div>
                                         }
                                     </Link>
                                 })}
@@ -411,18 +419,19 @@ function AchievementSelector() {
     const fetcher = useFetcher()
     const [showEditAchievements, setShowEditAchievements] = useState(false)
     const formRef = useRef(null)
+    const { t } = useTranslation()
 
     function updateAchievements() {
         fetcher.submit(formRef.current, { method: "POST" })
     }
 
-    return <><CustomButton callback={() => setShowEditAchievements(true)} contentItems={["Edit achievements"]} colorClass="has-background-primary-level" />
+    return <><CustomButton callback={() => setShowEditAchievements(true)} contentItems={[t("admin.editer_les_achievements")]} colorClass="has-background-primary-level" />
         <CustomModalBinary
             show={showEditAchievements}
             onHide={() => setShowEditAchievements(false)}
             content={
                 <div className="grow is-flex-col align-stretch p-1" style={{ maxHeight: "60vh" }}>
-                    <div className="mb-3">Sélectionne et personalise les achievements de la LAN:</div>
+                    <div className="mb-3">{t("admin.customize_achievements")}</div>
                     <fetcher.Form ref={formRef} className="is-flex-col gap-3 is-scrollable" method="POST">
                         <input type="hidden" name="intent" value={AdminIntents.UPDATE_ACHIEVEMENTS} />
                         {achievements.map(achievement =>
@@ -430,25 +439,25 @@ function AchievementSelector() {
                                 <input type="hidden" name={"type_" + achievement.type} value={achievement.type} />
                                 <div className="is-flex gap-2 align-center">
                                     <CustomCheckbox variable={achievement.active} inFormName={"active_" + achievement.type} />
-                                    <div>{achievement.valueDescription} ({achievement.valueUseBest ? "Meilleur" : "Pire"} score)</div>
+                                    <div>{t(achievement.valueDescription)} ({achievement.valueUseBest ? t("achievements.meilleur_score") : t("achievements.pire_score")})</div>
                                 </div>
                                 <div className="px-2 is-flex-col gap-1">
                                     <div className="is-flex gap-2">
-                                        <div className="is-one-fifth">Titre</div>
+                                        <div className="is-one-fifth">{t("admin.achievement_titre")}</div>
                                         <input
                                             name={"name_" + achievement.type}
                                             className="px-1 grow no-basis" type="text"
-                                            defaultValue={achievement.name}
-                                            placeholder={achievement.type}
+                                            defaultValue={t(achievement.name)}
+                                            placeholder={t(achievement.type)}
                                         />
                                     </div>
                                     <div className="is-flex gap-2">
-                                        <div className="is-one-fifth">Description</div>
+                                        <div className="is-one-fifth">{t("admin.achievement_description")}</div>
                                         <textarea
                                             name={"description_" + achievement.type}
                                             className="px-1 grow no-basis"
-                                            defaultValue={achievement.description}
-                                            placeholder={AchievementDecriptors.get(achievement.type) || ""}
+                                            defaultValue={t(achievement.description)}
+                                            placeholder={t(AchievementDecriptors.get(achievement.type) || "")}
                                         />
                                     </div>
                                 </div>
