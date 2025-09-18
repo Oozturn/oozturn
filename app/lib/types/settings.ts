@@ -5,6 +5,7 @@ interface SecuritySettings {
 	securePassword: boolean
 	useHttpOnly: boolean
 	allOpponentsScore: boolean | "duel_only"
+	allowEasyLogin: boolean
 }
 
 interface NotificationsSettings {

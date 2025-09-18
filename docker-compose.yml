@@ -17,3 +17,4 @@ services:
       - ADMIN_PASSWORD=superSecretPassword
       - ALL_OPPONENTS_SCORE=duel_only
       - ASK_FOR_SEATS=true
+      - ALLOW_EASY_LOGIN=false

@@ -33,6 +33,7 @@ OOZTURN accepts the following settings, to set with environment variables:
 | ADMIN_PASSWORD | Admin password. This parameter is mandatory to enable the admin panel. Without it, admin pages can't be accessed. | empty |
 | ALL_OPPONENTS_SCORE | Allow all opponents to score. can be "false", "duel_only", "true". | false |
 | ASK_FOR_SEATS | Asks users to enter their seat. | true |
+| ALLOW_EASY_LOGIN | Allow to list users on login page | false |
 
 ### Docker
 
