@@ -43,20 +43,16 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<{
   playableMatches: PlayableMatch[]
 }> {
   const settings: Settings = {
-    autoRefresh: {
-      tournaments: process.env.AUTO_REFRESH_TOURNAMENTS === "false" ? false : true,
-      users: process.env.AUTO_REFRESH_USERS === "false" ? false : true
-    },
     security: {
-      newUsersByAdmin: process.env.NEW_USERS_BY_ADMIN === "false" ? false : true,
-      authentication: process.env.AUTHENTICATION === "false" ? false : true,
-      securePassword: process.env.SECURE_PASSWORD === "false" ? false : true,
-      useHttpOnly: process.env.USE_HTTP_ONLY === "true" ? true : false,
       allOpponentsScore: process.env.ALL_OPPONENTS_SCORE === "duel_only" ? "duel_only" : (process.env.ALL_OPPONENTS_SCORE === "true" ? true : false),
-      allowEasyLogin: process.env.ALLOW_EASY_LOGIN === "true" ? true : false,
+      newUsersByAdmin: process.env.UNSAFE_ALLOW_REGISTER_BY_NEW_USERS === "true" ? true : false,
+      authentication: process.env.UNSAFE_NO_AUTHENTICATION === "true" ? true : false,
+      securePassword: process.env.UNSAFE_DISABLE_STRONG_PASSWORDS === "true" ? true : false,
+      useHttpOnly: process.env.UNSAFE_USE_HTTP_ONLY === "true" ? true : false,
+      allowEasyLogin: process.env.UNSAFE_ALLOW_EASY_LOGIN === "true" ? true : false,
     },
     notifications: {
-      tournamentStartStop: process.env.NOTIFICATION_TOURNAMENT_CHANGE === "false" ? false : true,
+      tournamentStartStop: process.env.DISABLE_TOURNAMENT_NOTIFICATIONS === "true" ? true : false,
     },
     qoLan: {
       placedPlayers: process.env.ASK_FOR_SEATS === "false" ? false : true,
@@ -78,7 +74,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<{
       settings: settings,
       lan: getLan(),
       tournaments: [],
-      users: settings.security.allowEasyLogin ? getUsers() : [],
+      users: [],
       playableMatches: []
     }
   }

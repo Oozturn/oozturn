@@ -12,12 +12,6 @@ interface NotificationsSettings {
 	tournamentStartStop: boolean
 }
 
-// Maybe this could be a user setting ?
-interface AutoRefreshSettings {
-	tournaments: boolean
-	users: boolean
-}
-
 interface QoLanSettings {
 	placedPlayers: boolean
 }
@@ -25,7 +19,6 @@ interface QoLanSettings {
 export interface Settings {
 	security: SecuritySettings,
 	notifications: NotificationsSettings,
-	autoRefresh: AutoRefreshSettings,
 	qoLan: QoLanSettings
 }
 

@@ -77,10 +77,10 @@ function NotificationCenter() {
             <div className="grow is-flex justify-center align-center"><NotifySVG /></div>
             <div className="navbarNotificationCenter has-background-secondary-level is-flex-col align-stretch">
                 <div id="waitingMatchesTitle" className="is-flex align-center justify-center p-2 is-uppercase has-background-primary-accent has-text-weight-semibold">Matchs en attente</div>
-                <div id="waitingMatchesList" className="is-flex align-stretch gap-1">
+                <div id="waitingMatchesList" className="is-flex-col align-stretch gap-1">
                 {playableMatches.map((match) => (
-                    <Link key={match.tournamentId + '_' + IdToString(match.matchId)} to={`/tournaments/${match.tournamentId}`} className="m-2 is-flex align-center gap-1 fade-on-mouse-out">
-                        <span>//</span>
+                    <Link key={match.tournamentId + '_' + IdToString(match.matchId)} to={`/tournaments/${match.tournamentId}`} className="m-2 is-flex align-center gap-3 fade-on-mouse-out">
+                        <span style={{letterSpacing: -5}}><i className="has-text-secondary-accent">/</i><i className="has-text-primary-accent">/</i></span>
                         <span className="is-uppercase">{tournaments.find(t => t.id == match.tournamentId)?.name}</span> - Match {IdToString(match.matchId)}
                     </Link>
                 ))}

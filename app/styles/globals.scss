@@ -1109,7 +1109,7 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
     min-width: $tournament-side-list-width;
     max-width: $tournament-side-list-width;
     gap: 1rem;
-    padding: 0 2px;
+    padding: 2px;
     .tournamentTile {
         position: relative;
         flex: 0 0 81px;

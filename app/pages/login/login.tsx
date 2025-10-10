@@ -1,13 +1,13 @@
 import { ActionFunctionArgs, MetaFunction } from "@remix-run/node"
-import { Form, useActionData } from "@remix-run/react"
+import { Form, useActionData, useLoaderData } from "@remix-run/react"
 import { LogoUnfolded } from "~/lib/components/data/svg-container"
 import { doLogin } from "./login.queries.server"
 import { useLan } from "~/lib/components/contexts/LanContext"
 import { getLan } from "~/lib/persistence/lan.server"
 import { useEffect, useRef, useState } from "react"
 import { CustomButton } from "~/lib/components/elements/custom-button"
-import { useUsers } from "~/lib/components/contexts/UsersContext"
 import { clickorkey } from "~/lib/utils/clickorkey"
+import { getUsers } from "~/lib/persistence/users.server"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -17,8 +17,10 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 
 export async function loader(): Promise<{
   lanName: string
+  usernames: string[]
 }> {
-  return { lanName: getLan().name }
+  const usernames = process.env.ALLOW_EASY_LOGIN === "true" ? getUsers().map(u => u.username) : []
+  return { lanName: getLan().name, usernames: usernames }
 }
 
 export async function action({ request, }: ActionFunctionArgs) {
@@ -98,17 +100,17 @@ function LoginForm() {
 }
 
 function LoginUsersDropDown({ usernameToMatch, callbackOnUserSelect, show }: { usernameToMatch: string, callbackOnUserSelect: (username: string) => void, show: boolean }) {
-
+  
   const normalize = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "").toLowerCase()
-
-  const users = useUsers()
+  
+  const { usernames: allUsernames } = useLoaderData<typeof loader>()
   const [usernames, setUsernames] = useState<string[]>([])
 
 
   useEffect(() => {
     const regexp = new RegExp('.*' + normalize(usernameToMatch).split('').map(c => c + '.*').join('') + '.*')
-    setUsernames(users.map(u => u.username).filter(username => regexp.test(normalize(username))))
-  }, [usernameToMatch, users])
+    setUsernames(allUsernames.filter(username => regexp.test(normalize(username))))
+  }, [usernameToMatch, allUsernames])
 
   if (!show) return null
   if (!usernames.length) return null
