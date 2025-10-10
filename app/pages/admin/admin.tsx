@@ -334,7 +334,6 @@ export function SectionOnGoingMatches({ isActive }: { isActive: boolean }) {
             Tournois et matchs en cours
         </div>
         <div className="is-flex-col gap-4 align-stretch is-scrollable" style={{ maxHeight: isActive ? undefined : 0 }} >
-            {/* {playableTournaments.length == 0 && tournamentsWaitingForValidation.length == 0 && <div className="p-3">Aucun tournoi en cours</div>} */}
             {/* Tournaments waiting for validation */}
             {tournamentsWaitingForValidation.length > 0 && <div className="is-flex gap-3 ">
                 <div className="has-text-right is-one-fifth mt-4">Tournois à valider :</div>
@@ -347,7 +346,6 @@ export function SectionOnGoingMatches({ isActive }: { isActive: boolean }) {
             </div>}
             {/* Matches waiting for a score */}
             {playableTournaments.length > 0 && <div className="is-flex gap-3">
-                {/* <div className="has-text-right is-one-fifth mt-4">Matchs en cours :</div> */}
                 <div className="is-flex-col grow gap-2 p-2 has-background-primary-level align-stretch">
                     {playableTournaments.map(tournament =>
                         <div key={tournament.id} className="is-flex-col gap-1">
