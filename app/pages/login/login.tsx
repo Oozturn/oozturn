@@ -1,5 +1,5 @@
 import { ActionFunctionArgs, MetaFunction } from "@remix-run/node"
-import { Form, useActionData, useLoaderData } from "@remix-run/react"
+import { Form, useActionData, useSubmit, useLoaderData } from "@remix-run/react"
 import { LogoUnfolded } from "~/lib/components/data/svg-container"
 import { doLogin } from "./login.queries.server"
 import { useLan } from "~/lib/components/contexts/LanContext"
@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react"
 import { CustomButton } from "~/lib/components/elements/custom-button"
 import { clickorkey } from "~/lib/utils/clickorkey"
 import { getUsers } from "~/lib/persistence/users.server"
+import { notifyError } from "~/lib/components/notification"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -38,6 +39,14 @@ function LoginForm() {
   const [animateLogo, setAnimateLogo] = useState(false)
   const [username, setUsername] = useState("")
   const formRef = useRef(null)
+  const submit = useSubmit()
+
+  useEffect(() => {
+    if(actionResult?.error) {
+      notifyError(actionResult.error)
+      setAnimateLogo(false)
+    }
+  }, [actionResult])
 
   async function handleSubmit() {
     if (!formRef.current) return
@@ -45,8 +54,7 @@ function LoginForm() {
     const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
     const form = formRef.current as HTMLFormElement
     await delay(2000)
-    form.submit()
-
+    submit(form)
   }
 
   return (
@@ -85,16 +93,8 @@ function LoginForm() {
             callback={handleSubmit}
             contentItems={["Se connecter"]}
           />
-          {/* <div className="">
-            <button type='submit' disabled={animateLogo} className={`customButton fade-on-mouse-out is-unselectable has-background-secondary-accent is-pulled-right ${animateLogo ? "fade-text has-background-primary-level" : ""}`}>Se connecter</button>
-          </div> */}
         </Form>
       </div>
-      {actionResult?.error && (
-        <p className="has-text-danger" style={{ position: "absolute", bottom: "-2rem", width: "500%", textAlign: "center" }}>
-          {actionResult.error}
-        </p>
-      )}
     </div>
   )
 }
