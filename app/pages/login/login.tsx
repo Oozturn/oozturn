@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react"
 import { CustomButton } from "~/lib/components/elements/custom-button"
 import { clickorkey } from "~/lib/utils/clickorkey"
 import { getUsers } from "~/lib/persistence/users.server"
+import { notifyError } from "~/lib/components/notification"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -40,6 +41,13 @@ function LoginForm() {
   const formRef = useRef(null)
   const submit = useSubmit()
 
+  useEffect(() => {
+    if(actionResult?.error) {
+      notifyError(actionResult.error)
+      setAnimateLogo(false)
+    }
+  }, [actionResult])
+
   async function handleSubmit() {
     if (!formRef.current) return
     setAnimateLogo(true)
@@ -47,7 +55,6 @@ function LoginForm() {
     const form = formRef.current as HTMLFormElement
     await delay(2000)
     submit(form)
-    setAnimateLogo(false)
   }
 
   return (
@@ -88,11 +95,6 @@ function LoginForm() {
           />
         </Form>
       </div>
-      {actionResult?.error && (
-        <p className="has-text-danger">
-          {actionResult.error}
-        </p>
-      )}
     </div>
   )
 }
