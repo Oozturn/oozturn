@@ -7,7 +7,7 @@ export async function validate(password: string, confirmPassword: string) {
         errors.password = "Mot de passe requis."
     } else if (password !== confirmPassword) {
         errors.password = "La confirmation ne correspond pas au mot de passe."
-    } else if (!(process.env.SECURE_PASSWORD === 'false') && !PASSWORD_REGEX.test(password)) {
+    } else if (!(process.env.UNSAFE_DISABLE_STRONG_PASSWORDS === 'true') && !PASSWORD_REGEX.test(password)) {
         errors.password = "Mot de passe non sécurisé."
     }
 

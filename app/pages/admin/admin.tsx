@@ -334,7 +334,6 @@ export function SectionOnGoingMatches({ isActive }: { isActive: boolean }) {
             Tournois et matchs en cours
         </div>
         <div className="is-flex-col gap-4 align-stretch is-scrollable" style={{ maxHeight: isActive ? undefined : 0 }} >
-            {playableTournaments.length == 0 && tournamentsWaitingForValidation.length == 0 && <div className="p-3">Aucun tournoi en cours</div>}
             {/* Tournaments waiting for validation */}
             {tournamentsWaitingForValidation.length > 0 && <div className="is-flex gap-3 ">
                 <div className="has-text-right is-one-fifth mt-4">Tournois à valider :</div>
@@ -347,20 +346,21 @@ export function SectionOnGoingMatches({ isActive }: { isActive: boolean }) {
             </div>}
             {/* Matches waiting for a score */}
             {playableTournaments.length > 0 && <div className="is-flex gap-3">
-                <div className="has-text-right is-one-fifth mt-4">Matchs en cours :</div>
                 <div className="is-flex-col grow gap-2 p-2 has-background-primary-level align-stretch">
                     {playableTournaments.map(tournament =>
                         <div key={tournament.id} className="is-flex-col gap-1">
                             <Link to={"/tournaments/" + tournament.id} className="is-uppercase has-background-secondary-level p-1 has-text-weight-semibold fade-on-mouse-out">{tournament.name}</Link>
                             <div className="is-flex wrap grow gap-1">
                                 {playableMatches.filter(pm => pm.tournamentId == tournament.id).map(pMatch => {
-                                    return <Link key={IdToString(pMatch.matchId)} to={"/tournaments/" + tournament.id} className="grow is-flex-col is-relative justify-center align-stretch is-clipped customButton gap-1 fade-on-mouse-out is-unselectable has-background-secondary-level" style={{ height: "100px", maxWidth: "33%" }}>
+                                    return <Link key={IdToString(pMatch.matchId)} to={"/tournaments/" + tournament.id} className="grow is-flex-col is-relative justify-center align-stretch is-clipped customButton gap-1 fade-on-mouse-out is-unselectable has-background-secondary-level" style={{ height: "130px", minWidth: "21%", maxWidth: "30%" }}>
                                         <div className="is-size-5 has-text-centered">Match {IdToString(pMatch.matchId)}</div>
                                         {pMatch.opponents.length == 2 ?
-                                            <div className="is-flex justify-center align-center gap-2 is-size-5">
-                                                <span className="has-text-primary-accent" style={{ whiteSpace: "nowrap" }}>{pMatch.opponents[0]}</span>
+                                            <div className="is-flex justify-center align-center px-2 gap-1 is-size-5">
                                                 VS
-                                                <span className="has-text-secondary-accent" style={{ whiteSpace: "nowrap" }}>{pMatch.opponents[1]}</span>
+                                                <div className="is-flex-col grow justify-center align-start pl-1 is-size-5" style={{borderLeft: "2px solid var(--text-color-70)"}}>
+                                                    <span className="has-text-primary-accent" style={{ whiteSpace: "nowrap" }}>{pMatch.opponents[0]}</span>
+                                                    <span className="has-text-secondary-accent" style={{ whiteSpace: "nowrap" }}>{pMatch.opponents[1]}</span>
+                                                </div>
                                             </div>
                                             : <div className="is-flex justify-center align-center gap-2 is-size-5">FFA</div>
                                         }

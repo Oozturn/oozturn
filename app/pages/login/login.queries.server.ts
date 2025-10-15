@@ -19,7 +19,7 @@ export async function doLogin(rawUsername: string) {
         updateUser(user.id, {isAdmin: false})
         logger.info({ username: username }, `${username} logged in`)
     }
-    else if (process.env.NEW_USERS_BY_ADMIN === "true" && getUsers().length > 0) {
+    else if (!(process.env.UNSAFE_ALLOW_REGISTER_BY_NEW_USERS === "true") && getUsers().length > 0) {
         return json({ error: "Utilisateur inconnu." })
     } else {
         logger.info({ username: username }, `New user ${username} logged in`)
@@ -28,7 +28,7 @@ export async function doLogin(rawUsername: string) {
 
     const userIsComplete = (user.seat != '' || process.env.ASK_FOR_SEATS === "false") && (user.team != '')
     const cookie = await createSessionWithUser(user)
-    return redirect(!(process.env.AUTHENTICATION === 'false') ? "step-password" : (userIsComplete ? "/" : "first-login"), {
+    return redirect(!(process.env.UNSAFE_NO_AUTHENTICATION === 'true') ? "step-password" : (userIsComplete ? "/" : "first-login"), {
         headers: {
             "Set-Cookie": cookie
         }

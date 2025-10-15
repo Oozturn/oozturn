@@ -16,7 +16,7 @@ const secureStorage =
                 path: "/",
                 sameSite: "lax",
                 secrets: [sessionSecret],
-                secure: !(process.env.USE_HTTP_ONLY === 'true') && process.env.NODE_ENV === "production",
+                secure: !(process.env.UNSAFE_USE_HTTP_ONLY === 'true') && process.env.NODE_ENV === "production",
             },
         }
     )
@@ -54,7 +54,7 @@ export async function updateSessionWithPasswordAuth(request: Request) {
 
 export async function isUserLoggedIn(request: Request) {
     const session = await getSession(request)
-    if (!(process.env.AUTHENTICATION === "false")) {
+    if (!(process.env.UNSAFE_NO_AUTHENTICATION === "true")) {
         return session.has("userId")
             && session.get("auth") === "password"
     }

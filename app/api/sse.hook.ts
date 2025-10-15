@@ -2,7 +2,6 @@
 import { useRevalidator } from "@remix-run/react"
 import { useEffect } from "react"
 import { useEventSource } from "remix-utils/sse/react"
-import { useSettings } from "~/lib/components/contexts/SettingsContext"
 import { EVENT_UPDATE_LAN, EVENT_UPDATE_TOURNAMENT, EVENT_UPDATE_TOURNAMENTS, EVENT_UPDATE_USERS, TOURNAMENT_UPDATE_TYPES } from "~/lib/events/types"
 
 export function useRevalidateOnGlobalTournamentUpdate() {
@@ -36,10 +35,8 @@ export function useRevalidateOnTournamentUpdate(tournamentId: string) {
 export function useRevalidateOnTournamentsUpdate() {
   const revalidator = useRevalidator()
   const updateTime = useEventSource("/sse", { event: EVENT_UPDATE_TOURNAMENTS })
-  const settings = useSettings()
 
   useEffect(() => {
-    if (!settings.autoRefresh.tournaments) return
     if (revalidator.state === "idle") {
       revalidator.revalidate()
     }
@@ -60,10 +57,8 @@ export function useRevalidateOnLanUpdate() {
 export function useRevalidateOnUsersUpdate() {
   const revalidator = useRevalidator()
   const updateTime = useEventSource("/sse", { event: EVENT_UPDATE_USERS })
-  const settings = useSettings()
 
   useEffect(() => {
-    if (!settings.autoRefresh.users) return
     if (revalidator.state === "idle") {
       revalidator.revalidate()
     }
