@@ -15,7 +15,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         function handleUpdateTournament({ updateType, tournamentId }: tournamentUpdateEventProps) {
             const tournament = getTournament(tournamentId)
             if (
-                !(process.env.NOTIFICATION_TOURNAMENT_CHANGE === 'false') ||
+                !(process.env.DISABLE_TOURNAMENT_NOTIFICATIONS === 'true') ||
                 (userId && tournament.getPlayers().map(p => p.userId).includes(userId))
             ) {
                 if (updateType == TOURNAMENT_UPDATE_TYPES.START)

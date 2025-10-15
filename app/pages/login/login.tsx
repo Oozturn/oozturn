@@ -19,7 +19,7 @@ export async function loader(): Promise<{
   lanName: string
   usernames: string[]
 }> {
-  const usernames = process.env.ALLOW_EASY_LOGIN === "true" ? getUsers().map(u => u.username) : []
+  const usernames = process.env.UNSAFE_ALLOW_EASY_LOGIN === "true" ? getUsers().map(u => u.username) : []
   return { lanName: getLan().name, usernames: usernames }
 }
 

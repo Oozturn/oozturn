@@ -18,7 +18,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  if (process.env.AUTHENTICATION === 'false') {
+  if (process.env.UNSAFE_NO_AUTHENTICATION === 'true') {
     throw redirect('/login')
   }
 
