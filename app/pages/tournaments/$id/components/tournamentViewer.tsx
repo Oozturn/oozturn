@@ -171,7 +171,7 @@ function BracketViewer({ bracket }: { bracket: number }) {
     )
 }
 
-function SectionViewer({ bracket, section }: { bracket: number, section: number }) {
+export function SectionViewer({ bracket, section }: { bracket: number, section: number }) {
     const tournament = useTournament()
     if (tournament.bracketSettings[bracket].type == BracketType.GroupStage) {
         return <GroupStageSectionViewer bracket={bracket} section={section} />

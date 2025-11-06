@@ -24,7 +24,7 @@ export function canEditScore(match: Match, opponentId: string | undefined, tourn
   if (!match.scorable) return false
   if (!opponentId) return false
   if (![TournamentStatus.Running, TournamentStatus.Paused, TournamentStatus.Validating].includes(tournament.status)) return false
-  if (!user.isAdmin && tournament.status == TournamentStatus.Running) return false
+  if (!user.isAdmin && tournament.status != TournamentStatus.Running) return false
   if (user.isAdmin && [TournamentStatus.Running, TournamentStatus.Paused, TournamentStatus.Validating].includes(tournament.status)) return true
 
   const userTeam = tournament.settings.useTeams ? tournament.teams.find(team => team.members.includes(user.id)) : undefined

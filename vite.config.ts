@@ -22,6 +22,7 @@ export default defineConfig({
           route("", "pages/tournaments/tournaments.tsx", { index: true })
           route("404", "pages/tournaments/404.tsx")
           route(":id", "pages/tournaments/$id/tournament.tsx")
+          route(":id/bracket", "pages/tournaments/$id/bracket.tsx")
           route("api", "pages/tournaments/api.ts")
         })
         route("tournaments/new", "pages/tournaments/new/new.tsx")

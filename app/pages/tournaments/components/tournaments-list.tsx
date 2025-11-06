@@ -1,4 +1,4 @@
-import { NavLink } from "@remix-run/react"
+import { NavLink, useLocation } from "@remix-run/react"
 import { useTournaments } from "~/lib/components/contexts/TournamentsContext"
 import { useUser } from "~/lib/components/contexts/UserContext"
 import { TournamentStatus } from "~/lib/tournamentEngine/types"
@@ -11,6 +11,9 @@ export default function TournamentsList() {
 
     const user = useUser()
     const tournaments = useTournaments()
+    
+    const location = useLocation()
+    if(location.pathname.endsWith("bracket")) return null
 
     return (
         <div className="tournamentsList is-flex is-flex-direction-column is-scrollable">
@@ -26,7 +29,7 @@ export default function TournamentsList() {
                     key={tournament.id}
                     className={({ isActive }) => `tournamentTile has-background-secondary-level is-clickable ${isActive ? 'is-active' : ''}`}
                 >
-                    <img className='is-full-height is-full-width' src={tournament.picture ? `/tournaments/${tournament.picture}` : "/none.webp"}
+                    <img alt="" className='is-full-height is-full-width' src={tournament.picture ? `/tournaments/${tournament.picture}` : "/none.webp"}
                         style={{ position: "absolute", objectFit: "cover", backgroundImage: "var(--generic-game-image)", backgroundSize: "cover", backgroundPosition: "center" }}
                     />
                     <div className='tournamentName'>{tournament.name}</div>

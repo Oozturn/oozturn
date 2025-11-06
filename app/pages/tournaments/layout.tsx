@@ -10,7 +10,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export default function Tournaments() {
 
-    return <div className="is-full-height is-flex-row gap-3 p-3">
+    return <div className="is-full-height is-full-width is-flex-row gap-3 p-3">
         <TournamentsList />
         <Outlet />
     </div>

@@ -794,6 +794,7 @@ class Bracket {
 			this.states.push({ id: matchId, score: match.opponents.map(o => o == opponent ? score : undefined), timestamp: now() })
 			return
 		}
+		const previousScore = state.score.slice()
 		const futureScore = state.score.map((s, i) => i == opponentIndex ? score : s)
 		if (futureScore.every(value => value != undefined)) {
 			const unscorableReason = this.internalBracket!.unscorable(matchId, futureScore as number[], false)
@@ -801,7 +802,9 @@ class Bracket {
 				throw new Error(`Impossible to apply score ${futureScore} to match ${matchId} : ${unscorableReason}`)
 		}
 		state.score[opponentIndex] = score
-		state.timestamp = now()
+		if (previousScore.some((s, i) => s !== state.score[i])) {
+			state.timestamp = now()
+		}
 		if (state.score.every(value => value != undefined)) {
 			this.applyState(state)
 			this.setNewScorableTimestamps()

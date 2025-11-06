@@ -4,8 +4,8 @@ import { getTournament } from "~/lib/persistence/tournaments.server"
 import TournamentInfoSettings from "./components/tournament-info-settings"
 import { useUser } from "~/lib/components/contexts/UserContext"
 import { CustomButton, SquareButton } from "~/lib/components/elements/custom-button"
-import { CustomModal, CustomModalBinary } from "~/lib/components/elements/custom-modal"
-import { ReactNode, useRef, useState } from "react"
+import { CustomModalBinary } from "~/lib/components/elements/custom-modal"
+import { ReactNode, useState } from "react"
 import { BinSVG, ForfeitSVG, LeaveSVG, LockSVG, MoreSVG, ParticipateSVG, RollBackSVG, StartSVG, SubsribedSVG, ThumbUpSVG, UnlockSVG } from "~/lib/components/data/svg-container"
 import { addPlayerToTournament, addTeamToTournament, toggleBalanceTournament, removePlayerFromTournament, reorderPlayers, reorderTeams, addPlayerToTeam, removeTeamFromTournament, renameTeam, removePlayerFromTeams, distributePlayersOnTeams, balanceTeams, randomizePlayersOnTeams, cancelTournament, startTournament, scoreMatch, stopTournament, toggleForfeitPlayerForTournament, validateTournament, togglePauseTournament } from "./tournament.queries.server"
 import { useUsers } from "~/lib/components/contexts/UsersContext"
@@ -229,7 +229,7 @@ export default function TournamentPage() {
                     {!tournamentWideView.includes(tournament.id) && <div className="is-flex-col is-relative gap-2" style={{ width: "30%", minWidth: "30%", maxWidth: "30%" }}>
                         <TournamentInfoSettings />
                         <TournamentInfoPlayers />
-                        {user.isAdmin && tournament.status != TournamentStatus.Done && <TournamentCommands />}
+                        {tournament.status != TournamentStatus.Done && <TournamentCommands />}
                     </div>}
                     {[TournamentStatus.Open, TournamentStatus.Balancing].includes(tournament.status) ?
                         <div className="is-flex-col grow no-basis">
