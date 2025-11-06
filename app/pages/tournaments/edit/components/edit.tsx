@@ -151,6 +151,37 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
         }
     }
 
+    // Ensure tournament is configured correctly
+    function validateSettings() {
+        if (hasTwoPhases === undefined) return false
+        const validateQualifFFASettings = () => {
+            return (tQualifSettings.type == BracketType.FFA && tQualifSettings.groupSize !== undefined && tFinaleSettings.size !== undefined)
+        }
+        const validateQualifRoundRobinSettings = () => {
+            return (tQualifSettings.type == BracketType.GroupStage && tQualifSettings.groupSize !== undefined && tFinaleSettings.size !== undefined && tQualifSettings.meetTwice !== undefined)
+        }
+        const validateFinaleDuelSettings = () => {
+            return (tFinaleSettings.type == BracketType.Duel && tFinaleSettings.last !== undefined && tFinaleSettings.short !== undefined)
+        }
+        const validateFinaleFFASettings = () => {
+            return (tFinaleSettings.type == BracketType.FFA && tFinaleSettings.sizes && tFinaleSettings.advancers && (tFinaleSettings.sizes.length == tFinaleSettings.advancers.length + 1))
+        }
+        const validateFinaleGroupStageSettings = () => {
+            return (tFinaleSettings.type == BracketType.GroupStage && tFinaleSettings.groupSize !== undefined && tFinaleSettings.winPoints !== undefined && tFinaleSettings.tiePoints !== undefined && tFinaleSettings.meetTwice !== undefined)
+        }
+        // Single phase tournaments
+        if (!hasTwoPhases) {
+            return validateFinaleDuelSettings() || validateFinaleFFASettings() || validateFinaleGroupStageSettings()
+        }
+        // Two phases tournaments
+        if (!(validateQualifFFASettings() || validateQualifRoundRobinSettings())) return false
+        if (tFinaleSettings.type == BracketType.Duel) {
+            if (tFinaleSettings.short == false && tFinaleSettings.size && tFinaleSettings.size < 4) return false
+            if (tFinaleSettings.size && (tFinaleSettings.size & (tFinaleSettings.size - 1)) != 0) return false
+        }
+        return validateFinaleDuelSettings() || validateFinaleFFASettings()
+    }
+
     return (
         <div className="is-flex-col grow gap-2 p-0 is-full-height">
             <div className="is-title big is-uppercase has-background-secondary-level p-2 px-4" {...clickorkey(() => set_editStep(tournamentEditSteps.PROPERTIES))}>
@@ -380,7 +411,7 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                                     />
                                 </div>
                                 <div className='is-flex align-center gap-5'>
-                                    <div className='has-text-right is-one-third'>Nombre {tTournamentSettings.useTeams ? "d'équipes" : "de joueurs"} sélectionnés pour la phase suivante :</div>
+                                    <div className='has-text-right is-one-third'>Nombre total {tTournamentSettings.useTeams ? "d'équipes" : "de joueurs"} sélectionnés pour la phase suivante :</div>
                                     <CustomSelect
                                         variable={tFinaleSettings.size}
                                         setter={(v: string) => handleFinaleSettingsChange({ size: Number(v) })}
@@ -388,7 +419,7 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                                         itemsToShow={8}
                                     />
                                     {tFinaleSettings.type == BracketType.Duel && tFinaleSettings.size && ((tFinaleSettings.size & (tFinaleSettings.size - 1)) != 0) &&
-                                        <div className='mx-3 is-size-7 has-text-primary-accent'>Le nombre {tTournamentSettings.useTeams ? "d'équipes qualifiées" : "de joueurs qualifiés"} n&apos;est pas optimal pour le type de finale sélectionné.</div>
+                                        <div className='mx-3 is-size-7 has-text-primary-accent'>Le nombre {tTournamentSettings.useTeams ? "d'équipes qualifiées" : "de joueurs qualifiés"} n&apos;est pas recommandé pour le type de finale sélectionné.</div>
                                     }
                                 </div>
                                 {tQualifSettings.type == BracketType.GroupStage && <>
@@ -451,6 +482,9 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                                     }
                                     {tFinaleSettings.last == undefined &&
                                         <div className='mx-3 is-size-7'>Sélectionne une option de rattrapage pour avoir des précisions sur ce paramètre</div>
+                                    }
+                                    {tFinaleSettings.type == BracketType.Duel && tFinaleSettings.size && tFinaleSettings.short == false && (tFinaleSettings.size < 4) &&
+                                        <div className='mx-3 is-size-7 has-text-primary-accent'>Le nombre {tTournamentSettings.useTeams ? "d'équipes qualifiées" : "de joueurs qualifiés"} pour la phase finale doit être au moins 4 pour un format long.</div>
                                     }
                                 </div>
                             </div>
@@ -573,6 +607,7 @@ export default function TournamentEdit({ existingTournament }: TournamentEditPro
                         <CustomButton
                             callback={() => set_editStep(editStep + 1)}
                             colorClass='has-background-primary-accent'
+                            active={validateSettings()}
                             contentItems={['Suivant']}
                         />
                     </div>
