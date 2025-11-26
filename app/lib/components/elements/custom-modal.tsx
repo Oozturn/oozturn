@@ -3,9 +3,17 @@ import { CloseCrossSVG } from "../data/svg-container"
 import { CustomButton } from "./custom-button"
 import { clickorkey } from "~/lib/utils/clickorkey"
 
-export function ModalLayout({ show, contentSlot, buttonsSlot, onHide }:
-  { show: boolean, contentSlot: ReactNode, buttonsSlot: ReactNode, onHide: () => void }) {
-
+export function ModalLayout({
+  show,
+  contentSlot,
+  buttonsSlot,
+  onHide
+}: {
+  show: boolean
+  contentSlot: ReactNode
+  buttonsSlot: ReactNode
+  onHide: () => void
+}) {
   if (!show) {
     return null
   }
@@ -37,10 +45,10 @@ interface BaseModalProps {
 
 interface ModalButtonsProps {
   Content: ReactNode[]
-  Callback: (() => void)
+  Callback: () => void
   Classes?: string
   ColorClass?: string
-  Condition?: (() => boolean)
+  Condition?: () => boolean
   cantConfirmTooltip?: string
 }
 
@@ -49,7 +57,6 @@ interface CustomModalProps extends BaseModalProps {
 }
 
 export function CustomModal({ show, onHide, content, modalButtons }: CustomModalProps) {
-
   if (!show) {
     return null
   }
@@ -64,17 +71,20 @@ export function CustomModal({ show, onHide, content, modalButtons }: CustomModal
           </div>
           {content}
           <div className="is-flex justify-flex-end mt-4" style={{ gap: ".5rem" }}>
-            {modalButtons.map((buttonProps, index) =>
+            {modalButtons.map((buttonProps, index) => (
               <CustomButton
                 key={index}
-                callback={() => { buttonProps.Callback(); onHide(); }}
+                callback={() => {
+                  buttonProps.Callback()
+                  onHide()
+                }}
                 contentItems={buttonProps.Content}
                 customClasses={buttonProps.Classes}
                 colorClass={buttonProps.ColorClass}
                 active={buttonProps.Condition ? buttonProps.Condition() : undefined}
                 tooltip={buttonProps.Condition && !buttonProps.Condition() ? buttonProps.cantConfirmTooltip : undefined}
               />
-            )}
+            ))}
           </div>
         </div>
       </div>
@@ -89,18 +99,26 @@ interface CustomModalBinaryProps extends BaseModalProps {
   cantConfirmTooltip?: string
 }
 
-export function CustomModalBinary({ show, onHide, content, cancelButton, onConfirm, confirmCondition, cantConfirmTooltip }: CustomModalBinaryProps) {
-
+export function CustomModalBinary({
+  show,
+  onHide,
+  content,
+  cancelButton,
+  onConfirm,
+  confirmCondition,
+  cantConfirmTooltip
+}: CustomModalBinaryProps) {
   const buttons: ModalButtonsProps[] = []
   cancelButton && buttons.push({ Callback: onHide, Content: ["Annuler"], Classes: "has-background-primary-level" })
-  buttons.push({ Callback: onConfirm, Content: ["Confirmer"], ColorClass: "has-background-primary-accent", Condition: confirmCondition, cantConfirmTooltip: cantConfirmTooltip })
+  buttons.push({
+    Callback: onConfirm,
+    Content: ["Confirmer"],
+    ColorClass: "has-background-primary-accent",
+    Condition: confirmCondition,
+    cantConfirmTooltip: cantConfirmTooltip
+  })
 
-  return <CustomModal
-    show={show}
-    onHide={onHide}
-    content={content}
-    modalButtons={buttons}
-  />
+  return <CustomModal show={show} onHide={onHide} content={content} modalButtons={buttons} />
 }
 
 interface CustomModalSimpleAckProps extends BaseModalProps {
@@ -108,11 +126,12 @@ interface CustomModalSimpleAckProps extends BaseModalProps {
 }
 
 export function CustomModalSimpleAck({ show, onHide, content, buttonContent }: CustomModalSimpleAckProps) {
-
-  return <CustomModal
-    show={show}
-    onHide={onHide}
-    content={content}
-    modalButtons={[{ Callback: onHide, Content: buttonContent, ColorClass: "has-background-primary-accent" }]}
-  />
+  return (
+    <CustomModal
+      show={show}
+      onHide={onHide}
+      content={content}
+      modalButtons={[{ Callback: onHide, Content: buttonContent, ColorClass: "has-background-primary-accent" }]}
+    />
+  )
 }

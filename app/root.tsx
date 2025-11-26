@@ -1,12 +1,5 @@
 import type { LoaderFunctionArgs } from "@remix-run/node"
-import {
-  Links,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-  useLoaderData
-} from "@remix-run/react"
+import { Links, Meta, Outlet, Scripts, ScrollRestoration, useLoaderData } from "@remix-run/react"
 import { LanContext } from "./lib/components/contexts/LanContext"
 import { TournamentsContext } from "./lib/components/contexts/TournamentsContext"
 import { UserContext } from "./lib/components/contexts/UserContext"
@@ -25,7 +18,7 @@ import { PlayableMatch, TournamentInfo } from "./lib/tournamentEngine/types"
 import { User } from "./lib/types/user"
 import { Statistics } from "./lib/types/statistics"
 import "./styles/globals.scss"
-import 'react-contexify/ReactContexify.css'
+import "react-contexify/ReactContexify.css"
 import { NotificationNode } from "./lib/components/notification"
 import { useRevalidateOnLanUpdate } from "./api/sse.hook"
 import Footer from "./lib/components/layout/footer"
@@ -44,22 +37,27 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<{
 }> {
   const settings: Settings = {
     security: {
-      allOpponentsScore: process.env.ALL_OPPONENTS_SCORE === "duel_only" ? "duel_only" : (process.env.ALL_OPPONENTS_SCORE === "true" ? true : false),
+      allOpponentsScore:
+        process.env.ALL_OPPONENTS_SCORE === "duel_only"
+          ? "duel_only"
+          : process.env.ALL_OPPONENTS_SCORE === "true"
+          ? true
+          : false,
       newUsersByAdmin: process.env.UNSAFE_ALLOW_REGISTER_BY_NEW_USERS === "true" ? false : true,
       authentication: process.env.UNSAFE_NO_AUTHENTICATION === "true" ? false : true,
       securePassword: process.env.UNSAFE_DISABLE_STRONG_PASSWORDS === "true" ? false : true,
       useHttpOnly: process.env.UNSAFE_USE_HTTP_ONLY === "true" ? true : false,
-      allowEasyLogin: process.env.UNSAFE_ALLOW_EASY_LOGIN === "true" ? true : false,
+      allowEasyLogin: process.env.UNSAFE_ALLOW_EASY_LOGIN === "true" ? true : false
     },
     notifications: {
-      tournamentStartStop: process.env.DISABLE_TOURNAMENT_NOTIFICATIONS === "true" ? false : true,
+      tournamentStartStop: process.env.DISABLE_TOURNAMENT_NOTIFICATIONS === "true" ? false : true
     },
     qoLan: {
-      placedPlayers: process.env.ASK_FOR_SEATS === "false" ? false : true,
+      placedPlayers: process.env.ASK_FOR_SEATS === "false" ? false : true
     }
   }
   if (await isUserLoggedIn(request)) {
-    const user = await getUserFromRequest(request) as User
+    const user = (await getUserFromRequest(request)) as User
     return {
       settings: settings,
       lan: getLan(),

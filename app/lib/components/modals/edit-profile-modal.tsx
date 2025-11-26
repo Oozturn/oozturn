@@ -74,13 +74,17 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
                 <div className="is-flex is-flex align-start gap-2" style={{ maxWidth: "402px" }}>
                   <div>Équipe :</div>
                   <div className="is-flex-col grow no-basis">
-                    <input id="field"
+                    <input
+                      id="field"
                       name="team"
-                      className="input" type="text"
+                      className="input"
+                      type="text"
                       defaultValue={user.team}
                       {...autoSubmit(fetcherUpdateTeam)}
                     />
-                    <div className="is-size-7 mt-1">Utilisé pour calculer le score de ton équipe à cette LAN. Te foire pas sur l&apos;orthographe.</div>
+                    <div className="is-size-7 mt-1">
+                      Utilisé pour calculer le score de ton équipe à cette LAN. Te foire pas sur l&apos;orthographe.
+                    </div>
                   </div>
                 </div>
               </fetcherUpdateTeam.Form>
@@ -89,56 +93,95 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
                 <div className="is-flex is-flex align-start gap-2" style={{ maxWidth: "402px" }}>
                   <div>Place :</div>
                   <div className="is-flex-col grow no-basis">
-                    <input id="field"
+                    <input
+                      id="field"
                       name="seat"
-                      className="input" type="text"
+                      className="input"
+                      type="text"
                       defaultValue={user.seat}
                       {...autoSubmit(fetcherUpdateSeat)}
                     />
-                    <div className="is-size-7 mt-1">Utilisé pour te retrouver facilement lors des duels. Devrait être de la forme &quot;A12&quot;. Demande à un admin si tu trouves pas où t&apos;es assis.</div>
+                    <div className="is-size-7 mt-1">
+                      Utilisé pour te retrouver facilement lors des duels. Devrait être de la forme &quot;A12&quot;.
+                      Demande à un admin si tu trouves pas où t&apos;es assis.
+                    </div>
                   </div>
                 </div>
               </fetcherUpdateSeat.Form>
-              {settings.security.authentication &&
-                <CustomButton callback={handleChangePassword} colorClass="has-background-secondary-accent" contentItems={["Changer mdp"]} />
-              }
+              {settings.security.authentication && (
+                <CustomButton
+                  callback={handleChangePassword}
+                  colorClass="has-background-secondary-accent"
+                  contentItems={["Changer mdp"]}
+                />
+              )}
             </div>
             <div className="m-5"></div>
             <div className="is-flex-col gap-2">
               <div className="is-title big">PERSONNALISATION</div>
               <div className="is-flex align-center gap-2">
                 <div>Thème :</div>
-                <CustomRadio setter={setModeLocalStorage} variable={modeLocalStorage} items={modesList.map(mode => { return { label: mode.name, value: mode.name } })} />
+                <CustomRadio
+                  setter={setModeLocalStorage}
+                  variable={modeLocalStorage}
+                  items={modesList.map((mode) => {
+                    return { label: mode.name, value: mode.name }
+                  })}
+                />
               </div>
               <div className="is-flex align-center gap-2">
                 <div>Couleurs d&apos;accent :</div>
-                {accentsList.map(accent =>
-                  <div key={accent.name} title={accent.name} className={`is-clickable accentPicker mx-1 ${accentLocalStorage == accent.name ? 'is-active' : ''}`} {...clickorkey(() => setAccentLocalStorage(accent.name))} style={{ background: `linear-gradient(117.5deg, ${accent.primary} 50%, ${accent.secondary} 50%)` }}></div>
-                )}
+                {accentsList.map((accent) => (
+                  <div
+                    key={accent.name}
+                    title={accent.name}
+                    className={`is-clickable accentPicker mx-1 ${accentLocalStorage == accent.name ? "is-active" : ""}`}
+                    {...clickorkey(() => setAccentLocalStorage(accent.name))}
+                    style={{ background: `linear-gradient(117.5deg, ${accent.primary} 50%, ${accent.secondary} 50%)` }}
+                  ></div>
+                ))}
               </div>
               <div className="is-flex-col gap-2">
                 <div>Avatar :</div>
                 <div className="is-flex align-end gap-4">
-                  <div className="is-clickable" {...clickorkey(() => { fileInputRef.current && fileInputRef.current.click() })}>
+                  <div
+                    className="is-clickable"
+                    {...clickorkey(() => {
+                      fileInputRef.current && fileInputRef.current.click()
+                    })}
+                  >
                     <UserAvatar username={user.username} avatar={user.avatar} size={196} />
                   </div>
                   <div className="is-flex-col buttons-list">
-                    {user.avatar &&
+                    {user.avatar && (
                       <fetcherRemoveAvatar.Form method="POST" action="/api">
                         <input type="hidden" name="intent" value={Intents.REMOVE_AVATAR} />
-                        <button type="submit"
-                          className="customButton fade-on-mouse-out is-unselectable has-background-primary-accent is-clickable">
+                        <button
+                          type="submit"
+                          className="customButton fade-on-mouse-out is-unselectable has-background-primary-accent is-clickable"
+                        >
                           Supprimer l&apos;avatar
                         </button>
                       </fetcherRemoveAvatar.Form>
-                    }
+                    )}
                     <fetcherUpdateAvatar.Form method="post" action="/api" encType="multipart/form-data">
                       <input name="intent" type="hidden" hidden value={Intents.UPLOAD_AVATAR} />
-                      <input name="avatar" type="file" hidden ref={fileInputRef} id="selectAvatarInput" accept="image/jpeg,image/png,image/webp,image/gif"
-                        onChange={handleFileChange} />
+                      <input
+                        name="avatar"
+                        type="file"
+                        hidden
+                        ref={fileInputRef}
+                        id="selectAvatarInput"
+                        accept="image/jpeg,image/png,image/webp,image/gif"
+                        onChange={handleFileChange}
+                      />
                       <button
-                        onClick={event => { event.preventDefault(); fileInputRef.current?.click() }}
-                        className="customButton fade-on-mouse-out is-unselectable has-background-secondary-accent is-clickable">
+                        onClick={(event) => {
+                          event.preventDefault()
+                          fileInputRef.current?.click()
+                        }}
+                        className="customButton fade-on-mouse-out is-unselectable has-background-secondary-accent is-clickable"
+                      >
                         {user.avatar ? "Changer d'avatar" : "Nouvel avatar"}
                       </button>
                     </fetcherUpdateAvatar.Form>

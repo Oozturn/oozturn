@@ -1,16 +1,16 @@
-import pinoHttp from "pino-http";
-import pino from 'pino';
+import pinoHttp from "pino-http"
+import pino from "pino"
 
-const __dirname = import.meta.dirname;
+const __dirname = import.meta.dirname
 
 const transport = pino.transport({
   targets: [
     {
       level: 10,
-      target: 'pino-roll',
+      target: "pino-roll",
       options: {
         file: `${__dirname}/logs/server.log`,
-        frequency: 'daily',
+        frequency: "daily",
         mkdir: true,
         size: 20,
         limit: { count: 3, removeOtherLogFiles: true }
@@ -18,38 +18,37 @@ const transport = pino.transport({
     },
     {
       level: process.env.LOG_LEVEL || 30,
-      target: 'pino-pretty',
+      target: "pino-pretty",
       options: {
-        ignore: "hostname,req,res,responseTime,err",
-      },
-    },
-  ],
-});
+        ignore: "hostname,req,res,responseTime,err"
+      }
+    }
+  ]
+})
 
 export const pinoLogger = pino(
   {
-    level: 10,
+    level: 10
   },
   transport
 )
 
 export const httpLogger = pinoHttp({
-
   // Reuse an existing logger instance
   logger: pinoLogger,
 
   customSuccessMessage: function (_, res) {
-    return `${res.req.ip} - ${res.req.method} ${res.req.url} - ${res.statusCode}`;
+    return `${res.req.ip} - ${res.req.method} ${res.req.url} - ${res.statusCode}`
   },
 
   customLogLevel: function (_, res, err) {
     if (res.statusCode >= 400 && res.statusCode < 500) {
-      return 'warn'
+      return "warn"
     } else if (res.statusCode >= 500 || err) {
-      return 'error'
+      return "error"
     } else if (res.statusCode >= 300 && res.statusCode < 400) {
-      return 'silent'
+      return "silent"
     }
-    return 'trace'
-  },
+    return "trace"
+  }
 })
