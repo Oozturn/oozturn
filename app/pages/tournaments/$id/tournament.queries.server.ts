@@ -17,6 +17,7 @@ export function startTournament(tournamentId: string) {
         EventStartTournament(tournamentId)
         EventUpdateTournaments()
         updatePlayableMatches()
+        logger.debug(`Started tournament ${tournamentId}`)
     } catch (error) {
         logErrorAndThrow(`Error while trying to start tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }
@@ -28,6 +29,7 @@ export function stopTournament(tournamentId: string) {
         tournament.stopTournament()
         EventUpdateTournaments()
         updatePlayableMatches()
+        logger.debug(`Stopped tournament ${tournamentId}`)
     } catch (error) {
         logErrorAndThrow(`Error while trying to stop tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }
@@ -38,6 +40,7 @@ export function cancelTournament(tournamentId: string) {
         cancelTournamentOnPersistance(tournamentId)
         EventUpdateTournaments()
         updatePlayableMatches()
+        logger.debug(`Deleted tournament ${tournamentId}`)
     } catch (error) {
         logErrorAndThrow(`Error while trying to cancel tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }
@@ -48,10 +51,12 @@ export function validateTournament(tournamentId: string) {
         logger.info(`Validating tournament ${tournamentId}`)
         tournament.validateActiveBracket()
         EventUpdateTournamentBracket(tournamentId)
+        logger.debug(`Validated active bracket for tournament ${tournamentId}`)
         if (tournament.getStatus() == TournamentStatus.Done) {
             EventEndTournament(tournamentId)
             EventUpdateTournaments()
             updatePlayableMatches()
+            logger.debug(`Validated tournament ${tournamentId}`)
         }
     } catch (error) {
         logErrorAndThrow(`Error while trying to validate tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
@@ -63,6 +68,7 @@ export function togglePauseTournament(tournamentId: string) {
         tournament.togglePauseTournament()
         EventUpdateTournamentInfo(tournamentId)
         updatePlayableMatches()
+        logger.debug(`Toggled pause for tournament ${tournamentId}`)
     } catch (error) {
         logErrorAndThrow(`Error while trying to toggle pause for tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }
@@ -72,8 +78,9 @@ export function toggleBalanceTournament(tournamentId: string) {
         const tournament = getTournament(tournamentId)
         tournament.toggleBalanceTournament()
         EventUpdateTournamentInfo(tournamentId)
+        logger.debug(`Toggled balance for tournament ${tournamentId}`)
     } catch (error) {
-        logErrorAndThrow(`Error while trying to start tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
+        logErrorAndThrow(`Error while trying to toggle balance for tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }
 }
 export function addPlayerToTournament(tournamentId: string, userId: string) {
@@ -81,6 +88,7 @@ export function addPlayerToTournament(tournamentId: string, userId: string) {
         const tournament = getTournament(tournamentId)
         tournament.addPlayer(userId)
         EventUpdateTournamentInfo(tournamentId)
+        logger.debug(`Added player ${userId} to tournament ${tournamentId}`)
     } catch (error) {
         logErrorAndThrow(`Error while trying to add player ${userId} to tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }
@@ -91,6 +99,7 @@ export function toggleForfeitPlayerForTournament(tournamentId: string, userId: s
         tournament.toggleForfeitPlayer(userId)
         EventUpdateTournamentInfo(tournamentId)
         updatePlayableMatches()
+        logger.debug(`Toggled forfeit for player ${userId} in tournament ${tournamentId}`)
     } catch (error) {
         logErrorAndThrow(`Error while trying to forfeit player ${userId} for tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }
@@ -100,6 +109,7 @@ export function removePlayerFromTournament(tournamentId: string, userId: string)
         const tournament = getTournament(tournamentId)
         tournament.removePlayer(userId)
         EventUpdateTournamentInfo(tournamentId)
+        logger.debug(`Removed player ${userId} from tournament ${tournamentId}`)
     } catch (error) {
         logErrorAndThrow(`Error while trying to remove player ${userId} from tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }
@@ -109,6 +119,7 @@ export function reorderPlayers(tournamentId: string, oldIndex: number, newIndex:
         const tournament = getTournament(tournamentId)
         tournament.reorderPlayers(oldIndex, newIndex)
         EventUpdateTournamentInfo(tournamentId)
+        logger.debug(`Reordered players in tournament ${tournamentId}`)
     } catch (error) {
         logErrorAndThrow(`Error while trying to reorder players in tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }
@@ -118,6 +129,7 @@ export function reorderTeams(tournamentId: string, oldIndex: number, newIndex: n
         const tournament = getTournament(tournamentId)
         tournament.reorderTeams(oldIndex, newIndex)
         EventUpdateTournamentInfo(tournamentId)
+        logger.debug(`Reordered teams in tournament ${tournamentId}`)
     } catch (error) {
         logErrorAndThrow(`Error while trying to reorder teams in tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }
@@ -131,6 +143,7 @@ export function addTeamToTournament(tournamentId: string, teamName: string) {
         const tournament = getTournament(tournamentId)
         tournament.addTeam(teamName.slice(0, 30))
         EventUpdateTournamentInfo(tournamentId)
+        logger.debug(`Added team ${teamName} to tournament ${tournamentId}`)
     } catch (error) {
         logErrorAndThrow(`Error while trying to add team ${teamName} to tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }
@@ -140,6 +153,7 @@ export function removeTeamFromTournament(tournamentId: string, teamName: string)
         const tournament = getTournament(tournamentId)
         tournament.removeTeam(teamName)
         EventUpdateTournamentInfo(tournamentId)
+        logger.debug(`Removed team ${teamName} from tournament ${tournamentId}`)
     } catch (error) {
         logErrorAndThrow(`Error while trying to remove team ${teamName}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }
@@ -149,6 +163,7 @@ export function renameTeam(tournamentId: string, oldTeamName: string, newTeamNam
         const tournament = getTournament(tournamentId)
         tournament.renameTeam(oldTeamName, newTeamName.slice(0, 30))
         EventUpdateTournamentInfo(tournamentId)
+        logger.debug(`Renamed team ${oldTeamName} to ${newTeamName} in tournament ${tournamentId}`)
     } catch (error) {
         logErrorAndThrow(`Error while trying to rename team ${oldTeamName}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }
@@ -158,6 +173,7 @@ export function addPlayerToTeam(tournamentId: string, teamName: string, userId: 
         const tournament = getTournament(tournamentId)
         tournament.addPlayerToTeam(teamName, userId)
         EventUpdateTournamentInfo(tournamentId)
+        logger.debug(`Added player ${userId} to team ${teamName} in tournament ${tournamentId}`)
     } catch (error) {
         logErrorAndThrow(`Error while trying to add player ${userId} to team ${teamName}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }
@@ -167,6 +183,7 @@ export function removePlayerFromTeams(tournamentId: string, userId: string) {
         const tournament = getTournament(tournamentId)
         tournament.removePlayerFromTeams(userId)
         EventUpdateTournamentInfo(tournamentId)
+        logger.debug(`Removed player ${userId} from teams in tournament ${tournamentId}`)
     } catch (error) {
         logErrorAndThrow(`Error while trying to remove player ${userId} from teams: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }
@@ -177,6 +194,7 @@ export function distributePlayersOnTeams(tournamentId: string) {
         const tournament = getTournament(tournamentId)
         tournament.distributePlayersOnTeams()
         EventUpdateTournamentInfo(tournamentId)
+        logger.debug(`Distributed players on teams in tournament ${tournamentId}`)
     } catch (error) {
         logErrorAndThrow(`Error while trying to distribute players in tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }
@@ -187,6 +205,7 @@ export function balanceTeams(tournamentId: string) {
         const tournament = getTournament(tournamentId)
         tournament.balanceTeams()
         EventUpdateTournamentInfo(tournamentId)
+        logger.debug(`Balanced teams in tournament ${tournamentId}`)
     } catch (error) {
         logErrorAndThrow(`Error while trying to balance teams in tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }
@@ -197,6 +216,7 @@ export function randomizePlayersOnTeams(tournamentId: string) {
         const tournament = getTournament(tournamentId)
         tournament.randomizePlayersOnTeams()
         EventUpdateTournamentInfo(tournamentId)
+        logger.debug(`Randomized players on teams in tournament ${tournamentId}`)
     } catch (error) {
         logErrorAndThrow(`Error while trying to distribute players in tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }
@@ -210,6 +230,7 @@ export function scoreMatch(tournamentId: string, matchID: string, opponent: stri
         tournament.score(StringToId(matchID), opponent, score === null ? undefined : score)
         EventUpdateTournamentBracket(tournamentId)
         updatePlayableMatches()
+        logger.debug(`Scored match ${matchID} for opponent ${opponent} in tournament ${tournamentId} with score ${score}`)
     } catch (error) {
         logErrorAndThrow(`Error while trying to score in match ${matchID} of tournament ${tournamentId}: ${error instanceof Error ? error.message : 'Unknown Error'}`)
     }

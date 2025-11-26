@@ -95,7 +95,7 @@ export default function EditProfileModal({ show, onHide }: EditProfileModalProps
                       defaultValue={user.seat}
                       {...autoSubmit(fetcherUpdateSeat)}
                     />
-                    <div className="is-size-7 mt-1">Utilisé pour te retrouver facilement lors des duels. Devrait être de la forme "A12". Demande à un admin si tu trouves pas où t'es assis.</div>
+                    <div className="is-size-7 mt-1">Utilisé pour te retrouver facilement lors des duels. Devrait être de la forme &quot;A12&quot;. Demande à un admin si tu trouves pas où t&apos;es assis.</div>
                   </div>
                 </div>
               </fetcherUpdateSeat.Form>

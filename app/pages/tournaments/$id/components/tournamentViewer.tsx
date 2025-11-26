@@ -339,7 +339,7 @@ function MatchTile({ matchId }: { matchId: Id }) {
         } else {
             setErrors(errors.filter(e => !(e.matchID == fetcherData.matchID && e.opponent == fetcherData.opponent)))
         }
-    }, [fetcherData])
+    }, [fetcherData, errors])
 
 
     const ffOpponentsIds = [...tournament.players.filter(p => p.isForfeit).map(p => p.userId), ...tournament.teams.filter(t => t.isForfeit).map(t => t.name)]

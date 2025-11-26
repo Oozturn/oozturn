@@ -23,7 +23,6 @@ export async function action({ request }: ActionFunctionArgs) {
   requireUserAdmin(request)
   const jsonData = await request.json()
   const tournamentId = jsonData.tournamentId as string
-  const tournamentImageBase64 = jsonData.tournamentImageFile as string
   const tournamentSettings = JSON.parse(jsonData.tournamentSettings) as TournamentSettings
   const tournamentBracketSettings = JSON.parse(jsonData.tournamentBracketSettings) as BracketSettings[]
   const tournamentProperties = JSON.parse(jsonData.tournamentProperties) as TournamentProperties

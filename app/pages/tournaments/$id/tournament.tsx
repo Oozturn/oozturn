@@ -16,7 +16,7 @@ import { TournamentContext, useTournament } from "~/lib/components/contexts/Tour
 import { TournamentViewer } from "./components/tournamentViewer"
 import { getLan } from "~/lib/persistence/lan.server"
 import Dropdown from "~/lib/components/elements/custom-dropdown"
-import { useRevalidateOnTournamentUpdate } from "~/api/sse.hook"
+import { useRevalidateOnTournamentsUpdate } from "~/api/sse.hook"
 import useLocalStorageState from "use-local-storage-state"
 import { EventServerError } from "~/lib/emitter.server"
 import { getUserFromRequest, getUserId } from "~/lib/session.server"
@@ -160,7 +160,7 @@ export default function TournamentPage() {
     const [tournamentWideView,] = useLocalStorageState<string[]>("tournamentWideView", { defaultValue: [] })
 
 
-    useRevalidateOnTournamentUpdate(tournament.id)
+    useRevalidateOnTournamentsUpdate([tournament.id])
     const user = useUser()
     const fetcher = useFetcher()
     const users = useUsers()

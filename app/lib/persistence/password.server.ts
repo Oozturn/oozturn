@@ -50,4 +50,5 @@ export function storePassword(userId: string, password: string) {
 
 export function resetPassword(userId: string) {
     delete global.passwords[userId]
+    logger.debug(`Removed password for user ${userId}`)
 }

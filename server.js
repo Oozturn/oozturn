@@ -2,7 +2,8 @@ import { createRequestHandler } from "@remix-run/express";
 import { installGlobals } from "@remix-run/node";
 import compression from "compression";
 import express from "express";
-import morgan from "morgan";
+
+import { httpLogger } from "./logger.js"
 
 installGlobals();
 
@@ -10,10 +11,10 @@ const viteDevServer =
   process.env.NODE_ENV === "production"
     ? undefined
     : await import("vite").then((vite) =>
-        vite.createServer({
-          server: { middlewareMode: true },
-        })
-      );
+      vite.createServer({
+        server: { middlewareMode: true },
+      })
+    );
 
 const remixHandler = createRequestHandler({
   build: viteDevServer
@@ -46,7 +47,7 @@ app.use(express.static("build/client", { maxAge: "1h" }));
 // Serve uploaded files
 app.use(express.static('uploads', { maxAge: "1h" }))
 
-app.use(morgan("tiny"));
+app.use(httpLogger);
 
 // handle SSR requests
 app.all("*", remixHandler);

@@ -1,6 +1,7 @@
-import pino, { Logger } from "pino"
+import { Logger } from "pino"
+import { pinoLogger } from "logger"
 
-export const logger = pino()
+export const logger = pinoLogger
 
 declare module "http" {
     interface IncomingMessage {

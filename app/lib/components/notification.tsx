@@ -28,7 +28,7 @@ export function NotificationNode() {
       )
       const notification = notifyBrowser(lan.name, iconUrl, `Le tournoi ${name} vient de ${messageType == "startTournament" ? "démarrer" : "s'achever"} !`, time)
       if (notification) {
-        notification.onclick = () => {console.log("click!");navigate("/tournaments/" + id)}
+        notification.onclick = () => {navigate("/tournaments/" + id)}
       }
     }
     else if (messageType == "error") {
@@ -38,7 +38,7 @@ export function NotificationNode() {
     }
     else
       toast.error(message)
-  }, [message])
+  }, [message, iconUrl, lan.name, navigate])
 
 
   return (

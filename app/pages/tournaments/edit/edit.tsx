@@ -30,7 +30,6 @@ export async function action({ request }: ActionFunctionArgs) {
     requireUserAdmin(request)
     const formData = await request.formData()
     const tournamentId = String(formData.get("tournamentId"))
-    const tournamentImageFile = formData.get("tournamentImageFile") as File | null
     const partialTournamentSettings = JSON.parse(String(formData.get("tournamentSettings"))) as Partial<TournamentSettings>
     const tournamentBracketSettings = JSON.parse(String(formData.get("tournamentBracketSettings"))) as BracketSettings[]
     const partialTournamentProperties = JSON.parse(String(formData.get("tournamentProperties"))) as Partial<TournamentProperties>

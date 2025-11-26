@@ -22,7 +22,7 @@ export default function Info() {
 			<div className="is-flex-col has-background-secondary-level gap-3 p-3" style={{ flex: 5}}>
 				<div className='is-title big pb-3'>Plan de la LAN</div>
 				<div className="is-flex is-scrollable">
-					<a href="lanMap.webp" target="blank">
+					<a href="lanMap.webp" target="_blank">
 						<img src="lanMap.webp" alt="Demande à un admin le plan de la LAN !" />
 					</a>
 				</div>

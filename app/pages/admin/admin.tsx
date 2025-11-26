@@ -13,7 +13,7 @@ import { Lan } from "~/lib/types/lan"
 import { autoSubmit } from "~/lib/utils/autosubmit"
 import { Days, range } from "~/lib/utils/ranges"
 import { AdminSectionContext, Section, useAdminSection } from "./components/AdminSectionContext"
-import { addUsers, renameUser, resetUserPassword, setLanMap } from "./admin.queries.server"
+import { addUsers, renameUser, resetUserPassword } from "./admin.queries.server"
 import { ChangeEvent, useRef, useState } from "react"
 import { clickorkey } from "~/lib/utils/clickorkey"
 import { CustomModalBinary } from "~/lib/components/elements/custom-modal"
@@ -23,8 +23,9 @@ import { notifyError } from "~/lib/components/notification"
 import { PlayableMatch, TournamentInfo, TournamentStatus } from "~/lib/tournamentEngine/types"
 import { getAllPlayableMatches } from "~/lib/runtimeGlobals/playableMatches.server"
 import { IdToString } from "~/lib/utils/tournaments"
-import { useRevalidateOnTournamentUpdate } from "~/api/sse.hook"
+import { useRevalidateOnTournamentsUpdate } from "~/api/sse.hook"
 import { UsersList } from "~/lib/components/elements/users-list"
+import { LAN_MAP_FOLDER, storePicture } from "~/lib/utils/storeImage"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [
@@ -106,7 +107,7 @@ export async function action({ request }: ActionFunctionArgs) {
             await addUsers(JSON.parse(String(formData.get("users"))))
             break
         case AdminIntents.UPLOAD_MAP:
-            await setLanMap(formData.get("map") as File)
+            await storePicture(formData.get("map") as File, LAN_MAP_FOLDER)
             break
         default:
             break
@@ -327,7 +328,7 @@ export function SectionOnGoingMatches({ isActive }: { isActive: boolean }) {
     const navigate = useNavigate()
     const tournamentsWaitingForValidation = tournaments.filter(t => t.status == TournamentStatus.Validating)
     const playableTournaments = Array.from(new Set(playableMatches.map(pm => pm.tournamentId).map(tid => tournaments.find(t => t.id == tid)))) as TournamentInfo[]
-    playableTournaments.forEach(pt => useRevalidateOnTournamentUpdate(pt.id))
+    useRevalidateOnTournamentsUpdate(playableTournaments.map(pt => pt.id))
 
     return <div className={`is-clipped has-background-secondary-level px-4 is-flex-col ${isActive ? "grow no-basis" : ""}`}>
         <div className="is-title medium is-uppercase py-2 px-1 is-clickable" {...clickorkey(() => setActiveSection("ongoingMatches"))} style={{ flex: "none" }}>

@@ -13,9 +13,9 @@ declare global {
 
 const tournamentsFilePath = path.join(dbFolderPath, 'tournaments.json')
 
-function scoresReviver(key: string, value: any) {
+function scoresReviver(key: string, value: unknown) {
     if (key === "score" && Array.isArray(value)) {
-        return value.map((score: any) => (score === null ? undefined : score))
+        return (value as Array<unknown>).map((score: unknown) => (score === null ? undefined : score))
     }
     return value
 }
@@ -54,6 +54,7 @@ export function newTournament(tournamentId: string, properties: TournamentProper
     if (global.tournaments.find(t => t.getId() == tournamentId)) throw new Error(`Tournament ${tournamentId} already exists`)
     global.tournaments.push(TournamentEngine.create(tournamentId, properties, settings, bracketSettings))
     EventUpdateTournaments()
+    logger.debug(`Created new tournament ${tournamentId}`)
 }
 
 export function cancelTournament(tournamentId: string) {
@@ -61,6 +62,7 @@ export function cancelTournament(tournamentId: string) {
     if (index == -1) throw new Error(`Tournament ${tournamentId} not found`)
     global.tournaments.splice(index, 1)
     EventUpdateTournaments()
+    logger.debug(`Cancelled tournament ${tournamentId}`)
 }
 
 export function updateTournamentProperties(tournamentId: string, partialProperties: Partial<TournamentProperties>) {
@@ -68,6 +70,7 @@ export function updateTournamentProperties(tournamentId: string, partialProperti
     if (!tournament) throw new Error(`Tournament ${tournamentId} not found`)
     tournament.updateProperties(partialProperties)
     EventUpdateTournamentInfo(tournamentId)
+    logger.debug(`Updated properties for tournament ${tournamentId} : ${JSON.stringify(partialProperties)}`)
 }
 
 export function updateTournamentSettings(tournamentId: string, partialSettings: Partial<TournamentSettings>) {
@@ -75,6 +78,7 @@ export function updateTournamentSettings(tournamentId: string, partialSettings: 
     if (!tournament) throw new Error(`Tournament ${tournamentId} not found`)
     tournament.updateSettings(partialSettings)
     EventUpdateTournamentSettings(tournamentId)
+    logger.debug(`Updated settings for tournament ${tournamentId} : ${JSON.stringify(partialSettings)}`)
 }
 
 export function updateTournamentBracketSettings(tournamentId: string, settings: BracketSettings[]) {
@@ -82,5 +86,6 @@ export function updateTournamentBracketSettings(tournamentId: string, settings: 
     if (!tournament) throw new Error(`Tournament ${tournamentId} not found`)
     tournament.updateBracketsSettings(settings)
     EventUpdateTournamentBracket(tournamentId)
+    logger.debug(`Updated bracket settings for tournament ${tournamentId} : ${JSON.stringify(settings)}`)
 }
 

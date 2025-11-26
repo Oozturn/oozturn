@@ -4,6 +4,7 @@ node_modules
 /build
 .env
 /db
+/logs
 .vscode
 vite.config.ts.timestamp*
 uploads

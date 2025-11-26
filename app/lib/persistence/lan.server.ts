@@ -60,6 +60,7 @@ export function updateLan(partialLan: Partial<Lan>) {
         invalidateStats()
     }
     EventUpdateLan()
+    logger.debug(`Updated LAN : ${JSON.stringify(partialLan)}`)
 }
 
 export function updateAchievements(partialAchievements: Partial<Achievement>[]) {

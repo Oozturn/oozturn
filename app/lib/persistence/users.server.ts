@@ -55,6 +55,7 @@ export function registerNewUser(username: string, refreshEvent=true) {
     const user: User = { id: generateUniqueId(username), username: username, avatar: "", team: "", seat: "", isAdmin: false, ip: null }
     global.users.push(user)
     refreshEvent && EventUpdateUsers()
+    logger.debug(`Registered new user ${user.id} with username ${username}`)
     return user
 }
 
@@ -64,6 +65,7 @@ export function updateUser(userId: string, partialUser: Partial<User>) {
         global.users[userIndex] = { ...global.users[userIndex], ...partialUser }
     }
     EventUpdateUsers()
+    logger.debug(`Updated user ${userId} : ${JSON.stringify(partialUser)}`)
 }
 
 function normalize(text: string) {
