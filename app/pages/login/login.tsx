@@ -11,20 +11,18 @@ import { getUsers } from "~/lib/persistence/users.server"
 import { notifyError } from "~/lib/components/notification"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  return [
-    { title: data?.lanName + " - Connexion" }
-  ]
+  return [{ title: data?.lanName + " - Connexion" }]
 }
 
 export async function loader(): Promise<{
   lanName: string
   usernames: string[]
 }> {
-  const usernames = process.env.UNSAFE_ALLOW_EASY_LOGIN === "true" ? getUsers().map(u => u.username) : []
+  const usernames = process.env.UNSAFE_ALLOW_EASY_LOGIN === "true" ? getUsers().map((u) => u.username) : []
   return { lanName: getLan().name, usernames: usernames }
 }
 
-export async function action({ request, }: ActionFunctionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   const body = await request.formData()
   return await doLogin(String(body.get("username")))
 }
@@ -42,7 +40,7 @@ function LoginForm() {
   const submit = useSubmit()
 
   useEffect(() => {
-    if(actionResult?.error) {
+    if (actionResult?.error) {
       notifyError(actionResult.error)
       setAnimateLogo(false)
     }
@@ -51,7 +49,7 @@ function LoginForm() {
   async function handleSubmit() {
     if (!formRef.current) return
     setAnimateLogo(true)
-    const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+    const delay = (ms: number) => new Promise((res) => setTimeout(res, ms))
     const form = formRef.current as HTMLFormElement
     await delay(2000)
     submit(form)
@@ -63,7 +61,9 @@ function LoginForm() {
         <LogoUnfolded animate={animateLogo} />
       </div>
       <div className="is-flex-col align-center gap-5 p-4 has-background-secondary-level " style={{ maxWidth: "50vw" }}>
-        <div className="has-text-centered is-size-3">Bienvenue à la LAN <i style={{ color: "var(--accent-primary-color)" }}>{lan.name}</i> ! </div>
+        <div className="has-text-centered is-size-3">
+          Bienvenue à la LAN <i style={{ color: "var(--accent-primary-color)" }}>{lan.name}</i> !{" "}
+        </div>
         <Form ref={formRef} method="post" className="is-flex-col gap-6 is-full-width align-stretch">
           <div className="is-flex-col align-center gap-2 is-relative">
             <div>Pour te connecter, entre ton pseudo ici :</div>
@@ -81,10 +81,22 @@ function LoginForm() {
               autoFocus
               maxLength={15}
               title="15 caractères max. N'ajoute pas ton tag d'équipe, ce sera fait plus tard"
-              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); !!username && handleSubmit() } }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault()
+                  !!username && handleSubmit()
+                }
+              }}
               autoComplete="off"
             />
-            <LoginUsersDropDown show={username.length > 0} usernameToMatch={username} callbackOnUserSelect={(newUsername) => {setUsername(newUsername); handleSubmit()}} />
+            <LoginUsersDropDown
+              show={username.length > 0}
+              usernameToMatch={username}
+              callbackOnUserSelect={(newUsername) => {
+                setUsername(newUsername)
+                handleSubmit()
+              }}
+            />
           </div>
           <CustomButton
             active={!animateLogo && !!username}
@@ -99,26 +111,57 @@ function LoginForm() {
   )
 }
 
-function LoginUsersDropDown({ usernameToMatch, callbackOnUserSelect, show }: { usernameToMatch: string, callbackOnUserSelect: (username: string) => void, show: boolean }) {
-  
-  const normalize = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "").toLowerCase()
-  
+function LoginUsersDropDown({
+  usernameToMatch,
+  callbackOnUserSelect,
+  show
+}: {
+  usernameToMatch: string
+  callbackOnUserSelect: (username: string) => void
+  show: boolean
+}) {
+  const normalize = (str: string) =>
+    str
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, "")
+      .toLowerCase()
+
   const { usernames: allUsernames } = useLoaderData<typeof loader>()
   const [usernames, setUsernames] = useState<string[]>([])
 
-
   useEffect(() => {
-    const regexp = new RegExp('.*' + normalize(usernameToMatch).split('').map(c => c + '.*').join('') + '.*')
-    setUsernames(allUsernames.filter(username => regexp.test(normalize(username))))
+    const regexp = new RegExp(
+      ".*" +
+        normalize(usernameToMatch)
+          .split("")
+          .map((c) => c + ".*")
+          .join("") +
+        ".*"
+    )
+    setUsernames(allUsernames.filter((username) => regexp.test(normalize(username))))
   }, [usernameToMatch, allUsernames])
 
   if (!show) return null
   if (!usernames.length) return null
   if (usernames.length == 1 && usernames[0] == usernameToMatch) return null
 
-  return <div className="has-background-primary-level is-half-width is-scrollable has-text-centered" style={{border:"2px solid var(--background-secondary-level)", position: "absolute", top: "110%", maxHeight: "15rem", width: "50%"}}>
-    {usernames.map(username =>
-      <div key={username} className="is-clickable" {...clickorkey(() => callbackOnUserSelect(username))}>{username}</div>
-    )}
-  </div>
+  return (
+    <div
+      className="has-background-primary-level is-half-width is-scrollable has-text-centered"
+      style={{
+        border: "2px solid var(--background-secondary-level)",
+        position: "absolute",
+        top: "110%",
+        maxHeight: "15rem",
+        width: "50%"
+      }}
+    >
+      {usernames.map((username) => (
+        <div key={username} className="is-clickable" {...clickorkey(() => callbackOnUserSelect(username))}>
+          {username}
+        </div>
+      ))}
+    </div>
+  )
 }

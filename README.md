@@ -21,17 +21,18 @@ This app can be used either using Docker or manually.
 
 OOZTURN accepts the following settings, to set with environment variables:
 
-| Environment variables               | Usage                                                                                                                                                                                        | Default value |
-| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
-| ADMIN_PASSWORD                      | Admin password. This parameter is mandatory to enable the admin panel. Without it, admin pages can't be accessed.                                                                            | empty         |
-| ALL_OPPONENTS_SCORE                 | Allow all opponents to score. can be "false", "duel_only", "true".                                                                                                                           | false         |
-| ASK_FOR_SEATS                       | Asks users to enter their seat.                                                                                                                                                              | true          |
-| DISABLE_TOURNAMENT_NOTIFICATIONS    | Disable notifications when tournaments gets an update                                                                                                                                        | false         |
-| UNSAFE_ALLOW_REGISTER_BY_NEW_USERS  | Allow any new user to register himself.<br />By default only admins can register new users. This is ignored for the first account to be created, able to register itself.                    | false         |
-| UNSAFE_NO_AUTHENTICATION            | Disable user passwords. A password is still needed for the admin page.                                                                                                                       | false         |
-| UNSAFE_DISABLE_STRONG_PASSWORDS     | By default, passwords must be of at least 8 character and contain:<br />- a lowercase<br />- an uppercase<br />- a number<br />- a special character<br />This option allows dump passwords. | false         |
-| UNSAFE_ALLOW_EASY_LOGIN             | Allow to list users on login page                                                                                                                                                            | false         |
-| UNSAFE_USE_HTTP_ONLY                | Allow to use HTTP environment (useful for LANs for exemple)                                                                                                                                  | false         |
+| Environment variables | Usage | Default value |
+| --------------------- | ----- | ------------- |
+| ADMIN_PASSWORD | Admin password. This parameter is mandatory to enable the admin panel. Without it, admin pages can't be accessed. | empty |
+| ALL_OPPONENTS_SCORE | Allow all opponents to score. can be "false", "duel_only", "true". | false |
+| ASK_FOR_SEATS | Asks users to enter their seat. | true |
+| DISABLE_TOURNAMENT_NOTIFICATIONS | Disable notifications when tournaments gets an update | false |
+| UNSAFE_ALLOW_REGISTER_BY_NEW_USERS | Allow any new user to register himself.<br />By default only admins can register new users. This is ignored for the first account to be created, able to register itself. | false |
+| UNSAFE_NO_AUTHENTICATION | Disable user passwords. A password is still needed for the admin page. | false |
+| UNSAFE_DISABLE_STRONG_PASSWORDS | By default, passwords must be of at least 8 character and contain:<br />- a lowercase<br />- an uppercase<br />- a number<br />- a special character<br />This option allows dump passwords. | false |
+| UNSAFE_ALLOW_EASY_LOGIN | Allow to list users on login page | false |
+| UNSAFE_USE_HTTP_ONLY | Allow to use HTTP environment (useful for LANs for exemple) | false |
+| LOG_LEVEL | Change log level in the terminal. Can be "trace", "debug", "info", "warn", "error", "fatal". Trace level will allways be used for log files. | "info" |
 
 By default, all unsafe options are disabled. For a LAN event, with known users, some options may be useful for QoL.
 

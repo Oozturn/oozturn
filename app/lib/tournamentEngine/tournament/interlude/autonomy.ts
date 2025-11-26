@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-
 // ---------------------------------------------
 // Functional Helpers
 // ---------------------------------------------
 export const id = (x: any) => x
-export const noop = function () { }
+export const noop = function () {}
 export const not = (fn: (arg0: any) => any) => (x: any) => !fn(x)
 export const all = (fn: any) => (xs: any[]) => xs.every(fn)
 export const any = (fn: any) => (xs: any[]) => xs.some(fn)
@@ -27,7 +26,7 @@ export const gcd = function (a_: number, b_: number) {
   }
   return a
 }
-export const lcm = (a: number, b: number) => (!a || !b) ? 0 : Math.abs((a * b) / gcd(a, b))
+export const lcm = (a: number, b: number) => (!a || !b ? 0 : Math.abs((a * b) / gcd(a, b)))
 
 export const even = (n: number) => n % 2 === 0
 export const odd = (n: number) => n % 2 === 1
@@ -78,14 +77,21 @@ export const zipWith3 = function <X, Y, Z, R>(fn: (arg0: X, arg1: Y, arg2: Z) =>
   const length = Math.min(xs.length, ys.length, zs.length)
   return Array.from({ length }, (v, k) => fn(xs[k], ys[k], zs[k]))
 }
-export const zipWith4 = function <X, Y, Z, W, R>(fn: (arg0: X, arg1: Y, arg2: Z, arg3: W) => R, xs: X[], ys: Y[], zs: Z[], ws: W[]): R[] {
+export const zipWith4 = function <X, Y, Z, W, R>(
+  fn: (arg0: X, arg1: Y, arg2: Z, arg3: W) => R,
+  xs: X[],
+  ys: Y[],
+  zs: Z[],
+  ws: W[]
+): R[] {
   const length = Math.min(xs.length, ys.length, zs.length, ws.length)
   return Array.from({ length }, (v, k) => fn(xs[k], ys[k], zs[k], ws[k]))
 }
 
 export const zip2 = <X, Y>(xs: X[], ys: Y[]) => zipWith2((x, y) => [x, y] as [X, Y], xs, ys)
-export const zip3 = <X, Y, Z>(xs: X[], ys: Y[], zs: Z[]) => zipWith3(((x, y, z) => [x, y, z] as [X, Y, Z]), xs, ys, zs)
-export const zip4 = <X, Y, Z, W>(xs: X[], ys: Y[], zs: Z[], ws: W[]) => zipWith4((x, y, z, w) => [x, y, z, w] as [X, Y, Z, W], xs, ys, zs, ws)
+export const zip3 = <X, Y, Z>(xs: X[], ys: Y[], zs: Z[]) => zipWith3((x, y, z) => [x, y, z] as [X, Y, Z], xs, ys, zs)
+export const zip4 = <X, Y, Z, W>(xs: X[], ys: Y[], zs: Z[], ws: W[]) =>
+  zipWith4((x, y, z, w) => [x, y, z, w] as [X, Y, Z, W], xs, ys, zs, ws)
 
 // sensible defaults
 export const zipWith = zipWith2
@@ -97,4 +103,3 @@ export const zip = zip2
 export const reduce = (fn: any, init: any) => (xs: any[]) => xs.reduce(fn, init)
 export const map = (fn: any) => (xs: any[]) => xs.map(fn)
 export const filter = (fn: any) => (xs: any[]) => xs.filter(fn)
-

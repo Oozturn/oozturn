@@ -1,15 +1,16 @@
-import pino, { Logger } from "pino"
+import { Logger } from "pino"
+import { pinoLogger } from "logger"
 
-export const logger = pino()
+export const logger = pinoLogger
 
 declare module "http" {
-    interface IncomingMessage {
-        /** Added by logging.ts */
-        logger: Logger
-    }
+  interface IncomingMessage {
+    /** Added by logging.ts */
+    logger: Logger
+  }
 }
 
 export function logErrorAndThrow(message: string) {
-    logger.error(message)
-    throw new Error(message)
+  logger.error(message)
+  throw new Error(message)
 }
