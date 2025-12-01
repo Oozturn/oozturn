@@ -480,7 +480,7 @@ function MatchTile({ matchId }: { matchId: Id }) {
     } else {
       setErrors(errors.filter((e) => !(e.matchID == fetcherData.matchID && e.opponent == fetcherData.opponent)))
     }
-  }, [fetcherData, errors])
+  }, [fetcherData])
 
   const ffOpponentsIds = [
     ...tournament.players.filter((p) => p.isForfeit).map((p) => p.userId),

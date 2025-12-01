@@ -31,7 +31,7 @@ export function useRevalidateOnTournamentsUpdate(tIds: string[]) {
   useEffect(() => {
     if (!evtData) return
     const [, , updatedId] = JSON.parse(evtData)
-    if (tIds.includes(updatedId)) return
+    if (!tIds.includes(updatedId)) return
     if (revalidator.state === "idle") {
       revalidator.revalidate()
     }
