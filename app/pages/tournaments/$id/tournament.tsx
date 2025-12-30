@@ -522,7 +522,7 @@ function TournamentCommands() {
     navigate("/")
   }
   const items: { content: ReactNode[]; callback: CallableFunction }[] = []
-  if (![TournamentStatus.Done, TournamentStatus.Validating].includes(tournament.status))
+  if (![TournamentStatus.Done].includes(tournament.status))
     items.push({ content: [SubsribedSVG(), "Éditer"], callback: editTournament })
   if ([TournamentStatus.Open, TournamentStatus.Balancing].includes(tournament.status))
     items.push({ content: [BinSVG(), "Annuler"], callback: () => setShowConfirmCancel(true) })

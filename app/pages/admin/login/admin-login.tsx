@@ -62,10 +62,10 @@ function AdminLoginForm() {
       <Form method="POST" className="p-4 has-background-secondary-level is-flex-col align-center gap-4 is-relative">
         <div>Mot de passe administrateur</div>
         <div className="is-flex align-center gap-2 has-background-primary-level">
-          {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
           <input
             id="password"
             name="password"
+            // eslint-disable-next-line jsx-a11y/no-autofocus
             autoFocus
             className="input is-radiusless has-background-primary-level"
             type={showPassword ? "text" : "password"}

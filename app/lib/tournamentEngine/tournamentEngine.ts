@@ -370,8 +370,8 @@ export class TournamentEngine implements TournamentSpecification {
     this.status = this.status == TournamentStatus.Running ? TournamentStatus.Paused : TournamentStatus.Running
   }
   public stopTournament(): void {
-    if (![TournamentStatus.Paused, TournamentStatus.Running].includes(this.status))
-      throw new Error(`Tournament ${this.id} not in Running or Paused mode`)
+    if (![TournamentStatus.Paused, TournamentStatus.Running, TournamentStatus.Validating].includes(this.status))
+      throw new Error(`Tournament ${this.id} not in Running, Paused or Validation mode`)
     this.status = TournamentStatus.Open
   }
 

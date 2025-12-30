@@ -474,11 +474,13 @@ function MatchTile({ matchId }: { matchId: Id }) {
     if (!fetcherData || fetcherData.type != MatchesIntents.SCORE || !fetcherData.matchID || !fetcherData.opponent)
       return
     if (fetcherData.error) {
-      if (!errors.some((e) => e.matchID == fetcherData.matchID && e.opponent == fetcherData.opponent)) {
-        setErrors([...errors, { matchID: fetcherData.matchID, opponent: fetcherData.opponent }])
-      }
+      setErrors((prev) =>
+        prev.some((e) => e.matchID == fetcherData.matchID! && e.opponent == fetcherData.opponent!)
+          ? prev
+          : [...prev, { matchID: fetcherData.matchID!, opponent: fetcherData.opponent! }]
+      )
     } else {
-      setErrors(errors.filter((e) => !(e.matchID == fetcherData.matchID && e.opponent == fetcherData.opponent)))
+      setErrors((prev) => prev.filter((e) => !(e.matchID == fetcherData.matchID && e.opponent == fetcherData.opponent)))
     }
   }, [fetcherData])
 

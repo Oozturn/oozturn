@@ -288,10 +288,10 @@ export function OpponentsListTeam() {
               <div className="is-flex align-center gap-3">
                 <div>Nom de l&apos;équipe : </div>
                 <div>
-                  {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
                   <input
                     className="input"
                     maxLength={30}
+                    // eslint-disable-next-line jsx-a11y/no-autofocus
                     autoFocus
                     type="text"
                     placeholder="Nom de l'équipe"
@@ -536,10 +536,10 @@ function TeamTile({ team, seed, draggedPlayer, addPlayerToTeam, removePlayerFrom
                     <div className="is-flex align-center gap-3">
                       <div>Nom de l&apos;équipe : </div>
                       <div>
-                        {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
                         <input
                           className="input"
                           maxLength={30}
+                          // eslint-disable-next-line jsx-a11y/no-autofocus
                           autoFocus
                           type="text"
                           placeholder="Nom de l'équipe"
