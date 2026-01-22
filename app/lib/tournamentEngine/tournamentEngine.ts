@@ -562,7 +562,7 @@ export class TournamentEngine implements TournamentSpecification {
     const usableScores = match.opponents
       .map((opponent) => this.opponentsMap.get(opponent!))
       .map((opponent, index) => (opponent!.isForfeit ? undefined : match.score[index]))
-      .filter((_, index) => match.score[index] != undefined) as number[]
+      .filter((score) => score != undefined && score != null) as number[]
     let maxScore = usableScores.length ? Math.max(...usableScores) : 0
     let minScore = usableScores.length ? Math.min(...usableScores) : 0
 
@@ -602,7 +602,7 @@ export class TournamentEngine implements TournamentSpecification {
     const usableScores = match.opponents
       .map((opponent) => this.opponentsMap.get(opponent!))
       .map((opponent, index) => (opponent!.isForfeit ? undefined : match.score[index]))
-      .filter((_, index) => match.score[index] != undefined) as number[]
+      .filter((score) => score != undefined && score != null) as number[]
     let maxScore = usableScores.length ? Math.max(...usableScores) : 0
     let minScore = usableScores.length ? Math.min(...usableScores) : 0
 
