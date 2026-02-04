@@ -34,7 +34,7 @@ $tournament-side-list-width: 350px;
     // Dark / Light mode
     --background-primary-level: #333539;
     --background-secondary-level: #4B4C50;
-    --generic-game-image: 'url(/../genericGameDark.jpg)';
+    --generic-game-image: 'url(/genericGameDark.webp)';
     --text-color: #FFFFFF;
     --text-color-70: #FFFFFFB3;
     --toastify-icon-color-info: white !important;
@@ -102,12 +102,12 @@ a, a:hover {
     }
 }
 
-.has-background-primary-level {
-    background-color: var(--background-primary-level) !important;
-    @include textAndFillColor(var(--text-color), var(--text-color-70))
-}
 .has-background-secondary-level {
     background-color: var(--background-secondary-level) !important;
+    @include textAndFillColor(var(--text-color), var(--text-color-70))
+}
+.has-background-primary-level {
+    background-color: var(--background-primary-level) !important;
     @include textAndFillColor(var(--text-color), var(--text-color-70))
 }
 .has-background-grey {
@@ -122,6 +122,13 @@ a, a:hover {
 .has-background-secondary-accent {
     background-color: var(--accent-secondary-color) !important;
     @include textAndFillColor(white, #FFFFFFB3)
+}
+
+.has-borders-secondary-level {
+    border: solid 2px var(--background-secondary-level);
+}
+.has-borders-primary-accent {
+    border: solid 2px var(--accent-primary-color);
 }
 
 .has-text-primary-accent {
@@ -282,6 +289,11 @@ textarea {
     padding-right: .5rem;
 }
 
+.error {
+    color: red !important;
+    border: solid 1px red;
+}
+
 .threeDigitsWidth {
     width: 2.5rem;
 }
@@ -314,6 +326,16 @@ textarea {
 .customButtonSquare {
     @extend .customButton;
     width: var(--button-height);
+    &:not(.is-shown) {
+        path.fillAsText {
+            fill: transparent !important;
+        }
+    }
+}
+.customButtonMicro {
+    @extend .customButton;
+    height: 1.4em;
+    width: 1.4em;
     &:not(.is-shown) {
         path.fillAsText {
             fill: transparent !important;
@@ -432,36 +454,38 @@ textarea {
     box-shadow: none !important;
     padding: 0 !important;
     background-color: transparent !important;
-    // background-color: var(--background-secondary-level) !important;
+    // background-color: var(--accent-secondary-color) !important;
     color: var(--text-color) !important;
-    height: 100% !important;
+    height: 100%;
     min-height: unset !important;
     border-radius: 0 !important;
     font-size: 16px !important;
     overflow: unset !important;
-    &:before{
-		z-index: 1;
-		content: "";
-		position: absolute;
-		right: 15px;
-		top: -7%;
-		height: 114%;
-		width: 5px;
-		background: var(--background-secondary-level);
-        border-left: 5px solid var(--accent-primary-color);
-        -webkit-transform: rotate(27.5deg) skewY(-27.5deg);
-        -moz-transform: rotate(27.5deg) skewY(-27.5deg);
-        -ms-transform: rotate(27.5deg) skewY(-27.5deg);
-		transform: rotate(27.5deg) skewY(-27.5deg);
+    &:after {
+        z-index: -1;
+        content:'';
+        position: absolute;
+        right: 0;
+        left: 0;
+        top: -7%;
+        height: 114%;
+        border-right: 3px solid var(--accent-primary-color);
+        backdrop-filter: blur(10px);
+        // background: var(--background-secondary-level);
+        border-left: 3px solid var(--accent-primary-color);
+        -webkit-transform: skewX(-27.5deg);
+        -moz-transform: skewX(-27.5deg);
+        -ms-transform: skewX(-27.5deg);
+        transform: rotate(27.5deg) skewY(-27.5deg) translateY(0%);
     }
 }
 .Toastify__toast-body {
     // background: red;
-    margin-right: 30px !important;
+    // margin-right: 30px !important;
     padding: 0 !important;
     overflow: hidden;
     max-width: 40vw;
-    height: 100%;
+    height: $navbar-height;
     div {
         white-space: nowrap;
     }
@@ -478,16 +502,14 @@ textarea {
 @keyframes notification_slide_body {
     0%, 20% {
         max-width: 0;
-        margin-right: 0px !important;
     }
     100% {
         max-width: 40vw;
-        margin-right: 30px !important;
     }
 }
 
 .toast-enter-animation {
-    &::before {
+    &::after {
         animation: 2s notification_slide_border 0s forwards;
     }
     .Toastify__toast-body {
@@ -498,7 +520,7 @@ textarea {
     .Toastify__toast-body {
         animation: 2s notification_slide_body 0s reverse forwards;
     }
-    &::before {
+    &::after {
         animation: 2s notification_slide_border 0s reverse forwards;
     }
 }
@@ -537,7 +559,7 @@ textarea {
 *******************************/
 
 .navbar {
-    height: 56px;
+    height: $navbar-height;
 }
 
 .navbar-item.is-tab {
@@ -547,7 +569,7 @@ textarea {
 a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-link:focus, .navbar-link:focus-within, .navbar-link:hover {
     color: unset;
 }
-.navbar-item.is-tab.active {
+.navbar-item.is-tab.is-active {
     border-bottom-color: var(--accent-primary-color);
     color: var(--accent-primary-color);
 }
@@ -560,7 +582,7 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
 .navbar-user {
     font-weight: 600;
     font-size: 20px;
-    max-height: 56px;
+    max-height: $navbar-height;
     min-width: 200px;
 
 	&:before {
@@ -597,7 +619,7 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
     opacity: 0;
     overflow: hidden;
     position: absolute;
-    top: 56px;
+    top: $navbar-height;
     right: 0;
     width: calc(115% + 14.5px); // tan(27.5deg) * (56px / 2)
     border: solid var(--accent-secondary-color);
@@ -624,6 +646,106 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
             -ms-transform: skewX(-27.5deg);
             transform: skewX(-27.5deg);
         }
+    }
+}
+
+@keyframes notifBlink {
+    0% {
+        right: -15%;
+        background-color: var(--accent-primary-color);
+    }
+    10%{
+        right: -80%;
+        background-color: transparent;
+    }
+    10.1% {
+        right: -15%;
+        background-color: var(--accent-primary-color);
+    }
+    20%, 100%{
+        right: -80%;
+        background-color: transparent;
+    }
+    
+}
+
+.navbar-notifications {
+    margin-left: 40px !important;
+    max-height: $navbar-height;
+    min-height: $navbar-height;
+    min-width: $navbar-height;
+    &:before {
+        z-index: -1;
+        content:'';
+        position: absolute;
+        left: 0%;
+        height: 100%;
+        width: 115%;
+        background-color: var(--accent-primary-color);
+        -webkit-transform: skewX(-27.5deg);
+        -moz-transform: skewX(-27.5deg);
+        -ms-transform: skewX(-27.5deg);
+        transform: skewX(-27.5deg);
+    }
+    &:after {
+        z-index: -1;
+        content:'';
+        position: absolute;
+        right: -15%;
+        height: 100%;
+        width: 15%;
+        background-color: var(--accent-primary-color);
+        -webkit-transform: skewX(-27.5deg);
+        -moz-transform: skewX(-27.5deg);
+        -ms-transform: skewX(-27.5deg);
+        transform: skewX(-27.5deg);
+        animation: notifBlink 2s ease-in-out infinite normal;
+    }
+    &:hover {
+        outline: unset;
+    }
+    &:hover .navbarNotificationCenter {
+        max-width: 500px;
+        opacity: 100%;
+        transition: ease-out .2s;
+    }
+    &:first-child {
+        width: $navbar-height;
+        height: $navbar-height;
+    }
+}
+
+.navbarNotificationCenter {
+    z-index: 0;
+    position: absolute;
+    top: -2px;
+    left: -15px;
+    // min-width: $navbar-height;
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    #waitingMatchesTitle {
+        height: $navbar-height;
+    }
+    gap: -2px;
+    #waitingMatchesList {
+        border: solid var(--accent-primary-color);
+        border-width: 2px;
+    }
+    &:after {
+        z-index: 1;
+        position: absolute;
+        top: 0;
+        left: -15px;
+        width: 30px;
+        height: $navbar-height;
+        background-color: var(--background-secondary-level);
+        -webkit-transform: skewX(-27.5deg);
+        -moz-transform: skewX(-27.5deg);
+        -ms-transform: skewX(-27.5deg);
+        transform: skewX(-27.5deg);
+        content: "";
     }
 }
 
@@ -799,37 +921,51 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
     gap: 1.5rem;
 }
 
+.subscribed {
+    z-index: 2;
+    position: absolute;
+    top: 134px;
+    right:-115px;
+    transition: .2s ease-in-out;
+    width: 150px;
+    height: 37px;
+    &.mini {
+        top: 50px;
+        right: 0px;
+        width: 27px;
+        height: 20px;
+        svg {
+            width: 25px;
+            height: 18px;
+        }
+        &:before {
+            width: 15px;
+        }
+    }
+    &:before {
+        z-index: -1;
+        content:'';
+        position: absolute;
+        right: 20px;
+        width: 150px;
+        height: 100%;
+        background-color: var(--accent-primary-color);
+        -webkit-transform: skewX(-27.5deg);
+        -moz-transform: skewX(-27.5deg);
+        -ms-transform: skewX(-27.5deg);
+        transform: skewX(-27.5deg);
+    }
+    &:not(.mini):hover {
+        right: -45px;
+        transition: .2s ease-in-out;
+    }
+}
 .homeTournamentBox {
     height: 236px;
     position: relative;
     background-size: cover;
     overflow: hidden;
-    .subscribed {
-        z-index: 1;
-        position: absolute;
-        top: 134px;
-        right:-115px;
-        transition: .2s ease-in-out;
-        width: 150px;
-        height: 37px;
-        &:before {
-            z-index: -1;
-            content:'';
-            position: absolute;
-            right: 20px;
-            width: 150px;
-            height: 100%;
-            background-color: var(--accent-primary-color);
-            -webkit-transform: skewX(-27.5deg);
-            -moz-transform: skewX(-27.5deg);
-            -ms-transform: skewX(-27.5deg);
-            transform: skewX(-27.5deg);
-        }
-        &:hover {
-            right: -45px;
-            transition: .2s ease-in-out;
-        }
-    }
+    
     .tournamentName, .status-bar {
         position: absolute;
         width: 100%;
@@ -843,7 +979,7 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
         color: white;
     }
     .tournamentName {
-        z-index: 3;
+        z-index: 4;
         bottom: 0px;
         font-weight: 600;
     }
@@ -858,7 +994,7 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
     }
     .over-overlay {
         position: relative;
-        z-index: 2;
+        z-index: 3;
         text-transform: uppercase;
         width: 100%;
         height: 100%;
@@ -886,7 +1022,7 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
     }
 }
 
-.adminUsersList {
+.usersList {
     flex: 2;
     .UserTilesContainer {
         gap: .5rem;
@@ -973,6 +1109,7 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
     min-width: $tournament-side-list-width;
     max-width: $tournament-side-list-width;
     gap: 1rem;
+    padding: 2px;
     .tournamentTile {
         position: relative;
         flex: 0 0 81px;
@@ -984,13 +1121,12 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
         background-color: var(--background-primary-level);
         overflow: hidden;
         &.is-active {
-            border: 2px solid var(--accent-primary-color);
+            outline: solid var(--accent-primary-color);
+            outline-width: 2px;
+            outline-offset: 0px;
         }
         &:hover, &.is-active {
             color: var(--accent-primary-color) !important;
-            .subscribedIndicator {
-                animation: pulse 2s infinite;
-            }
         }
         .tournamentTilebackground {
             z-index: 1;
@@ -1001,7 +1137,7 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
         }
         .tournamentName {
             font-weight: 600;
-            z-index: 2;
+            z-index: 3;
             width: 100%;
             display: flex;
             align-items: center;
@@ -1009,23 +1145,12 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
             text-transform: uppercase;
         }
         .tournamentState {
-            z-index: 2;
+            z-index: 3;
             width: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
             text-transform: uppercase;
-        }
-        .subscribedIndicator {
-            z-index: 2;
-            position: absolute;
-            top: .55rem;
-            right: .55rem;
-            height: .5rem;
-            width: .5rem;
-            border-radius: .5rem;
-            box-shadow: 0 0 0 var(--accent-primary-color);
-            background: var(--accent-primary-color);
         }
     }
 }
@@ -1064,7 +1189,7 @@ a.navbar-item:focus, a.navbar-item:focus-within, a.navbar-item:hover, .navbar-li
     }
 }
 
-.TeamInfosContainer {
+.OpponentInfosContainer {
     max-height: calc(100% + 2px);
     overflow: hidden;
     opacity: 0;

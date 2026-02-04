@@ -1,7 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires, no-var
-var GroupStage = require('groupstage');
-import { GroupStage as GroupStageTS } from './groupstage'
-
+var GroupStage = require("groupstage")
+import { GroupStage as GroupStageTS } from "./groupstage"
 
 const checkSameStateAndMatch = function (
   parameters: ConstructorParameters<typeof GroupStageTS>,
@@ -16,10 +15,10 @@ const checkSameStateAndMatch = function (
     operationsFn(tournamentTS)
   }
 
-  test('has same state', () => {
+  test("has same state", () => {
     expect(tournamentTS.state).toEqual(tournament.state)
   })
-  test('has same matches', () => {
+  test("has same matches", () => {
     expect(tournamentTS.matches).toEqual(tournament.matches)
   })
 
@@ -29,6 +28,6 @@ const checkSameStateAndMatch = function (
 }
 
 //Not working because roundrobin version is not the same
-describe.skip('GroupState 10 players', () => {
+describe.skip("GroupState 10 players", () => {
   checkSameStateAndMatch([3, {}])
-});
+})

@@ -1,0 +1,18 @@
+services:
+  oozturn:
+    image: bug38/oozturn
+    ports:
+      - 3000:3000
+    volumes:
+      - ./db:/app/db
+      - ./uploads:/app/uploads
+    environment:
+      - ADMIN_PASSWORD=superSecretPassword
+      - ALL_OPPONENTS_SCORE=duel_only
+      - ASK_FOR_SEATS=true
+      - DISABLE_TOURNAMENT_NOTIFICATIONS=false
+      - UNSAFE_ALLOW_REGISTER_BY_NEW_USERS=false
+      - UNSAFE_NO_AUTHENTICATION=false
+      - UNSAFE_DISABLE_STRONG_PASSWORDS=false
+      - UNSAFE_ALLOW_EASY_LOGIN=false
+      - UNSAFE_USE_HTTP_ONLY=false

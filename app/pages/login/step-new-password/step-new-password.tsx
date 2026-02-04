@@ -6,24 +6,23 @@ import { getUserFromRequest, getUserId, updateSessionWithPasswordAuth } from "~/
 import { validate } from "./step-new-password.validate"
 import { useEffect, useRef, useState } from "react"
 import { CustomButton } from "~/lib/components/elements/custom-button"
-import lanConfig from "config.json"
+import { useSettings } from "~/lib/components/contexts/SettingsContext"
 import { notifyError } from "~/lib/components/notification"
 import { EyeSVG, InfoSVG } from "~/lib/components/data/svg-container"
+import { User } from "~/lib/types/user"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  return [
-    { title: data?.lanName + " - Nouveau mot de passe" }
-  ]
+  return [{ title: data?.lanName + " - Nouveau mot de passe" }]
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  if (!lanConfig.security.authentication_needed) {
-    throw redirect('/login')
+  if (process.env.UNSAFE_NO_AUTHENTICATION === "true") {
+    throw redirect("/login")
   }
 
   const user = await getUserFromRequest(request)
   if (!user) {
-    throw redirect('/login')
+    throw redirect("/login")
   }
   return { ...user, lanName: getLan().name }
 }
@@ -38,11 +37,13 @@ export async function action({ request }: ActionFunctionArgs) {
     return json({ ok: false, errors }, 400)
   }
 
-  const userId = await getUserId(request) as string
+  const userId = (await getUserId(request)) as string
   storePassword(userId, password)
 
+  const user = (await getUserFromRequest(request)) as User
+  const userIsComplete = (user.seat != "" || process.env.ASK_FOR_SEATS === "false") && user.team != ""
   const cookie = await updateSessionWithPasswordAuth(request)
-  return redirect("/", {
+  return redirect(userIsComplete ? "/" : "/login/first-login", {
     headers: {
       "Set-Cookie": cookie
     }
@@ -58,6 +59,7 @@ export default function LoginStepNewPassword() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const formRef = useRef(null)
+  const settings = useSettings()
 
   useEffect(() => {
     if (actionResult?.errors?.password) {
@@ -69,16 +71,19 @@ export default function LoginStepNewPassword() {
   return (
     <div className="is-flex-col align-center justify-center is-relative">
       <div className="is-flex-col align-center gap-5 p-4 has-background-secondary-level " style={{ maxWidth: "50vw" }}>
-        <div className="has-text-centered is-size-3">{state?.edit ? "Modifie" : "Crée"} ton mot de passe, <i style={{ color: "var(--accent-primary-color)" }}>{username}</i> ! </div>
+        <div className="has-text-centered is-size-3">
+          {state?.edit ? "Modifie" : "Crée"} ton mot de passe,{" "}
+          <i style={{ color: "var(--accent-primary-color)" }}>{username}</i> !{" "}
+        </div>
         <Form ref={formRef} method="post" className="is-flex-col gap-4 is-full-width align-stretch">
           <div className="is-flex-col align-stretch gap-2">
             <div className="is-flex align-center justify-center gap-2">
               <div>Création du mot de passe :</div>
-              {lanConfig.security.secure_users_password &&
+              {settings.security.securePassword && (
                 <div title="Mot de passe de 8 à 18 caractères avec au minimum une majuscule, une minuscule, un chiffre et un caractère special (#?!@$%^&*-)">
                   <InfoSVG />
                 </div>
-              }
+              )}
             </div>
             <div className="is-flex align-center gap-2 has-background-primary-level">
               <input
@@ -93,10 +98,25 @@ export default function LoginStepNewPassword() {
                 // eslint-disable-next-line jsx-a11y/no-autofocus
                 autoFocus
                 maxLength={18}
-                title={"18 caractères max." + lanConfig.security.secure_users_password ? " doit contenir au moins 1 de chaque : minuscule / majuscule / nombre / charcactère spécial" : ""}
-                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); !!password && document.getElementById("confirmPassword")?.focus() } }}
+                title={
+                  "18 caractères max." + settings.security.securePassword
+                    ? " doit contenir au moins 1 de chaque : minuscule / majuscule / nombre / charcactère spécial"
+                    : ""
+                }
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault()
+                    !!password && document.getElementById("confirmPassword")?.focus()
+                  }
+                }}
               />
-              <div className="pr-2" onMouseEnter={() => setShowPassword(true)} onMouseLeave={() => setShowPassword(false)}><EyeSVG /></div>
+              <div
+                className="pr-2"
+                onMouseEnter={() => setShowPassword(true)}
+                onMouseLeave={() => setShowPassword(false)}
+              >
+                <EyeSVG />
+              </div>
             </div>
           </div>
           <div className="is-flex-col align-stretch gap-2">
@@ -105,16 +125,28 @@ export default function LoginStepNewPassword() {
               <input
                 id="confirmPassword"
                 name="confirmPassword"
-                className={`input grow no-basis has-text-centered has-background-primary-level ${(password != confirmPassword) ? 'has-text-danger' : ''}`}
+                className={`input grow no-basis has-text-centered has-background-primary-level ${
+                  password != confirmPassword ? "has-text-danger" : ""
+                }`}
                 type={showConfirm ? "text" : "password"}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Mot de passe"
                 required
                 maxLength={18}
-                onKeyDown={(e) => { if (e.key === 'Enter') { !password && e.preventDefault() } }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    password ? formRef.current && (formRef.current as HTMLFormElement).submit() : e.preventDefault()
+                  }
+                }}
               />
-              <div className="pr-2" onMouseEnter={() => setShowConfirm(true)} onMouseLeave={() => setShowConfirm(false)}><EyeSVG /></div>
+              <div
+                className="pr-2"
+                onMouseEnter={() => setShowConfirm(true)}
+                onMouseLeave={() => setShowConfirm(false)}
+              >
+                <EyeSVG />
+              </div>
             </div>
           </div>
           <CustomButton
