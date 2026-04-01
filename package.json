@@ -28,7 +28,7 @@
     "is-ip": "^5.0.1",
     "isbot": "^4.1.0",
     "linkify-react": "^4.3.2",
-    "pino": "^8.21.0",
+    "pino": "^10.3.1",
     "pino-http": "^11.0.0",
     "pino-pretty": "^13.1.2",
     "pino-roll": "^4.0.0",
