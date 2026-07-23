@@ -460,6 +460,7 @@ function FinaleViewer({ bracket }: { bracket: number }) {
 
 function MatchTile({ matchId }: { matchId: Id }) {
   const user = useUser()
+  const users = useUsers()
   const tournament = useTournament()
   const fetcher = useFetcher()
   const { hightlightOpponent, setHightlightOpponent } = useContext(HightlightOpponentContext)
@@ -531,6 +532,10 @@ function MatchTile({ matchId }: { matchId: Id }) {
 
   const matchOpponents = match.opponents.map((opponentId, index) => {
     return { opponentId: opponentId, opponentScore: match.score[index] }
+  }).sort((a, b) => {
+    if (a.opponentId == undefined) return 1
+    if (b.opponentId == undefined) return -1
+    return users.find((u) => u.id == a.opponentId)?.username.localeCompare(users.find((u) => u.id == b.opponentId)?.username || "") || 0
   })
 
   if (isOver) {

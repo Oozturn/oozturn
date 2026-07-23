@@ -634,12 +634,12 @@ export class TournamentEngine implements TournamentSpecification {
           index == 0
             ? 1
             : res.pos > results[index - 1].pos
-            ? pos.length + 1
-            : diff(res) < diff(results[index - 1])
-            ? pos.length + 1
-            : (res.for || 0) < (results[index - 1].for || 0)
-            ? pos.length + 1
-            : pos[pos.length - 1]
+              ? pos.length + 1
+              : diff(res) < diff(results[index - 1])
+                ? pos.length + 1
+                : (res.for || 0) < (results[index - 1].for || 0)
+                  ? pos.length + 1
+                  : pos[pos.length - 1]
         )
       })
       return pos
@@ -794,18 +794,28 @@ class Bracket {
     })
   }
 
+  private scorableMatch(id: Id): boolean {
+    if (this.settings.type != BracketType.GroupStage) {
+      if (this.states.find((bs) => bs.id.r == id.r + 1 && bs.score.some((value) => value != undefined)))
+        return false
+    }
+    const match = this.internalBracket!.findMatch(id)
+    return (
+      this.internalBracket!.unscorable(
+        match.id,
+        match.p.map((_, i) => i),
+        false
+      ) == null
+    )
+  }
+
   getMatch(id: Id) {
     const match = this.internalBracket!.findMatch(id)
     return {
       id: match.id,
       opponents: match.p.map((p) => this.seedings.getRight(p)),
       score: match.m || this.states.find((bs) => bs.id == match.id)?.score || match.p.map(() => undefined),
-      scorable:
-        this.internalBracket!.unscorable(
-          match.id,
-          match.p.map((_, i) => i),
-          false
-        ) == null
+      scorable: this.scorableMatch(match.id)
     }
   }
 
@@ -845,12 +855,7 @@ class Bracket {
           match.m ||
           this.states.find((bs) => IdToString(bs.id) == IdToString(match.id))?.score ||
           match.p.map(() => undefined),
-        scorable:
-          this.internalBracket!.unscorable(
-            match.id,
-            match.p.map((_, i) => i),
-            false
-          ) == null,
+        scorable: this.scorableMatch(match.id),
         isFinale: finalsList.includes(IdToString(match.id)),
         timestamp: this.states.find((bs) => IdToString(bs.id) == IdToString(match.id))?.timestamp
       } as Match
