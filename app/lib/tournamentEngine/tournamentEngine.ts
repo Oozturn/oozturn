@@ -795,8 +795,11 @@ class Bracket {
   }
 
   private scorableMatch(id: Id): boolean {
-    if (this.settings.type != BracketType.GroupStage) {
+    if (this.settings.type == BracketType.FFA) {
       if (this.states.find((bs) => bs.id.r == id.r + 1 && bs.score.some((value) => value != undefined)))
+        return false
+    } else if (this.settings.type == BracketType.Duel) {
+      if (this.states.find((bs) => bs.id == (this.internalBracket as Duel).right(id)?.[0])?.score.some((value) => value != undefined))
         return false
     }
     const match = this.internalBracket!.findMatch(id)
