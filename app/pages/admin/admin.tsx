@@ -466,7 +466,7 @@ export function SectionOnGoingMatches({ isActive }: { isActive: boolean }) {
                         return (
                           <Link
                             key={IdToString(pMatch.matchId)}
-                            to={"/tournaments/" + tournament.id}
+                            to={"/tournaments/" + tournament.id + "?matchId=" + IdToString(pMatch.matchId)}
                             className="grow is-flex-col is-relative justify-center align-stretch is-clipped customButton gap-1 fade-on-mouse-out is-unselectable has-background-secondary-level"
                             style={{ height: "130px", minWidth: "21%", maxWidth: "30%" }}
                           >

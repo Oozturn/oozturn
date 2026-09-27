@@ -574,13 +574,19 @@ function MatchTile({ matchId }: { matchId: Id }) {
     )
   }
 
-  const matchOpponents = match.opponents.map((opponentId, index) => {
-    return { opponentId: opponentId, opponentScore: match.score[index] }
-  }).sort((a, b) => {
-    if (a.opponentId == undefined) return 1
-    if (b.opponentId == undefined) return -1
-    return users.find((u) => u.id == a.opponentId)?.username.localeCompare(users.find((u) => u.id == b.opponentId)?.username || "") || 0
-  })
+  const matchOpponents = match.opponents
+    .map((opponentId, index) => {
+      return { opponentId: opponentId, opponentScore: match.score[index] }
+    })
+    .sort((a, b) => {
+      if (a.opponentId == undefined) return 1
+      if (b.opponentId == undefined) return -1
+      return (
+        users
+          .find((u) => u.id == a.opponentId)
+          ?.username.localeCompare(users.find((u) => u.id == b.opponentId)?.username || "") || 0
+      )
+    })
 
   if (isOver) {
     if (tournament.bracketSettings[match.bracket].lowerScoreIsBetter)

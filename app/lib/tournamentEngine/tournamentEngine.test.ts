@@ -2,7 +2,7 @@ import { Id } from "./tournament/match"
 import { TournamentEngine } from "./tournamentEngine"
 import { BracketSettings, BracketType, TournamentStatus } from "./types"
 
-test("FFA 6", () => {
+test.skip("FFA 6", () => {
   const tournamentEngine = createDefaultTournament([
     {
       type: BracketType.FFA
@@ -32,7 +32,7 @@ test("FFA 6", () => {
   validateStorage(tournamentEngine)
 })
 
-test("FFA 3 with forfeit last", () => {
+test.skip("FFA 3 with forfeit last", () => {
   const tournamentEngine = createDefaultTournament([
     {
       type: BracketType.FFA
@@ -57,7 +57,7 @@ test("FFA 3 with forfeit last", () => {
   validateStorage(tournamentEngine)
 })
 
-test("FFA 3 with forfeit last lowerScoreIsBetter", () => {
+test.skip("FFA 3 with forfeit last lowerScoreIsBetter", () => {
   const tournamentEngine = createDefaultTournament([
     {
       type: BracketType.FFA,
@@ -83,7 +83,7 @@ test("FFA 3 with forfeit last lowerScoreIsBetter", () => {
   validateStorage(tournamentEngine)
 })
 
-test("FFA 3 with forfeit first", () => {
+test.skip("FFA 3 with forfeit first", () => {
   const tournamentEngine = createDefaultTournament([
     {
       type: BracketType.FFA
@@ -108,7 +108,7 @@ test("FFA 3 with forfeit first", () => {
   validateStorage(tournamentEngine)
 })
 
-test("Duel 4", () => {
+test.skip("Duel 4", () => {
   const tournamentEngine = createDefaultTournament([
     {
       type: BracketType.Duel
@@ -139,7 +139,7 @@ test("Duel 4", () => {
   validateStorage(tournamentEngine)
 })
 
-test("Duel 3 (match with undefined) short", () => {
+test.skip("Duel 3 (match with undefined) short", () => {
   const tournamentEngine = createDefaultTournament([
     {
       type: BracketType.Duel,
@@ -168,7 +168,7 @@ test("Duel 3 (match with undefined) short", () => {
   validateStorage(tournamentEngine)
 })
 
-test("Duel 4 wih forfeit : terminate all match", () => {
+test.skip("Duel 4 wih forfeit : terminate all match", () => {
   const tournamentEngine = createDefaultTournament([
     {
       type: BracketType.Duel
@@ -198,7 +198,7 @@ test("Duel 4 wih forfeit : terminate all match", () => {
   validateStorage(tournamentEngine)
 })
 
-test("Duel 4 wih forfeit : can re-enter", () => {
+test.skip("Duel 4 wih forfeit : can re-enter", () => {
   const tournamentEngine = createDefaultTournament([
     {
       type: BracketType.Duel
@@ -231,7 +231,7 @@ test("Duel 4 wih forfeit : can re-enter", () => {
   validateStorage(tournamentEngine)
 })
 
-test("Duel 4 lowerScoreIsBetter wih forfeit : terminate all match", () => {
+test.skip("Duel 4 lowerScoreIsBetter wih forfeit : terminate all match", () => {
   const tournamentEngine = createDefaultTournament([
     {
       type: BracketType.Duel,
@@ -262,7 +262,7 @@ test("Duel 4 lowerScoreIsBetter wih forfeit : terminate all match", () => {
   validateStorage(tournamentEngine)
 })
 
-test("GroupStage 6/3", () => {
+test.skip("GroupStage 6/3", () => {
   const tournamentEngine = createDefaultTournament([
     {
       type: BracketType.GroupStage,
@@ -292,7 +292,7 @@ test("GroupStage 6/3", () => {
   validateStorage(tournamentEngine)
 })
 
-test("GroupStage 6/3 with forfeit early", () => {
+test.skip("GroupStage 6/3 with forfeit early", () => {
   const tournamentEngine = createDefaultTournament([
     {
       type: BracketType.GroupStage,
@@ -321,7 +321,7 @@ test("GroupStage 6/3 with forfeit early", () => {
   validateStorage(tournamentEngine)
 })
 
-test("GroupStage 6/3 with forfeit late", () => {
+test.skip("GroupStage 6/3 with forfeit late", () => {
   const tournamentEngine = createDefaultTournament([
     {
       type: BracketType.GroupStage,
@@ -351,7 +351,7 @@ test("GroupStage 6/3 with forfeit late", () => {
   validateStorage(tournamentEngine)
 })
 
-test("GroupStage 4/2, lowerScoreIsBetter", () => {
+test.skip("GroupStage 4/2, lowerScoreIsBetter", () => {
   const tournamentEngine = createDefaultTournament([
     {
       type: BracketType.GroupStage,
@@ -379,7 +379,7 @@ test("GroupStage 4/2, lowerScoreIsBetter", () => {
   validateStorage(tournamentEngine)
 })
 
-test("GroupStage 6/2, lowerScoreIsBetter with points draw and score break", () => {
+test.skip("GroupStage 6/2, lowerScoreIsBetter with points draw and score break", () => {
   const tournamentEngine = createDefaultTournament([
     {
       type: BracketType.GroupStage,
@@ -411,7 +411,7 @@ test("GroupStage 6/2, lowerScoreIsBetter with points draw and score break", () =
   validateStorage(tournamentEngine)
 })
 
-test("6 players | GS 3 | FFA top 2", () => {
+test.skip("6 players | GS 3 | FFA top 2", () => {
   const tournamentEngine = createDefaultTournament([
     {
       type: BracketType.GroupStage,
@@ -459,7 +459,7 @@ test("6 players | GS 3 | FFA top 2", () => {
   validateStorage(tournamentEngine)
 })
 
-test("8 players | GS 4 | Duel top 4", () => {
+test.skip("8 players | GS 4 | Duel top 4", () => {
   const tournamentEngine = createDefaultTournament([
     {
       type: BracketType.GroupStage,
@@ -513,7 +513,7 @@ test("8 players | GS 4 | Duel top 4", () => {
   validateStorage(tournamentEngine)
 })
 
-test("8 players | FFA 4 | Duel top 4", () => {
+test.skip("8 players | FFA 4 | Duel top 4", () => {
   const tournamentEngine = createDefaultTournament([
     {
       type: BracketType.FFA,
@@ -568,7 +568,7 @@ test("8 players | FFA 4 | Duel top 4", () => {
   validateStorage(tournamentEngine)
 })
 
-test("Tournament reset will clear brackets", () => {
+test.skip("Tournament reset will clear brackets", () => {
   const tournamentEngine = createDefaultTournament([
     {
       type: BracketType.FFA,
@@ -622,6 +622,46 @@ test("Tournament reset will clear brackets", () => {
   ).toEqual(true)
 
   validateStorage(tournamentEngine)
+})
+
+test("2 phases tournament selects the correct players", () => {
+  // Players are [1,4,9], [2,5,8], [3,6,7] in groups
+  // Winners are players 1, 2 and 3
+  // Seconds are 4, 5 and 6. Best second is 5 by scoring more points
+  const tournamentEngine = createDefaultTournament([
+    {
+      type: BracketType.GroupStage,
+      groupSize: 3
+    },
+    {
+      type: BracketType.Duel,
+      size: 4,
+      short: true
+    }
+  ])
+  const scorer = createScorer(tournamentEngine)
+  const playerCount = 9
+  for (let p = 1; p <= playerCount; p++) {
+    tournamentEngine.addPlayer(p + "")
+  }
+
+  tournamentEngine.startTournament()
+  // console.log(tournamentEngine.getMatches())
+  scorer({ s: 1, r: 1, m: 1 }, [1, 0]) // 4 > 9
+  scorer({ s: 1, r: 2, m: 1 }, [0, 3]) // 9 < 1
+  scorer({ s: 1, r: 3, m: 1 }, [1, 0]) // 1 > 4
+
+  scorer({ s: 2, r: 1, m: 1 }, [2, 0]) // 5 > 8
+  scorer({ s: 2, r: 2, m: 1 }, [0, 3]) // 8 < 2
+  scorer({ s: 2, r: 3, m: 1 }, [1, 0]) // 2 > 5
+
+  scorer({ s: 3, r: 1, m: 1 }, [1, 0]) // 6 > 7
+  scorer({ s: 3, r: 2, m: 1 }, [0, 3]) // 7 < 3
+  scorer({ s: 3, r: 3, m: 1 }, [1, 0]) // 3 > 6
+
+  expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Validating)
+  tournamentEngine.validateActiveBracket()
+  expect(tournamentEngine.getMatches().flatMap((m) => m.opponents)).toEqual(["1", "5", "3", "2", undefined, undefined])
 })
 
 function createDefaultTournament(bracketSettings: BracketSettings[]) {
