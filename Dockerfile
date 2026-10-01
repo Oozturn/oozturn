@@ -10,7 +10,7 @@ COPY package-lock.json package.json ./
 # Build stage
 FROM base AS build
 # Install dev node modules
-RUN npm ci --include=dev
+RUN npm ci --include=dev && npm install --no-save --ignore-scripts @rollup/rollup-linux-x64-musl@$(node -p "require('./node_modules/rollup/package.json').version")
 # Build application
 COPY ./app /app/app
 COPY ./public /app/public

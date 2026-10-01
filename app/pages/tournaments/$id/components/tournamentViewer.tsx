@@ -232,21 +232,6 @@ function FocusTarget({ focusKey, targetId, ready }: { focusKey: string; targetId
 
       controls.zoomToElement(targetElement, 1.0, 600, "easeOut")
     }
-  }, [wrapperContext, tournament.id])
-
-  return (
-    <div
-      className={`is-flex-${
-        tournament.bracketSettings[bracket].type == BracketType.GroupStage ? "row" : "col"
-      } gap-5 no-basis has-background-secondar-level`}
-      style={{ margin: "2rem" }}
-    >
-      {sections.map((section) => {
-        return <SectionViewer key={bracket + "." + section} bracket={bracket} section={section} />
-      })}
-    </div>
-  )
-}
 
     const frame = window.setTimeout(tryFocus, 150)
 
