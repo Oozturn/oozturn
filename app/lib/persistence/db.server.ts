@@ -44,7 +44,7 @@ function fireRestore() {
   })
 }
 
-function fireStore() {
+export function fireStore() {
   global.objectManagers.forEach((objectManager) => {
     objectManager.onStore()
   })

@@ -19,6 +19,7 @@ export default defineConfig({
           route("logout", "pages/logout.ts", { index: true })
           route("admin", "pages/admin/admin.tsx")
           route("admin/login", "pages/admin/login/admin-login.tsx")
+          route("admin/export", "pages/admin/export.ts")
           route("tournaments", "pages/tournaments/layout.tsx", () => {
             route("", "pages/tournaments/tournaments.tsx", { index: true })
             route("404", "pages/tournaments/404.tsx")

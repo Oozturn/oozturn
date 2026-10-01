@@ -274,6 +274,18 @@ export function SectionLanSettings({ isActive }: { isActive: boolean }) {
             <CustomButton callback={() => fileInputRef.current?.click()} contentItems={["Choisir une image"]} />
           </fetcherUpdateMap.Form>
         </div>
+        {/* Data export */}
+        <div className="is-flex gap-3 align-center">
+          <div className="has-text-right is-one-fifth">Sauvegarde des données :</div>
+          <div className="is-flex-col gap-1">
+            <a
+              href="/admin/export"
+              className="customButton fade-on-mouse-out is-unselectable is-clickable has-background-primary-level"
+            >
+              Télécharger
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   )
