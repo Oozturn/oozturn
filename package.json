@@ -20,7 +20,7 @@
     "@remix-run/express": "^2.5.1",
     "@remix-run/node": "^2.5.1",
     "@remix-run/react": "^2.5.1",
-    "avatar-initials": "^6.0.0",
+    "avatar-initials": "github:Bug38/avatar#patch-1",
     "bcryptjs": "^2.4.3",
     "bulma": "^0.9.4",
     "compression": "^1.7.4",
@@ -38,7 +38,7 @@
     "react-toastify": "^10.0.5",
     "react-zoom-pan-pinch": "^3.6.1",
     "remix-utils": "^7.6.0",
-    "sharp": "^0.33.2",
+    "sharp": "^0.35.5",
     "use-local-storage-state": "^19.1.0"
   },
   "devDependencies": {

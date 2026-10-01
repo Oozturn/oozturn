@@ -14,7 +14,7 @@ RUN npm ci --include=dev
 # Build application
 COPY ./app /app/app
 COPY ./public /app/public
-COPY ./server.js ./tsconfig.json ./vite.config.ts /app/
+COPY ./server.js ./logger.js ./tsconfig.json ./vite.config.ts /app/
 RUN npm run build
 
 # Final stage for app image
@@ -27,7 +27,7 @@ RUN npm ci --omit=dev && npm prune --omit=dev --omit=optional && npm install @im
 
 # Copy built application and server files
 COPY --from=build /app/build /app/build
-COPY --from=build /app/server.js /app/
+COPY --from=build /app/server.js /app/logger.js /app/
 
 # Start the server
 EXPOSE 3000
