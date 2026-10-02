@@ -434,17 +434,9 @@ export class TournamentEngine implements TournamentSpecification {
       return (a, b) => {
         const resultA = results.find((r) => r.id == getOpponentId(a))!
         const resultB = results.find((r) => r.id == getOpponentId(b))!
-        return resultsSorter(resultA, resultB, bSettings) //|| resultB.seed - resultA.seed
+        return resultsSorter(resultA, resultB, bSettings)
       }
     }
-    // function usingMatchId(matches: Match[]): (aId: string, bId: string) => number {
-    //   return (aId, bId) => {
-    //     return IdToString(matches.find((m) => m.opponents.includes(aId))!.id) <
-    //       IdToString(matches.find((m) => m.opponents.includes(bId))!.id)
-    //       ? -1
-    //       : 1
-    //   }
-    // }
     function usingSortedIds(sortedIds: string[]): ((a: Team, b: Team) => number) & ((a: Player, b: Player) => number) {
       return (a, b) => {
         const aId = getOpponentId(a)
@@ -466,7 +458,6 @@ export class TournamentEngine implements TournamentSpecification {
         ...nextOpponents
           .slice(i * nbPreviousMatches, i * nbPreviousMatches + nbPreviousMatches)
           .map((opponent) => getOpponentId(opponent))
-        // .sort(usingMatchId(previousBracket.getMatches()))
       )
     }
 
