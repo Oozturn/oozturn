@@ -202,7 +202,7 @@ export class Duel extends Tournament {
     super("Duel", numPlayers, matches)
     this.isLong = isLong // isLong for WB => hasBF, isLong for LB => hasGf2
     this.last = opts.last
-    this.downMix = opts.downMix! && opts.last > WB
+    this.downMix = !(opts.downMix === false) && opts.last > WB
     this.p = p
     this.lowerScoreIsBetter = opts.lowerScoreIsBetter
     this.scoreComparator = opts.lowerScoreIsBetter

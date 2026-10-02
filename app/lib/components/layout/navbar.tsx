@@ -123,7 +123,7 @@ function NotificationCenter() {
           {playableMatches.map((match) => (
             <Link
               key={match.tournamentId + "_" + IdToString(match.matchId)}
-              to={`/tournaments/${match.tournamentId}`}
+              to={`/tournaments/${match.tournamentId}?matchId=${IdToString(match.matchId)}`}
               className="m-2 is-flex align-center gap-3 fade-on-mouse-out"
             >
               <span style={{ letterSpacing: -5 }}>
