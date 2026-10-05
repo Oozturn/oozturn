@@ -434,15 +434,7 @@ export class TournamentEngine implements TournamentSpecification {
       return (a, b) => {
         const resultA = results.find((r) => r.id == getOpponentId(a))!
         const resultB = results.find((r) => r.id == getOpponentId(b))!
-        return resultsSorter(resultA, resultB, bSettings) || resultB.seed - resultA.seed
-      }
-    }
-    function usingMatchId(matches: Match[]): (aId: string, bId: string) => number {
-      return (aId, bId) => {
-        return IdToString(matches.find((m) => m.opponents.includes(aId))!.id) <
-          IdToString(matches.find((m) => m.opponents.includes(bId))!.id)
-          ? -1
-          : 1
+        return resultsSorter(resultA, resultB, bSettings)
       }
     }
     function usingSortedIds(sortedIds: string[]): ((a: Team, b: Team) => number) & ((a: Player, b: Player) => number) {
@@ -466,7 +458,6 @@ export class TournamentEngine implements TournamentSpecification {
         ...nextOpponents
           .slice(i * nbPreviousMatches, i * nbPreviousMatches + nbPreviousMatches)
           .map((opponent) => getOpponentId(opponent))
-          .sort(usingMatchId(previousBracket.getMatches()))
       )
     }
 
@@ -794,18 +785,34 @@ class Bracket {
     })
   }
 
+  private scorableMatch(id: Id): boolean {
+    if (this.settings.type == BracketType.FFA) {
+      if (this.states.find((bs) => bs.id.r == id.r + 1 && bs.score.some((value) => value != undefined))) return false
+    } else if (this.settings.type == BracketType.Duel) {
+      if (
+        this.states
+          .find((bs) => bs.id == (this.internalBracket as Duel).right(id)?.[0])
+          ?.score.some((value) => value != undefined)
+      )
+        return false
+    }
+    const match = this.internalBracket!.findMatch(id)
+    return (
+      this.internalBracket!.unscorable(
+        match.id,
+        match.p.map((_, i) => i),
+        false
+      ) == null
+    )
+  }
+
   getMatch(id: Id) {
     const match = this.internalBracket!.findMatch(id)
     return {
       id: match.id,
       opponents: match.p.map((p) => this.seedings.getRight(p)),
       score: match.m || this.states.find((bs) => bs.id == match.id)?.score || match.p.map(() => undefined),
-      scorable:
-        this.internalBracket!.unscorable(
-          match.id,
-          match.p.map((_, i) => i),
-          false
-        ) == null
+      scorable: this.scorableMatch(match.id)
     }
   }
 
@@ -845,12 +852,7 @@ class Bracket {
           match.m ||
           this.states.find((bs) => IdToString(bs.id) == IdToString(match.id))?.score ||
           match.p.map(() => undefined),
-        scorable:
-          this.internalBracket!.unscorable(
-            match.id,
-            match.p.map((_, i) => i),
-            false
-          ) == null,
+        scorable: this.scorableMatch(match.id),
         isFinale: finalsList.includes(IdToString(match.id)),
         timestamp: this.states.find((bs) => IdToString(bs.id) == IdToString(match.id))?.timestamp
       } as Match

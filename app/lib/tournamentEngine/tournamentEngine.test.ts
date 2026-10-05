@@ -438,19 +438,22 @@ test("6 players | GS 3 | FFA top 2", () => {
 
   expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Running)
   expect(tournamentEngine.getResults()).toMatchObject([
-    ...[1, 2, 4, 3, 6, 5].map((i) => {
-      return { userId: 7 - i + "", position: Math.max(2, i - ((i + 1) % 2)) }
-    })
+    { userId: "5", position: 2 },
+    { userId: "6", position: 2 },
+    { userId: "3", position: 3 },
+    { userId: "4", position: 3 },
+    { userId: "1", position: 5 },
+    { userId: "2", position: 5 }
   ])
   validateStorage(tournamentEngine)
 
-  scorer({ s: 1, r: 1, m: 1 }, [1, 0]) // 6 < 5
+  scorer({ s: 1, r: 1, m: 1 }, [1, 0]) // 5 > 6
   tournamentEngine.validateActiveBracket()
 
   expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Done)
   expect(tournamentEngine.getResults()).toMatchObject([
-    { userId: "6", position: 1 },
-    { userId: "5", position: 2 },
+    { userId: "5", position: 1 },
+    { userId: "6", position: 2 },
     { userId: "3", position: 3 },
     { userId: "4", position: 3 },
     { userId: "1", position: 5 },
@@ -487,24 +490,29 @@ test("8 players | GS 4 | Duel top 4", () => {
 
   expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Running)
   expect(tournamentEngine.getResults()).toMatchObject([
-    ...[1, 2, 3, 4, 6, 5, 8, 7].map((i) => {
-      return { userId: 9 - i + "", position: Math.max(4, i - ((i + 1) % 2)) }
-    })
+    { userId: "7", position: 4 },
+    { userId: "8", position: 4 },
+    { userId: "5", position: 4 },
+    { userId: "6", position: 4 },
+    { userId: "3", position: 5 },
+    { userId: "4", position: 5 },
+    { userId: "1", position: 7 },
+    { userId: "2", position: 7 }
   ])
   validateStorage(tournamentEngine)
 
-  scorer({ s: 1, r: 1, m: 1 }, [1, 0]) // 8 > 5
-  scorer({ s: 1, r: 1, m: 2 }, [0, 1]) // 6 < 7
-  scorer({ s: 1, r: 2, m: 1 }, [1, 0]) // 8 > 7
-  scorer({ s: 2, r: 1, m: 1 }, [0, 1]) // 5 < 6
+  scorer({ s: 1, r: 1, m: 1 }, [1, 0]) // 7 > 6
+  scorer({ s: 1, r: 1, m: 2 }, [0, 1]) // 5 < 8
+  scorer({ s: 1, r: 2, m: 1 }, [1, 0]) // 7 > 8
+  scorer({ s: 2, r: 1, m: 1 }, [0, 1]) // 6 < 5
   tournamentEngine.validateActiveBracket()
 
   expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Done)
   expect(tournamentEngine.getResults()).toMatchObject([
-    { userId: "8", position: 1 },
-    { userId: "7", position: 2 },
-    { userId: "6", position: 3 },
-    { userId: "5", position: 4 },
+    { userId: "7", position: 1 },
+    { userId: "8", position: 2 },
+    { userId: "5", position: 3 },
+    { userId: "6", position: 4 },
     { userId: "3", position: 5 },
     { userId: "4", position: 5 },
     { userId: "1", position: 7 },
@@ -539,8 +547,8 @@ test("8 players | FFA 4 | Duel top 4", () => {
   expect(tournamentEngine.getResults()).toMatchObject([
     { userId: "8", position: 4 },
     { userId: "7", position: 4 },
-    { userId: "6", position: 4 },
     { userId: "5", position: 4 },
+    { userId: "6", position: 4 },
     { userId: "4", position: 5 },
     { userId: "3", position: 6 },
     { userId: "2", position: 7 },
@@ -558,8 +566,8 @@ test("8 players | FFA 4 | Duel top 4", () => {
   expect(tournamentEngine.getResults()).toMatchObject([
     { userId: "8", position: 1 },
     { userId: "7", position: 2 },
-    { userId: "6", position: 3 },
-    { userId: "5", position: 4 },
+    { userId: "5", position: 3 },
+    { userId: "6", position: 4 },
     { userId: "4", position: 5 },
     { userId: "3", position: 6 },
     { userId: "2", position: 7 },
@@ -586,15 +594,20 @@ test("Tournament reset will clear brackets", () => {
   }
 
   tournamentEngine.startTournament()
-  scorer({ s: 1, r: 1, m: 1 }, [0, 1, 2, 3]) // 1 < 3 < 6 < 8
-  scorer({ s: 1, r: 1, m: 2 }, [0, 1, 2, 3]) // 2 < 4 < 5 < 7
+  scorer({ s: 1, r: 1, m: 1 }, [0, 1, 2, 4]) // 1 < 3 < 6 < 8
+  scorer({ s: 1, r: 1, m: 2 }, [0, 2, 3, 4]) // 2 < 4 < 5 < 7
   tournamentEngine.validateActiveBracket()
 
   expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Running)
   expect(tournamentEngine.getResults()).toMatchObject([
-    ...[1, 2, 3, 4, 6, 5, 8, 7].map((i) => {
-      return { userId: 9 - i + "", position: Math.max(4, i - ((i + 1) % 2)) }
-    })
+    { userId: "7", position: 4 },
+    { userId: "8", position: 4 },
+    { userId: "5", position: 4 },
+    { userId: "6", position: 4 },
+    { userId: "4", position: 5 },
+    { userId: "3", position: 6 },
+    { userId: "1", position: 7 },
+    { userId: "2", position: 7 }
   ])
   validateStorage(tournamentEngine)
 
@@ -622,6 +635,46 @@ test("Tournament reset will clear brackets", () => {
   ).toEqual(true)
 
   validateStorage(tournamentEngine)
+})
+
+test("2 phases tournament selects the correct players", () => {
+  // Players are [1,4,9], [2,5,8], [3,6,7] in groups
+  // Winners are players 1, 2 and 3
+  // Seconds are 4, 5 and 6. Best second is 5 by scoring more points
+  const tournamentEngine = createDefaultTournament([
+    {
+      type: BracketType.GroupStage,
+      groupSize: 3
+    },
+    {
+      type: BracketType.Duel,
+      size: 4,
+      short: true
+    }
+  ])
+  const scorer = createScorer(tournamentEngine)
+  const playerCount = 9
+  for (let p = 1; p <= playerCount; p++) {
+    tournamentEngine.addPlayer(p + "")
+  }
+
+  tournamentEngine.startTournament()
+  // console.log(tournamentEngine.getMatches())
+  scorer({ s: 1, r: 1, m: 1 }, [1, 0]) // 4 > 9
+  scorer({ s: 1, r: 2, m: 1 }, [0, 3]) // 9 < 1
+  scorer({ s: 1, r: 3, m: 1 }, [1, 0]) // 1 > 4
+
+  scorer({ s: 2, r: 1, m: 1 }, [2, 0]) // 5 > 8
+  scorer({ s: 2, r: 2, m: 1 }, [0, 3]) // 8 < 2
+  scorer({ s: 2, r: 3, m: 1 }, [1, 0]) // 2 > 5
+
+  scorer({ s: 3, r: 1, m: 1 }, [1, 0]) // 6 > 7
+  scorer({ s: 3, r: 2, m: 1 }, [0, 3]) // 7 < 3
+  scorer({ s: 3, r: 3, m: 1 }, [1, 0]) // 3 > 6
+
+  expect(tournamentEngine.getStatus()).toEqual(TournamentStatus.Validating)
+  tournamentEngine.validateActiveBracket()
+  expect(tournamentEngine.getMatches().flatMap((m) => m.opponents)).toEqual(["1", "5", "3", "2", undefined, undefined])
 })
 
 function createDefaultTournament(bracketSettings: BracketSettings[]) {

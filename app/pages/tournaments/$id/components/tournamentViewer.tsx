@@ -2,11 +2,11 @@ import { canEditScore, IdToString } from "~/lib/utils/tournaments"
 import { useContext, useEffect, useRef, useState } from "react"
 import { BracketType, TournamentStatus } from "~/lib/tournamentEngine/types"
 import { Duel } from "~/lib/tournamentEngine/tournament/duel"
-import { TransformComponent, TransformWrapper, useTransformContext } from "react-zoom-pan-pinch"
+import { TransformComponent, TransformWrapper, useControls, useTransformContext } from "react-zoom-pan-pinch"
 import { HightlightOpponentContext } from "./HightlightOpponentContext"
 import { Id } from "~/lib/tournamentEngine/tournament/match"
 import { useUser } from "~/lib/components/contexts/UserContext"
-import { useFetcher } from "@remix-run/react"
+import { useFetcher, useSearchParams } from "@remix-run/react"
 import { MatchesIntents } from "../tournament"
 import { FakeUserTileRectangle, UserTileRectangle } from "~/lib/components/elements/user-tile"
 import { useTournament } from "~/lib/components/contexts/TournamentsContext"
@@ -31,6 +31,9 @@ export function TournamentViewer() {
   })
   const [currentBracketView, setCurrentBracketView] = useState(tournament.currentBracket)
   const users = useUsers()
+  const [searchParams] = useSearchParams()
+  const targetMatchId = searchParams.get("matchId") || null
+  const focusKey = `${tournament.id}-${targetMatchId ?? "none"}`
 
   useEffect(() => {
     const ref = containerRef.current as unknown as HTMLDivElement
@@ -40,6 +43,15 @@ export function TournamentViewer() {
     setMinScale(Math.min(ref?.clientHeight / bref?.clientHeight, ref?.clientWidth / bref?.clientWidth, 1))
     setCurrentBracketView(tournament.currentBracket)
   }, [containerRef, bracketRef, minScale, tournament.id, tournament.currentBracket])
+
+  useEffect(() => {
+    if (!targetMatchId) return
+
+    const match = tournament.matches.find((match) => IdToString(match.id) === targetMatchId)
+    if (match) {
+      setCurrentBracketView(tournament.currentBracket)
+    }
+  }, [targetMatchId, tournament.currentBracket, tournament.matches])
 
   useEffect(() => {
     if (hightlightOpponent == "") return
@@ -114,6 +126,7 @@ export function TournamentViewer() {
             doubleClick={{ disabled: true }}
             disablePadding={true}
           >
+            <FocusTarget focusKey={focusKey} targetId={targetMatchId} ready={Boolean(width && height)} />
             <TransformComponent
               wrapperStyle={{ width: width ? width : "100%", height: height ? height : "100%" }}
               wrapperClass="has-background-primary-level"
@@ -198,6 +211,37 @@ export function TournamentViewer() {
       </div>
     </div>
   )
+}
+
+function FocusTarget({ focusKey, targetId, ready }: { focusKey: string; targetId: string | null; ready: boolean }) {
+  const controls = useControls()
+
+  useEffect(() => {
+    if (!targetId || !ready) return
+
+    let cancelled = false
+
+    const tryFocus = () => {
+      if (cancelled) return
+
+      const targetElement = document.getElementById(targetId)
+      if (!targetElement) {
+        window.setTimeout(tryFocus, 100)
+        return
+      }
+
+      controls.zoomToElement(targetElement, 1.0, 600, "easeOut")
+    }
+
+    const frame = window.setTimeout(tryFocus, 150)
+
+    return () => {
+      cancelled = true
+      window.clearTimeout(frame)
+    }
+  }, [focusKey, ready, targetId, controls])
+
+  return null
 }
 
 function BracketViewer({ bracket }: { bracket: number }) {
@@ -460,6 +504,7 @@ function FinaleViewer({ bracket }: { bracket: number }) {
 
 function MatchTile({ matchId }: { matchId: Id }) {
   const user = useUser()
+  const users = useUsers()
   const tournament = useTournament()
   const fetcher = useFetcher()
   const { hightlightOpponent, setHightlightOpponent } = useContext(HightlightOpponentContext)
@@ -529,9 +574,19 @@ function MatchTile({ matchId }: { matchId: Id }) {
     )
   }
 
-  const matchOpponents = match.opponents.map((opponentId, index) => {
-    return { opponentId: opponentId, opponentScore: match.score[index] }
-  })
+  const matchOpponents = match.opponents
+    .map((opponentId, index) => {
+      return { opponentId: opponentId, opponentScore: match.score[index] }
+    })
+    .sort((a, b) => {
+      if (a.opponentId == undefined) return 1
+      if (b.opponentId == undefined) return -1
+      return (
+        users
+          .find((u) => u.id == a.opponentId)
+          ?.username.localeCompare(users.find((u) => u.id == b.opponentId)?.username || "") || 0
+      )
+    })
 
   if (isOver) {
     if (tournament.bracketSettings[match.bracket].lowerScoreIsBetter)
@@ -558,7 +613,7 @@ function MatchTile({ matchId }: { matchId: Id }) {
   })()
 
   return (
-    <div className="is-flex-row align-center" style={{ width: isFFA ? 394 : 330 }}>
+    <div id={IdToString(match.id)} className="is-flex-row align-center" style={{ width: isFFA ? 394 : 330 }}>
       <div
         className="is-vertical is-flex pt-2"
         style={{ transform: "rotate(-90deg)", width: "2rem", lineHeight: "1rem" }}
