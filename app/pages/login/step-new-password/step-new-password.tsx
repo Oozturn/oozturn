@@ -32,7 +32,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const password = String(formData.get("password") || "").trim()
   const confirmPassword = String(formData.get("confirmPassword") || "").trim()
 
-  const errors = await validate(password, confirmPassword)
+  const errors = validate(password, confirmPassword)
   if (errors) {
     return json({ ok: false, errors }, 400)
   }
@@ -100,7 +100,7 @@ export default function LoginStepNewPassword() {
                 maxLength={18}
                 title={
                   "18 caractères max." + settings.security.securePassword
-                    ? " doit contenir au moins 1 de chaque : minuscule / majuscule / nombre / charcactère spécial"
+                    ? " doit contenir au moins 1 de chaque : minuscule / majuscule / nombre / caractère spécial"
                     : ""
                 }
                 onKeyDown={(e) => {
